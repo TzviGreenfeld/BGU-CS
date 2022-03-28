@@ -8,7 +8,6 @@ int main(int argc, char* argv[]){
 	char c;
 	while( (c = fgetc(stdin)) != EOF ){
 		if ( (c >= 65 ) & ( c <= 90 ) )	{
-			numOfLetters++;
 			printf(".");	
 		}else {
 			printf("%c", c);
