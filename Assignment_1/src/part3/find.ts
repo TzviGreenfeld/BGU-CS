@@ -16,7 +16,7 @@ export const findResult = <T>(pred: (x: T) => boolean, arr: T[] ) : Result<T> =>
     }else if (pred(arr[0])){
         return makeOk(arr[0]);
     }else{
-        findResult(pred, arr.slice(1))
+        return findResult(pred, arr.slice(1))
     }
 }
 
