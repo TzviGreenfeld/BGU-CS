@@ -4,27 +4,9 @@ import * as R from "ramda";
 const stringToArray = R.split("");
 
 /* Question 1 */
-// export const countLetters = (s: string): Map<string, number> => {
-
-// }
-
-
-//     // R.reduce((chars, currChar) => {
-//     //     if (currChar in chars) {
-//     //         chars[currChar]++;
-//     //     }
-//     //     else {
-//     //         chars[currChar] = 1;
-//     //     }
-//     //     return chars;
-//     // }, Object.create({}), stringToArray(s))
-// }
+export const countLetters : (s: string) => {} = (s: string) => R.countBy(R.toLower)(stringToArray(s));
 
 /* Question 2 */
-/* algortihm:
-
-
-*/
 export const getCloser = (par: string): string => {
     if (par === '{')
         return '}';
@@ -70,12 +52,12 @@ export const isPaired = (s: string): boolean => {
 
 }
 
-// /* Question 3 */
-// interface WordTree {
-//     root: string;
-//     children: WordTree[];
-// }
+/* Question 3 */
+interface WordTree {
+    root: string;
+    children: WordTree[];
+}
 
-// export const treeToSentence = (t: WordTree): string => undefined
+export const treeToSentence = (t: WordTree): string => undefined
 
 console.log(isPaired("({[]})"));
