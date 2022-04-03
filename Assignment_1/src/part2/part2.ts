@@ -4,78 +4,58 @@ import * as R from "ramda";
 const stringToArray = R.split("");
 
 /* Question 1 */
-// export const countLetters = (s: string): Map<string, number> => {
-
-// }
-
-
-//     // R.reduce((chars, currChar) => {
-//     //     if (currChar in chars) {
-//     //         chars[currChar]++;
-//     //     }
-//     //     else {
-//     //         chars[currChar] = 1;
-//     //     }
-//     //     return chars;
-//     // }, Object.create({}), stringToArray(s))
-// }
+export const countLetters : (s: string) => {[key: string]: number} = (s: string) => R.countBy(R.toLower)(stringToArray(s).reduce(x => x != " "));
 
 /* Question 2 */
-/* algortihm:
+const conditionalPushPop = (stack: string[], opener:string, closer: string) : string[] => {
+    if(R.isEmpty(stack)){
+        return [closer];
+    } else if (stack[0] === opener){
+        return R.tail(stack);
+    } else {
+        return R.prepend(closer, stack);
+    }
+    
+}
 
-
-*/
-export const getCloser = (par: string): string => {
-    if (par === '{')
-        return '}';
-    else if (par === '[')
-        return ']';
-    else if (par === '(')
-        return ')';
+const getOpener = (par: string): string => {
+    if (par === '}')
+        return '{';
+    else if (par === ']')
+        return '[';
+    else if (par === ')')
+        return '(';
     else
         return ' ';
 }
 
-export const isPaired = (s: string): boolean => {
-    console.log(s);
-    const expr = stringToArray(s);
-    if (expr.length === 0){
-        console.log("len 0");
-        return true;
-    }
-    else if (expr.length % 2 === 1){
-        console.log("odd");
-        return false;
-    }
-    else if (['}', ']', ')'].includes(expr[0])){
-        console.log("first closing");
-        return false;
-    }
 
-
-    const parentheis: Array<string> = stringToArray("[]{}()");
-    const relevantExp: string[] = expr.filter(c => parentheis.includes(c));
-    const currClosing: number = relevantExp.indexOf(getCloser(relevantExp[0]));
-
-
-
-    const firstHalf = relevantExp.join("").substring(1, currClosing);
-
-    if (currClosing <= relevantExp.length - 1) {
-        const secondHalf = relevantExp.join("").substring(currClosing, relevantExp.length - 1);
-        return (isPaired(firstHalf) && isPaired(secondHalf));
+const functionalStack = (stack: string[], char: string): string[] =>{
+    if (['(', '[', '{'].includes(char)){
+        return R.prepend(char, stack);
+    } else if (['}', ']', ')'].includes(char)){
+        return conditionalPushPop(stack, getOpener(char), char);
     } else {
-        return (isPaired(firstHalf));
-    }
+        return stack;
+    } 
 
 }
 
-// /* Question 3 */
-// interface WordTree {
-//     root: string;
-//     children: WordTree[];
-// }
+export const isPaired : (s: string) => boolean = R.pipe(
+    stringToArray,
+    R.reduce(functionalStack, []),
+    R.isEmpty,
+)
 
-// export const treeToSentence = (t: WordTree): string => undefined
+/* Question 3 */
+interface WordTree {
+    root: string;
+    children: WordTree[];
+}
 
-console.log(isPaired("({[]})"));
+
+export const treeToSentence = (t: WordTree): string => {
+    return R.reduce((x, y) => x.concat(y.root), [t.root], t.children).join(" ")
+}
+
+
