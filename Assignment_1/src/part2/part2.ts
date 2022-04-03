@@ -4,7 +4,11 @@ import * as R from "ramda";
 const stringToArray = R.split("");
 
 /* Question 1 */
+<<<<<<< HEAD
 export const countLetters : (s: string) => {[key: string]: number} = (s: string) => R.countBy(R.toLower)(stringToArray(s).reduce(x => x != " "));
+=======
+export const countLetters : (s: string) => {} = (s: string) => R.countBy(R.toLower)(stringToArray(s));
+>>>>>>> 5bd32af51b7f89a6e587cbe57d44b6507af6dea1
 
 /* Question 2 */
 const conditionalPushPop = (stack: string[], opener:string, closer: string) : string[] => {
@@ -29,6 +33,7 @@ const getOpener = (par: string): string => {
         return ' ';
 }
 
+<<<<<<< HEAD
 
 const functionalStack = (stack: string[], char: string): string[] =>{
     if (['(', '[', '{'].includes(char)){
@@ -53,9 +58,38 @@ interface WordTree {
     children: WordTree[];
 }
 
+=======
+
+const functionalStack = (stack: string[], char: string): string[] =>{
+    if (['(', '[', '{'].includes(char)){
+        return R.prepend(char, stack);
+    } else if (['}', ']', ')'].includes(char)){
+        return conditionalPushPop(stack, getOpener(char), char);
+    } else {
+        return stack;
+    } 
+>>>>>>> 5bd32af51b7f89a6e587cbe57d44b6507af6dea1
 
 export const treeToSentence = (t: WordTree): string => {
     return R.reduce((x, y) => x.concat(y.root), [t.root], t.children).join(" ")
 }
 
+<<<<<<< HEAD
 
+=======
+export const isPaired : (s: string) => boolean = R.pipe(
+    stringToArray,
+    R.reduce(functionalStack, []),
+    R.isEmpty,
+)
+
+/* Question 3 */
+interface WordTree {
+    root: string;
+    children: WordTree[];
+}
+
+export const treeToSentence = (t: WordTree): string => undefined
+
+console.log(isPaired("({[]})"));
+>>>>>>> 5bd32af51b7f89a6e587cbe57d44b6507af6dea1
