@@ -3,18 +3,11 @@
 #include <string.h>
 
 char encrypt(char c);
-		  
 char decrypt(char c);
-			
 char dprt(char c);
-			  
 char cprt(char c);
-				
-				
 char my_get(char c);
-
 char quit(char c);
-
 char censor(char c)
 {
 	if (c == '!')
@@ -37,7 +30,16 @@ char *map(char *array, int array_length, char (*f)(char))
 
 int main(int argc, char **argv)
 {
-	
+	char str[] = "Hello Worold!";
+	char *mapped = map(str, sizeof(str) / sizeof(str[0]), censor);
+	printf("original: %s\nnew: %s\n", str, mapped);
+	free(mapped);
+
+	char c = 'A';
+	printf("%c encrypt %c\n", c, encrypt(c));
+	dprt('A');
+	quit('q');
+	printf("hi");
 
 	return 0;
 }
