@@ -11,18 +11,23 @@ typedef struct virus
 
 void readVirus(virus *vir, FILE *input)
 {
-    int c = fread(vir, 18, 1, input);
-    if (c == '\n')
+    short *size = malloc(sizeof(short));
+    if (fread(size, sizeof(short), 1, input) != 0)
     {
-        free(vir);
+        char *sig = malloc(*size);
+        fread(sig, sizeof(char), *size, input);
+        char virName[16];
+        fread(virName, sizeof(char), 16, input);
+        vir->SigSize = *size;
+        vir->sig = sig;
+        strcpy(vir->virusName, virName);
+        free(size);
     }
     else
     {
-        vir->sig = (unsigned char *)malloc(vir->SigSize);
-        fread(vir->sig, 1, vir->SigSize, input); 
-        ( vir->sig[0] | vir->sig[1] ) << 8;
+        free(size);
+        vir = NULL;
     }
-    return;
 }
 
 void printVirus(virus *vir, FILE *output)
@@ -35,7 +40,7 @@ void printVirus(virus *vir, FILE *output)
     int i;
     for (i = 0; i < vir->SigSize; i++)
     {
-        fprintf(output, "%02hhx ", (unsigned int)((vir->sig)[i]));
+        fprintf(output, "%02hhX ", (unsigned int)((vir->sig)[i]));
         if (i % LINE_LEN == LINE_LEN - 1)
         {
             fprintf(output, "\n");
@@ -50,7 +55,19 @@ void printVirus(virus *vir, FILE *output)
 
 int main()
 {
-    virus *newVirus = (virus *)malloc(sizeof(virus));
-    readVirus(newVirus, fopen("signatures", "rb"));
-    printVirus(newVirus, stdout);
+
+    virus *vir = malloc(sizeof(virus));
+    FILE *file = fopen("signatures", "rb");
+    while (1)
+    {
+        readVirus(vir, file);
+        if (vir == NULL){
+            exit(0);
+            free(vir);
+            fclose(file);
+        }
+        printVirus(vir, stdout);
+        
+        
+    }
 }
