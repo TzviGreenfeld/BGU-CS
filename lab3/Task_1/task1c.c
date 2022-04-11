@@ -26,7 +26,7 @@ void readVirus(virus *vir, FILE *input)
     else
     {
         free(size);
-        vir = NULL;
+        free(vir);
     }
 }
 
@@ -58,16 +58,14 @@ int main()
 
     virus *vir = malloc(sizeof(virus));
     FILE *file = fopen("signatures", "rb");
-    while (1)
+    while (vir)
     {
         readVirus(vir, file);
-        if (vir == NULL){
-            exit(0);
-            free(vir);
+        if (vir->SigSize == 0)
+        {
             fclose(file);
+            exit(0);
         }
         printVirus(vir, stdout);
-        
-        
     }
 }
