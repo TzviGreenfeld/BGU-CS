@@ -15,18 +15,16 @@ char dprt(char c);
 char cprt(char c);
 char my_get(char c);
 char quit(char c);
-int userInput(int bound);
 void test();
 
 char *map(char *array, int array_length, char (*f)(char))
 {
 	char *mapped_array = (malloc(array_length * sizeof(char)));
-	int i;
-	for (i = 0; i < array_length - 1; i++)
+	for (int i = 0; i < array_length; i++)
 	{
 		mapped_array[i] = (f)(array[i]);
 	}
-	mapped_array[i] = 0;
+
 	return mapped_array;
 }
 
@@ -39,8 +37,8 @@ struct fun_desc
 int main(int argc, char **argv)
 {
 	// test();
-	char carray[5];
-	carray[0] = '\0';
+
+	char *carray = malloc(5 * sizeof(char));
 
 	struct fun_desc menu[] = {
 		{"Censor", &censor},
@@ -51,38 +49,47 @@ int main(int argc, char **argv)
 		{"Get string", &my_get},
 		{"Quit", &quit},
 		{NULL, NULL}};
-
 	int bound = sizeof(menu) / sizeof(menu[0]) - 1;
 
-	for (unsigned int i = 0; i < bound; i++)
+	
+	while (1)
 	{
-		printf("%d) %s\n", i, (menu + i)->name);
-	}
-	int chosenFunc = userInput(bound);
-	//////????????????
-	map(carray, sizeof(carray) / sizeof(carray[0]), (menu + chosenFunc)->function);
+		printf("Choose function:\n");
+		for (unsigned int i = 0; i < bound; i++)
+		{
+			printf("%d) %s\n", i, (menu + i)->name);
+		}
+		char in[20];
+		fgets(in, 20, stdin);
+		int userChoice = atoi(in);
+		if (userChoice == 0 && strcmp(in, "0\n") != 0)
+		{
+			printf("err");
+		}
+		else
+		{
+			printf("Option: %d\n", userChoice);
+			if (userChoice < 0 || userChoice > bound)
+			{
+				printf("Not within bounds\n");
+				return 0;
+			}
+		}
 
+		printf("Within bounds\n");
+		char *prevInput = carray;
+		carray = map(carray, 5, (menu + userChoice)->function);
+		printf("%s\n\n", "Done");
+		free (prevInput);
+	}
+
+	free(menu);
 	return 0;
-}
-
-int userInput(int bound)
-{
-	int userChoice;
-	printf("Option: ");
-	scanf("%d", &userChoice);
-	if ((userChoice <= 0) | (userChoice >= bound))
-	{
-		printf("Not within bounds");
-		quit('q');
-	}
-
-	printf("Within bounds");
-	return userChoice;
 }
 
 char encrypt(char c)
 {
-	if (('A' <= c) && (c <= 'z'))
+	if ((0x41 <= c) && (c <= 0x7a))
 	{
 		return c + 2;
 	}
@@ -94,7 +101,7 @@ char encrypt(char c)
 
 char decrypt(char c)
 {
-	if (('A' <= c) && (c <= 'z'))
+	if ((0x41 <= c) && (c <= 0x7a))
 	{
 		return c - 2;
 	}
@@ -111,7 +118,7 @@ char dprt(char c)
 
 char cprt(char c)
 {
-	if (('A' <= c) && (c <= 'z'))
+	if ((0x41 <= c) && (c <= 0x7a))
 	{
 		printf("%c\n", c);
 	}
@@ -124,7 +131,7 @@ char cprt(char c)
 
 char my_get(char c)
 {
-	char in = getc(stdin);
+	char in = fgetc(stdin);
 	return (in);
 }
 
