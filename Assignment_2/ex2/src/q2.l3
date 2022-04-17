@@ -1,30 +1,40 @@
+;; pair of string 'ok' and value
 (define make-ok
   (lambda (val)
-    @TODO
+    (cons "Ok" val)
   )
  )
  
+;; pair based on makeFailure
 (define make-error
   (lambda (msg)
-    @TODO
+    (cons "Failure" msg)
   )
  )
 
+;; returns true if res is pair and the first item of a given pair is the string "ok"
 (define ok?
   (lambda (res)
-    @TODO
+    (if (pair? res)
+     (equal? (car res) "Ok" )
+     )
   )
  )
 
+
+;; same as ok but the string is "Failure"
 (define error?
   (lambda (res)
-    @TODO
+    (if (pair? res)
+     (equal? (car res) "Failure" )
+     )
   )
  )
 
+;; true if res is ok or error
 (define result?
   (lambda (res)
-    @TODO
+    (or (ok? res) (error? res))
   )
  )
 
