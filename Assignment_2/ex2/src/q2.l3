@@ -17,29 +17,28 @@
 (define ok?
   (lambda (res)
     (if (pair? res)
-     (equal? (car res) "Ok" )
-     (#f)
-     )
+     (eq? (car res) "Ok")
+     #f
+    )
   )
- )
+)
 
 
 (define error?
   (lambda (res)
     (if (pair? res)
-     (equal? (car res) "Failure" )
-     (#f)
-     )
+     (eq? (car res) "Failure")
+     #f
+    )
   )
- )
+)
 
 
 (define result?
   (lambda (res)
     (or (ok? res) (error? res))
   )
- )
-
+)
 
 (define result->val
   (lambda (res)
@@ -51,9 +50,7 @@
 (define bind 
   (lambda (f)
     (lambda (res)
-    (if (ok? res)
-      (f (cdr res))
-      (make-error (cdr res)))
+    (if (ok? res) (f (cdr res)) (make-error (cdr res)))
     )
   )
 )
@@ -61,22 +58,22 @@
 
 (define make-dict
   (lambda ()
-    (list ())
+    (list)
   )
 )
 
 
 (define dict?
   (lambda (e)
-    (if (empty? e) 
-      #t                        
-      (if (pair? e)             
+    (if (empty? e) #t
+       (if (pair? e)
           (if (pair? (car e))
-            (dict? (cdr e))     
-            #f                  
+            (dict? (cdr e))
+            #f
           )
-        #f                      
+        #f  
       )
+    )
   )
 )
 
@@ -84,14 +81,14 @@
 (define get
   (lambda (dict k)
     (if (dict? dict)
-      (if (empty? dict)
-        (make-error "empty dictionary")
-        (if (equal? (car (car dict)) k) 
-          (make-ok (cdr (car dict))) 
-          (get (cdr dict) k) 
-        )
-      )
-      make-error(("not dictionary")
+         (if (empty? dict)
+             (make-error "Key not found")
+             (if (eq? (car (car dict)) k)
+                 (make-ok (cdr (car dict)))
+                 (get (cdr dict) k)
+              )
+          )
+         (make-error "Error: not a dictionary")
     )
   )
 )
@@ -99,18 +96,19 @@
 
 (define put
   (lambda (dict k v)
-    (let 
-      (toAdd (cons k v))
-    )
+    (let (toAdd (cons k v)))
     (if (dict? dict)
       (if (empty? dict)
-        (make-ok (cons toAdd make-dict)) 
-        (if (error? (get (dict k))) 
-        (make-error )
+        (make-ok (cons toAdd list))
+        (if (eq? (car (car dict)) k)
+          (if (empty? (cdr dict))
+            (make-ok (cons toAdd list))
+            (make-ok (cons toAdd (cdr dict)))
+          )
+          (make-ok (cons (car dict) (func (cdr dict) k v)))
         )
-        (make-ok (cons toAdd (cdr dict))) 
       )
-      (make-error("not dictionary"))                       
+      (make-error "Error: not a dictionary")
     )
   )
 )
