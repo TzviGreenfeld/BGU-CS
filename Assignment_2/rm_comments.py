@@ -1,29 +1,25 @@
 import os
 import sys
 
+'''
+pytyhon3 rm_comment.py $inputFile $outputFile
+'''
+
 COMMENT =  ";;"
 
-def isComment(line: str):
-    return (not line.startswith(COMMENT))
-
-def main(args):
-    out_f = args[2]
-    filtered = []
-    with open(args[1], "r") as racket_file:
-        lines = racket_file.readlines()
-        for line in filter(isComment, lines):
+def remove_comments(in_fileName, out_fileName):
+    filtered = ""
+    with open(in_fileName, "r") as in_f:
+        lines = in_f.readlines()
+        for line in lines:
             if COMMENT in line:
-                filtered.append(line[:line.rfind(COMMENT)] + "\n")
+                filtered += (line[:line.rfind(COMMENT)] + "\n")
             else:
-                filtered.append(line)
+                filtered += line
         
-        print(filtered)
-        filtered = ''.join(list(filtered)) 
-        print (filtered)
-        
-        with open(out_f, "w") as out:
-            out.write(''.join(filtered))
+        with open(out_fileName, "w") as out_f:
+            out_f.write(filtered)
     
 
 if __name__ == '__main__':
-    main(sys.argv)
+    remove_comments(sys.argv[1], sys.argv[2])
