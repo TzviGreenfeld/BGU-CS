@@ -96,19 +96,28 @@
 
 (define put
   (lambda (dict k v)
-    (let (toAdd (cons k v)))
     (if (dict? dict)
-      (if (empty? dict)
-        (make-ok (cons toAdd list))
-        (if (eq? (car (car dict)) k)
-          (if (empty? (cdr dict))
-            (make-ok (cons toAdd list))
-            (make-ok (cons toAdd (cdr dict)))
-          )
-          (make-ok (cons (car dict) (func (cdr dict) k v)))
+      (if (ok? (get (dict k)))
+      (put (remove (dict k)) k v)
+        (if (empty? dict)
+        (make-ok (cons (cons k v) list))
+        (make-ok (cons (cons k v) (cdr dict)))
         )
       )
-      (make-error "Error: not a dictionary")
+      (make-error "Error: not a dictionary")    
+    )
+  )
+)
+
+
+(define remove
+  (lambda (dict k)
+    (if (empty? dict)
+      (dict)
+      (if (eq? (car (car dict) k))
+        (cons (list (cdr dict)))
+        (cons (car dict) (remove ((cdr dict) k)) )
+      )
     )
   )
 )
@@ -116,12 +125,47 @@
 
 (define map-dict
   (lambda (dict f)
-    @TODO
+    (if (dict? dict)
+    (if (empty? dict)
+       (make-ok dict)
+            (make-ok (cons (cons (car (car dict))  (f (cdr(car dict)))) (map-dict1 (cdr dict) f))))
+    (make-error "Error: not a dictionary"))
+  )
+)
+
+(define map-dict1
+  (lambda (dict f)
+    (if (dict? dict)
+    (if (empty? dict)
+        dict
+            (cons (cons (car (car dict))  (f (cdr(car dict)))) (map-dict1 (cdr dict) f)))
+    (make-error "Error: not a dictionary"))
   )
 )
 
 (define filter-dict
   (lambda (dict pred)
-    @TODO
+      (filter-dict1 dict pred #f)
+  )
+)
+
+(define filter-dict1
+  (lambda (dict pred b)
+    (if (dict? dict)
+    (if (empty? dict)
+        (if b
+            dict
+            (make-ok dict))
+        (if b
+            (if (pred (car (car dict)) (cdr (car dict)))
+                (cons (car dict) (filter-dict1 (cdr dict) pred b))
+            (filter-dict1 (cdr dict) pred b))
+            (if (pred (car (car dict)) (cdr (car dict)))
+                (make-ok (cons (car dict) (filter-dict1 (cdr dict) pred #t)))
+            (filter-dict1 (cdr dict) pred b))
+            )
+    )
+    (make-error "Error: not a dictionary")
+    )
   )
 )
