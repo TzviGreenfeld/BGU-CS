@@ -1,6 +1,8 @@
 import { Exp, Program } from '../imp/L3-ast';
 import { Result, makeFailure } from '../shared/result';
 
+// string → token array → S-Exp → AST
+//     Scanner   →    Reader → Parser
 /*
 Purpose: Transform L3 AST to JavaScript program string
 Signature: l30ToJS(l2AST)
