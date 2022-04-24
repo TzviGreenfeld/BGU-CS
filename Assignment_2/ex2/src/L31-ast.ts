@@ -258,17 +258,18 @@ const parseLetExp = (bindings: Sexp, body: Sexp[]): Result<LetExp> => {
             makeLetExp(bindings, body)));
 }
 
-//L31
-    // const parseLetPlusExp = (bindings: Sexp, body: Sexp[]): Result<LetPlusExp> => {
-    //     if (!isGoodBindings(bindings)) {
-    //         return makeFailure('Malformed bindings in "let*" expression');
-    //     }
-    //     const vars = map(b => b[0], bindings);
-    //     const valsResult = mapResult(parseL31CExp, map(second, bindings));
-    //     const bindingsResult = mapv(valsResult, (vals: CExp[]) => zipWith(makeBinding, vars, vals));
-    //         ///////////////
-    //     return null;
-    // }
+// L31
+    const parseLetPlusExp = (bindings: Sexp, body: Sexp[]): Result<LetPlusExp> => {
+        if (!isGoodBindings(bindings)) {
+            return makeFailure('Malformed bindings in "let*" expression');
+        }
+        const vars = map(b => b[0], bindings);
+        const valsResult = mapResult(parseL31CExp, map(second, bindings));
+        const bindingsResult = mapv(valsResult, (vals: CExp[]) => zipWith(makeBinding, vars, vals));
+        return bind(bindingsResult, (bindings: Binding[]) =>
+        mapv(mapResult(parseL31CExp, body), (body: CExp[]) =>
+            makeLetPlusExp(bindings, body)));
+    }
 
 
 // sexps has the shape (quote <sexp>)
@@ -324,6 +325,9 @@ const unparseProcExp = (pe: ProcExp): string =>
 
 const unparseLetExp = (le: LetExp): string =>
     `(let (${map((b: Binding) => `(${b.var.var} ${unparseL31(b.val)})`, le.bindings).join(" ")}) ${unparseLExps(le.body)})`
+    
+const unparseLetPlusExp = (le: LetPlusExp): string =>
+    `(let* (${map((b: Binding) => `(${b.var.var} ${unparseL31(b.val)})`, le.bindings).join(" ")}) ${unparseLExps(le.body)})`
 
 export const unparseL31 = (exp: Program | Exp): string =>
     isBoolExp(exp) ? valueToString(exp.val) :
@@ -336,6 +340,7 @@ export const unparseL31 = (exp: Program | Exp): string =>
                                 isAppExp(exp) ? `(${unparseL31(exp.rator)} ${unparseLExps(exp.rands)})` :
                                     isPrimOp(exp) ? exp.op :
                                         isLetExp(exp) ? unparseLetExp(exp) :
-                                            isDefineExp(exp) ? `(define ${exp.var.var} ${unparseL31(exp.val)})` :
-                                                isProgram(exp) ? `(L31 ${unparseLExps(exp.exps)})` :
-                                                    exp;
+                                            isLetPlusExp(exp) ? unparseLetPlusExp(exp) :
+                                                isDefineExp(exp) ? `(define ${exp.var.var} ${unparseL31(exp.val)})` :
+                                                    isProgram(exp) ? `(L31 ${unparseLExps(exp.exps)})` :
+                                                        exp;
