@@ -64,8 +64,12 @@ export interface IfExp {tag: "IfExp"; test: CExp; then: CExp; alt: CExp; }
 export interface ProcExp {tag: "ProcExp"; args: VarDecl[], body: CExp[]; }
 export interface Binding {tag: "Binding"; var: VarDecl; val: CExp; }
 export interface LetExp {tag: "LetExp"; bindings: Binding[]; body: CExp[]; }
+
 // L3
 export interface LitExp {tag: "LitExp"; val: SExpValue; }
+
+// L31
+export interface LetPlusExp {tag: "LetExp"; bindings: Binding[]; body: CExp[]; }
 
 // Type value constructors for disjoint types
 export const makeProgram = (exps: Exp[]): Program => ({tag: "Program", exps: exps});
