@@ -1,5 +1,5 @@
 import { Exp, Program } from "./L31-ast";
-import { Result, makeFailure, makeOk } from "../shared/result";
+import { Result, makeFailure, makeOk, isOk } from "../shared/result";
 import { bind, map, pipe, isEmpty, find } from "ramda";
 //
 import {first, rest} from "../shared/list";
@@ -31,7 +31,7 @@ const findLetPlus = (exp: CExp) : CExp =>
             isLitExp(exp) ? exp :
                     isAppExp(exp) ? makeAppExp(findLetPlus(exp.rator), map(findLetPlus, exp.rands)) : 
                         isProcExp(exp) ? makeProcExp(exp.args, map(findLetPlus, exp.body)) :
-                            isIfExp(exp) ? makeIfExp(findLetPlus(exp.test), findLetPlus(exp.then) , findLetPlus(exp.then)) :
+                            isIfExp(exp) ? makeIfExp(findLetPlus(exp.test), findLetPlus(exp.then) , findLetPlus(exp.alt)) :
                                 isLetPlusExp(exp) ? letPlusToLet(exp) :
                                     exp;
 
@@ -42,4 +42,3 @@ export const L31ToL3 = (exp: Exp | Program): Result<Exp | Program> =>{
                 isProgram(exp) ? makeOk(makeProgram(map( (exp) => isDefineExp(exp) ? exp: findLetPlus(exp), exp.exps))) :
                     makeFailure("Error"); 
 } 
-

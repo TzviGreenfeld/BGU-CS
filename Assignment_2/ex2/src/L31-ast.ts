@@ -218,7 +218,7 @@ const isPrimitiveOp = (x: string): boolean =>
      "number?", "boolean?", "symbol?", "string?"].includes(x);
 
 const isSpecialForm = (x: string): boolean =>
-    ["if", "lambda", "let", "quote"].includes(x);
+    ["if", "lambda", "let", "let*", "quote"].includes(x);
 
 const parseAppExp = (op: Sexp, params: Sexp[]): Result<AppExp> =>
     bind(parseL31CExp(op), (rator: CExp) => 
@@ -337,7 +337,7 @@ const unparseLetExp = (le: LetExp) : string =>
 //
 // added L31
 const unparseLetPlusExp = (le: LetPlusExp) : string => 
-    `(let (${map((b: Binding) => `(${b.var.var} ${unparseL31(b.val)})`, le.bindings).join(" ")}) ${unparseLExps(le.body)})`
+    `(let* (${map((b: Binding) => `(${b.var.var} ${unparseL31(b.val)})`, le.bindings).join(" ")}) ${unparseLExps(le.body)})`
 
 export const unparseL31 = (exp: Program | Exp): string =>
     isBoolExp(exp) ? valueToString(exp.val) :
