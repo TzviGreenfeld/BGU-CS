@@ -1,13 +1,14 @@
 import { BoolExp, Exp, PrimOp, Program } from '../imp/L3-ast';
 import { Result, makeFailure } from '../shared/result';
 ////
-import {bind, map} from "ramda"
+import { bind, makeOk , mapResult, mapv } from "../shared/result";
+import { map } from "ramda"
 import {isBoolExp, isNumExp, isStrExp, isLitExp,
      isVarRef, isProcExp, isIfExp, isAppExp, isPrimOp,
-      isLetExp, isDefineExp, isProgram, AppExp} from '../imp/L3-ast';
+      isLetExp, isDefineExp, isProgram, AppExp} from '../s/L31-ast';
 
 import {isArray, isString, isNumber, isBoolean, isError} from '../shared/type-predicates';
-import {isClosure, isSymbolSExp, isEmptySExp, isCompoundSExp} from '../imp/L3-value';
+import {isClosure, isSymbolSExp, isEmptySExp, isCompoundSExp, Value} from '../imp/L3-value';
 import { CExp, isAtomicExp } from './L31-ast';
 // string → token array → S-Exp → AST
 //     Scanner   →    Reader → Parser
@@ -19,19 +20,20 @@ import { CExp, isAtomicExp } from './L31-ast';
 
 const appExpToJS = (exp : AppExp) : string =>{
     const op = exp.rator;
+    // REC
     if (isPrimOp(op)){ 
         // atomic
         if (["+", "-", "*", "/"].includes(op.op)){
-            return map((x)=> isNumExp(x) ? x.val : (isCom) ,exp.rands).join(" " + op.op + " ");
+            return map((x) => isNumExp(x) ? x.val : exp.rands).join(" " + op.op + " ");
         }else if ([">", "<"].includes(op.op)){
             
         }
         // compound
     }
 
-const valueToString = (val: CExp): string =>
+const valueToString = (val: Value): string =>
     isNumber(val) ?  val.toString() :
-        isBoolExp(val) ? (  val.val === true ? 'true' :'false') :
+        isBoolExp(val) ? (val.val === true ? 'true' :'false') :
             isString(val) ? `"${val}"` :
                 isClosure(val) ? closureToString(val) :
                     isPrimOp(val) ? val.op :
@@ -41,14 +43,14 @@ const valueToString = (val: CExp): string =>
                                     val;
 
 export const unparseL31 = (exp: Program | Exp): string =>
-    isBoolExp(exp) ? valueToString(exp.val) :
+    isBoolExp(exp) ? makeOkvalueToString(exp.val) :
         isNumExp(exp) ? valueToString(exp.val) :
             isStrExp(exp) ? valueToString(exp.val) :
                 isLitExp(exp) ? unparseLitExp(exp) :
                     isVarRef(exp) ? exp.var :
                         isProcExp(exp) ? unparseProcExp(exp) :
                             isIfExp(exp) ? `(if ${unparseL31(exp.test)} ${unparseL31(exp.then)} ${unparseL31(exp.alt)})` :
-                                isAppExp(exp) ? `(${unparseL31(exp.rator)} ${unparseLExps(exp.rands)})` :
+                                isAppExp(exp) ? appExpToJS(exp) :
                                     isPrimOp(exp) ? exp.op :
                                         isLetExp(exp) ? unparseLetExp(exp) :
                                             isDefineExp(exp) ? `(define ${exp.var.var} ${unparseL31(exp.val)})` :
