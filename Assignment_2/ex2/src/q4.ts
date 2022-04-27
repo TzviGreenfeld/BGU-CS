@@ -1,67 +1,98 @@
-import { BoolExp, Exp, PrimOp, Program } from '../imp/L3-ast';
-import { Result, makeFailure } from '../shared/result';
+import { AtomicExp, BoolExp, Exp, PrimOp, Program, StrExp, VarRef, makeProgram } from '../imp/L3-ast';
+import { Result, makeFailure, makeOk } from '../shared/result';
 ////
-import { bind, makeOk , mapResult, mapv } from "../shared/result";
-import { map } from "ramda"
+import {bind, map} from "ramda"
 import {isBoolExp, isNumExp, isStrExp, isLitExp,
      isVarRef, isProcExp, isIfExp, isAppExp, isPrimOp,
-      isLetExp, isDefineExp, isProgram, AppExp} from '../s/L31-ast';
+      isLetExp, isDefineExp, isProgram, AppExp, VarDecl, ProcExp, LitExp, LetExp, Binding, makeAppExp, makeProcExp } from '../src/L31-ast';
 
 import {isArray, isString, isNumber, isBoolean, isError} from '../shared/type-predicates';
-import {isClosure, isSymbolSExp, isEmptySExp, isCompoundSExp, Value} from '../imp/L3-value';
+import {isClosure, isSymbolSExp, isEmptySExp, isCompoundSExp, closureToString,compoundSExpToString, Value} from '../imp/L3-value';
 import { CExp, isAtomicExp } from './L31-ast';
-// string → token array → S-Exp → AST
-//     Scanner   →    Reader → Parser
+import exp from "constants";
+               
+export const l30ToJS = (exp: Exp | Program): Result<string>  => {
+    const Jsprogram = unparseL31(exp)
+    return Jsprogram.includes("PARSING ERROR!") ? makeFailure("parsing error") : makeOk(Jsprogram)
+}
 
-// Exp = DefineExp | CExp;
-// AtomicExp = NumExp | BoolExp | StrExp | PrimOp | VarRef;
-// CompoundExp = AppExp | IfExp | ProcExp | LetExp | LitExp;
-// CExp =  AtomicExp | CompoundExp;
 
-const appExpToJS = (exp : AppExp) : string =>{
-    const op = exp.rator;
-    // REC
-    if (isPrimOp(op)){ 
-        // atomic
-        if (["+", "-", "*", "/"].includes(op.op)){
-            return map((x) => isNumExp(x) ? x.val : exp.rands).join(" " + op.op + " ");
-        }else if ([">", "<"].includes(op.op)){
-            
-        }
-        // compound
-    }
+export const valueToString = (val: Value): string =>
+isNumber(val) ?  val.toString() :
+val === true ? 'true' :
+val === false ? 'false' :
+isString(val) ? `"${val}"` :
+isClosure(val) ? closureToString(val) :
+isPrimOp(val) ? val.op :
+isSymbolSExp(val) ? `Symbol.for("${val.val}")` :
+isEmptySExp(val) ? "" :
+isCompoundSExp(val) ? compoundSExpToString(val) :
+val;
+    
+// Add a quote for symbols, empty and compound sexp - strings and numbers are not quoted.
+const unparseLitExp = (le: LitExp): string =>
+    isEmptySExp(le.val) ? `` :
+        isSymbolSExp(le.val) ? valueToString(le.val) :
+            isCompoundSExp(le.val) ? valueToString(le.val) :
+                `${le.val}`;
 
-const valueToString = (val: Value): string =>
-    isNumber(val) ?  val.toString() :
-        isBoolExp(val) ? (val.val === true ? 'true' :'false') :
-            isString(val) ? `"${val}"` :
-                isClosure(val) ? closureToString(val) :
-                    isPrimOp(val) ? val.op :
-                        isSymbolSExp(val) ? val.val :
-                            isEmptySExp(val) ? "'()" :
-                                isCompoundSExp(val) ? compoundSExpToString(val) :
-                                    val;
+// const unparseLExps = (les: Exp[]): string => "hi"
+
+const unparseProcExp = (pe: ProcExp): string => 
+    // `(${map((p: VarDecl) => p.var, pe.args).join(" ")}) => ${unparseLExps(pe.body)})`
+    `((${map((arg) => arg.var, pe.args).join(",")}) => ${unparseL31(makeProgram(pe.body as Exp[]))})`
+
+const unparseLetExp = (le: LetExp) : string => 
+    unparseAppExp(rewriteLet(le))
+
+const unparseAppExp = (exp: AppExp) : string =>
+     isProcExp(exp.rator)? unparseProcOp(exp) : 
+        isVarRef(exp.rator)? unparseFuncitonRefrence(exp) :
+            isPrimOp(exp.rator)? unparseAtomicOp(exp)  :
+                "never"              
+
+
+const unparseProcOp = (exp: AppExp): string =>
+    `(${unparseProcExp(exp.rator as ProcExp)})(${map(unparseL31, exp.rands as Exp[]).join(",")})`
+
+
+const unparseFuncitonRefrence  = (exp: AppExp): string =>
+    `${(exp.rator as VarRef).var}(${ map(unparseL31, exp.rands as Exp[]).join(", ")})`
+
+
+const unparseAtomicOp = (exp: AppExp): string => 
+    ["+", "-", "*", "/", "<", ">"].includes((exp.rator as PrimOp).op) ? `(${ map(unparseL31, exp.rands as Exp[]).join(" "+(exp.rator as PrimOp).op+" ")})` :
+        ["=", "eq?", "string=?"].includes((exp.rator as PrimOp).op) ?   `(${ map(unparseL31, exp.rands as Exp[]).join(" === ")})` : // string=?
+            "and" === ((exp.rator as PrimOp).op) ?   `(${ map(unparseL31, exp.rands as Exp[]).join(" && ")})` :
+            "or" === ((exp.rator as PrimOp).op) ?   `(${ map(unparseL31, exp.rands as Exp[]).join(" || ")})` :
+                "symbol?" === ((exp.rator as PrimOp).op) ? `(typeof(${(exp.rands[0] as StrExp).val}) === symbol)` :
+                "string?" === ((exp.rator as PrimOp).op) ? `(typeof(${(exp.rands[0] as StrExp).val}) === string)` :
+                "boolean?" === ((exp.rator as PrimOp).op) ? `(typeof(${(exp.rands[0] as StrExp).val}) === boolean)` :
+                    "not" === ((exp.rator as PrimOp).op) ? `!${(unparseL31(exp.rands[0] as Exp))}` :
+                        "never"
+
+
 
 export const unparseL31 = (exp: Program | Exp): string =>
-    isBoolExp(exp) ? makeOkvalueToString(exp.val) :
+    isBoolExp(exp) ? valueToString(exp.val) :
         isNumExp(exp) ? valueToString(exp.val) :
             isStrExp(exp) ? valueToString(exp.val) :
                 isLitExp(exp) ? unparseLitExp(exp) :
                     isVarRef(exp) ? exp.var :
                         isProcExp(exp) ? unparseProcExp(exp) :
-                            isIfExp(exp) ? `(if ${unparseL31(exp.test)} ${unparseL31(exp.then)} ${unparseL31(exp.alt)})` :
-                                isAppExp(exp) ? appExpToJS(exp) :
+                            isIfExp(exp) ? `(${unparseL31(exp.test)} ? ${unparseL31(exp.then)} : ${unparseL31(exp.alt)})` :
+                                isAppExp(exp) ? isPrimOp(exp.rator)? unparseAppExp(exp) : unparseL31(exp.rator) :
                                     isPrimOp(exp) ? exp.op :
                                         isLetExp(exp) ? unparseLetExp(exp) :
-                                            isDefineExp(exp) ? `(define ${exp.var.var} ${unparseL31(exp.val)})` :
-                                                isProgram(exp) ? `(L31 ${unparseLExps(exp.exps)})` :
-                                                    isLetPlusExp(exp) ? unparseLetPlusExp(exp):
-                                                        exp;  
+                                            isDefineExp(exp) ? `const ${exp.var.var} = ${unparseL31(exp.val)}` :
+                                                isProgram(exp) ? map(unparseL31, exp.exps).join(";\n") :
+                                                    "PARSING ERROR!"    
 
-                                                        /*
-Purpose: Transform L3 AST to JavaScript program string
-Signature: l30ToJS(l2AST)
-Type: [EXP | Program] => Result<string>
-*/                                                        
-export const l30ToJS = (exp: Exp | Program): Result<string>  => 
-    makeFailure("TODO");
+
+export const rewriteLet = (e: LetExp): AppExp => {
+    const vars = map((b) => b.var, e.bindings);
+    const vals = map((b) => b.val, e.bindings);
+    return makeAppExp(
+        makeProcExp(vars, e.body),
+        vals);
+}
