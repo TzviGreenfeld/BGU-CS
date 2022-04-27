@@ -39,6 +39,7 @@ const unparseLitExp = (le: LitExp): string =>
 
 
 const unparseProcExp = (pe: ProcExp): string => 
+    // `((${map((arg: VarDecl) => arg.var, pe.args).join(",")}) => ${unparseL31(makeProgram(pe.body as Exp[]))})`
     `((${map((arg: VarDecl) => arg.var, pe.args).join(",")}) => ${unparseL31(makeProgram(pe.body as Exp[]))})`
 
 
@@ -54,7 +55,8 @@ const unparseAppExp = (exp: AppExp) : string =>
 
 
 const unparseProcOp = (exp: AppExp): string =>
-    `(${unparseProcExp(exp.rator as ProcExp)})(${map(unparseL31, exp.rands as Exp[]).join(",")})`
+    // `(${unparseProcExp(exp.rator as ProcExp)})(${map(unparseL31, exp.rands as Exp[]).join(",")})`
+    `${unparseProcExp(exp.rator as ProcExp)}(${map(unparseL31, exp.rands as Exp[]).join(",")})`
 
 // changed this for tests
 /////////////////////////////////////////////
@@ -66,7 +68,8 @@ const unparseFuncitonRefrence  = (exp: AppExp): string =>
 const unparseAtomicOp = (exp: AppExp): string => 
     ["+", "-", "*", "/", "<", ">"].includes((exp.rator as PrimOp).op) ? `(${ map(unparseL31, exp.rands as Exp[]).join(" "+(exp.rator as PrimOp).op+" ")})` :
         ["=", "eq?", "string=?"].includes((exp.rator as PrimOp).op) ? `(${ map(unparseL31, exp.rands as Exp[]).join(" === ")})` : // string=?
-           "not" === ((exp.rator as PrimOp).op) ? `!${(unparseL31(exp.rands[0] as Exp))}` :
+        //    "not" === ((exp.rator as PrimOp).op) ? `!${(unparseL31(exp.rands[0] as Exp))}` :
+           "not" === ((exp.rator as PrimOp).op) ? `(!${unparseL31(exp.rands[0] as Exp)})` :
                         "never"
 
 const unparsePrimOp = (exp: PrimOp) : string =>
