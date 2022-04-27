@@ -36,18 +36,19 @@ const unparseLitExp = (le: LitExp): string =>
             isCompoundSExp(le.val) ? valueToString(le.val) :
                 `${le.val}`;
 
-// const unparseLExps = (les: Exp[]): string => "hi"
+
 
 const unparseProcExp = (pe: ProcExp): string => 
-    // `(${map((p: VarDecl) => p.var, pe.args).join(" ")}) => ${unparseLExps(pe.body)})`
-    `((${map((arg) => arg.var, pe.args).join(",")}) => ${unparseL31(makeProgram(pe.body as Exp[]))})`
+    `((${map((arg: VarDecl) => arg.var, pe.args).join(",")}) => ${unparseL31(makeProgram(pe.body as Exp[]))})`
+
 
 const unparseLetExp = (le: LetExp) : string => 
     unparseAppExp(rewriteLet(le))
 
+// changed this for tests
 const unparseAppExp = (exp: AppExp) : string =>
-     isProcExp(exp.rator)? unparseProcOp(exp) : 
-        isVarRef(exp.rator)? unparseFuncitonRefrence(exp) :
+    isVarRef(exp.rator)? unparseFuncitonRefrence(exp) :
+        isProcExp(exp.rator)? unparseProcOp(exp) : 
             isPrimOp(exp.rator)? unparseAtomicOp(exp)  :
                 "never"              
 
@@ -55,22 +56,28 @@ const unparseAppExp = (exp: AppExp) : string =>
 const unparseProcOp = (exp: AppExp): string =>
     `(${unparseProcExp(exp.rator as ProcExp)})(${map(unparseL31, exp.rands as Exp[]).join(",")})`
 
-
+// changed this for tests
+/////////////////////////////////////////////
 const unparseFuncitonRefrence  = (exp: AppExp): string =>
-    `${(exp.rator as VarRef).var}(${ map(unparseL31, exp.rands as Exp[]).join(", ")})`
-
+    // `${(exp.rator as VarRef).var}(${ map(unparseL31, exp.rands as Exp[]).join(",")})`
+    `${unparseL31(exp.rator as Exp)}(${ map(unparseL31, exp.rands as Exp[]).join(",")})`
+////////////////////////////
 
 const unparseAtomicOp = (exp: AppExp): string => 
     ["+", "-", "*", "/", "<", ">"].includes((exp.rator as PrimOp).op) ? `(${ map(unparseL31, exp.rands as Exp[]).join(" "+(exp.rator as PrimOp).op+" ")})` :
-        ["=", "eq?", "string=?"].includes((exp.rator as PrimOp).op) ?   `(${ map(unparseL31, exp.rands as Exp[]).join(" === ")})` : // string=?
-            "and" === ((exp.rator as PrimOp).op) ?   `(${ map(unparseL31, exp.rands as Exp[]).join(" && ")})` :
-            "or" === ((exp.rator as PrimOp).op) ?   `(${ map(unparseL31, exp.rands as Exp[]).join(" || ")})` :
-                "symbol?" === ((exp.rator as PrimOp).op) ? `(typeof(${(exp.rands[0] as StrExp).val}) === symbol)` :
-                "string?" === ((exp.rator as PrimOp).op) ? `(typeof(${(exp.rands[0] as StrExp).val}) === string)` :
-                "boolean?" === ((exp.rator as PrimOp).op) ? `(typeof(${(exp.rands[0] as StrExp).val}) === boolean)` :
-                    "not" === ((exp.rator as PrimOp).op) ? `!${(unparseL31(exp.rands[0] as Exp))}` :
+        ["=", "eq?", "string=?"].includes((exp.rator as PrimOp).op) ? `(${ map(unparseL31, exp.rands as Exp[]).join(" === ")})` : // string=?
+           "not" === ((exp.rator as PrimOp).op) ? `!${(unparseL31(exp.rands[0] as Exp))}` :
                         "never"
 
+const unparsePrimOp = (exp: PrimOp) : string =>
+    exp.op === "and" ? "&&" :
+        exp.op === "or" ? "||" :
+            exp.op === "number?" ? "((x) => (typeof (x) === number))" :
+                exp.op === "boolean?" ? "((x) => (typeof(x) === boolean))" :
+                    exp.op === "symbol?" ? "((x) => (typeof (x) === symbol))" :
+                        exp.op === "string?" ? "((x) => (typeof(x) === string))" :
+                            exp.op === "=" || exp.op === "eq?" ? "===" :
+                                "never"
 
 
 export const unparseL31 = (exp: Program | Exp): string =>
@@ -81,8 +88,9 @@ export const unparseL31 = (exp: Program | Exp): string =>
                     isVarRef(exp) ? exp.var :
                         isProcExp(exp) ? unparseProcExp(exp) :
                             isIfExp(exp) ? `(${unparseL31(exp.test)} ? ${unparseL31(exp.then)} : ${unparseL31(exp.alt)})` :
-                                isAppExp(exp) ? isPrimOp(exp.rator)? unparseAppExp(exp) : unparseL31(exp.rator) :
-                                    isPrimOp(exp) ? exp.op :
+                                isPrimOp(exp) ? unparsePrimOp(exp) :
+                                    // isAppExp(exp) ? (isPrimOp(exp.rator) ? unparseAppExp(exp) : unparseL31(exp.rator)) :
+                                    isAppExp(exp) ? (isPrimOp(exp.rator) ? unparseAppExp(exp) : unparseFuncitonRefrence(exp)) :
                                         isLetExp(exp) ? unparseLetExp(exp) :
                                             isDefineExp(exp) ? `const ${exp.var.var} = ${unparseL31(exp.val)}` :
                                                 isProgram(exp) ? map(unparseL31, exp.exps).join(";\n") :
