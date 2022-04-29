@@ -28,7 +28,8 @@ jobs:
         cache: 'npm'
     -  run: |
             working-directory: Assignment_2/ex2
+            npm test
             npm ci
             npm npm run build --if-present
-            npm test
+            
 
