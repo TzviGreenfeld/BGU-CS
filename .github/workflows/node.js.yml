@@ -27,7 +27,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     -  run: |
-            working-directory: Assignment_1
+            working-directory: Assignment_2/ex2
             npm ci
             npm npm run build --if-present
             npm test
