@@ -20,6 +20,7 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
+    - working-directory: ./Assignment_2/ex2
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
@@ -27,7 +28,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     -  run: |
-            working-directory: Assignment_2/ex2
             npm run build --if-present
             npm test
             npm ci
