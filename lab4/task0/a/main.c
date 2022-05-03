@@ -1,11 +1,15 @@
 #include "util.h"
 #include <sys/syscall.h>
 
+
+
+
 #define SYS_WRITE 4
 #define STDOUT 1
 
 int main (int argc , char* argv[], char* envp[])
 {
+  extern void system_call();
   int i;
   char * str;
   str = itoa(argc);
