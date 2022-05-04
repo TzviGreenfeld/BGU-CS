@@ -12,11 +12,22 @@
 #define CLOSE 6
 extern int system_call();
 
-void debug(char *er, int DEBUG) {
+void intToString(char* str, int num){
+    int i = 0;
+    while (num > 0)
+    {
+        int a = num % 10;
+        str[i++] = a | '0';
+        num /= 10;
+    }
+    str[i] = '\n';
+}
+
+void debug(char *er, int DEBUG, int newLine) {
     if(DEBUG){
-	    system_call(SYS_WRITE, STDERR, "DEBUG: ", 7);
 	    system_call(SYS_WRITE, STDERR, er, strlen(er));
-	    system_call(SYS_WRITE, STDERR, "\n", 1);
+        if(newLine)
+	        system_call(SYS_WRITE, STDERR, "\n", 1);
     }
 }
 
@@ -43,27 +54,35 @@ int main (int argc , char* argv[], char* envp[])
 				
 			if (argv[i][1] == 'i'){
 				IN_FILE = 1;
-                debug("input file flag found:", DEBUG);
-                debug(fileName, DEBUG);
+                debug("input file flag found: ", DEBUG, 0);
+                debug(fileName, DEBUG, 1);
 				inStream = system_call(OPEN, fileName, O_RDWR, 0777);
                 
 				if (inStream  == -1){
-                        debug("can't open input file", DEBUG);
+                        debug("can't open input file", DEBUG, 1);
 				}
 			}
 			
 			if (argv[i][1] == 'o'){
-                debug("output file flag found:", DEBUG);
-                debug(fileName, DEBUG);
+                debug("output file flag found:", DEBUG, 0);
+                debug(fileName, DEBUG, 1);
 				OUT_FILE = 1;
 				outStream = system_call(OPEN, fileName, O_WRONLY | O_CREAT);
 			}
         }
     }
+    if (!IN_FILE)
+        debug("stdin", DEBUG, 1);
+    if (!OUT_FILE)
+        debug("stdout", DEBUG, 1);
 
 
     char input[255];
-    system_call(SYS_READ, inStream, input, 255);
+    int read = system_call(SYS_READ, inStream, input, 255);
+    char read_returned[36];
+    debug("syscall: 03 returned: ", DEBUG, 0);
+    intToString(read_returned ,read);
+    debug(read_returned, DEBUG, 1);
 
 
 
@@ -76,22 +95,29 @@ int main (int argc , char* argv[], char* envp[])
 
     spaceCounter++;
     char wordsCount[32];
-    int t = 0;
-    while (spaceCounter > 0)
-    {
-        int a = spaceCounter % 10;
-        wordsCount[t++] = a | '0';
-        spaceCounter /= 10;
+    intToString(wordsCount, spaceCounter);
+
+    int write = system_call(SYS_WRITE, outStream, wordsCount, 32);
+
+    char write_returned[36];
+    debug("syscall: 04 returned: ", DEBUG, 0);
+    intToString(write_returned ,write);
+    debug(write_returned, DEBUG, 1);
+
+    if(IN_FILE){
+        int close = system_call(CLOSE, inStream);
+        char close_returned[36];
+        debug("syscall: 06 returned: ", DEBUG, 0);
+        intToString(close_returned, close);
+        debug(close_returned, DEBUG, 1);
+
     }
-
-    debug("words counted:", DEBUG);
-    debug(wordsCount, DEBUG);
-    wordsCount[t] = '\n';
-    system_call(SYS_WRITE, outStream, wordsCount, 32);
-
-    if(IN_FILE)
-        system_call(CLOSE, inStream);
-    if(OUT_FILE)
-        system_call(CLOSE, outStream);
+    if(OUT_FILE){
+        int close2 = system_call(CLOSE, outStream);
+        char close2_returned[36];
+        debug("syscall: 06 returned: ", DEBUG, 0);
+        intToString(close2_returned, close2);
+        debug(close2_returned, DEBUG, 1);
+    }
     return 0;
 }
