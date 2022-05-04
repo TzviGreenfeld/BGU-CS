@@ -10,12 +10,45 @@
 int main (int argc , char* argv[], char* envp[])
 {
     extern void system_call();
+    int DEBUG = 0, IN_FILE = 0, OUT_FILE = 0;
+    int inStream = STDIN;
+	int outStream = STDOUT;
+	
+    int i;
+	for(i = 1; i < argc; i++){
+		if (strcmp(argv[i],"-D") == 0)		
+			DEBUG = 1;
+		if ( (argv[i][1] == 'i') || (argv[i][1] == 'o') ){
+
+			int nameLen = strlen(argv[i]) - 2;
+			char fileName[nameLen];
+			int j;
+			for (j = 0; j < nameLen; j++){
+				fileName[j] = argv[i][j+2];
+			}
+			fileName[j] = '\0';
+				
+			if (argv[i][1] == 'i'){	
+				IN_FILE = 1;
+				inStream = fopen(fileName, "r");
+
+				if (inStream  == -1){
+                        // ERROR
+				}
+			}
+			
+			if (argv[i][1] == 'o'){
+				OUT_FILE = 1;
+				outStream = fopen(fileName, "w");
+			}
+
 
     char input[255];
-    system_call(SYS_READ, STDIN, input, 255);
+    system_call(SYS_READ, inStream, input, 255);
+
+
 
     int spaceCounter = 0;
-    int i;
     for (i = 0; i < 255; i++){
         if (input[i] == ' ' && input[i+1] != ' '){
             spaceCounter++;
@@ -31,7 +64,8 @@ int main (int argc , char* argv[], char* envp[])
         wordsCount[j++] = a | '0';
         spaceCounter /= 10;
     }
+
     wordsCount[j] = '\n';
-    system_call(SYS_WRITE, STDOUT, wordsCount, 32);
+    system_call(SYS_WRITE, outStream, wordsCount, 32);
     return 0;
 }
