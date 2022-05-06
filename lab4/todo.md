@@ -1,5 +1,5 @@
 # issues:
 * 1b:
-*   creating output file
+  - creating output file
 * 2a:
-*   prefix
+  - prefix
