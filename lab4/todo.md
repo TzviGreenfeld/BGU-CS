@@ -1,5 +1,6 @@
 # issues:
 * 1b:
-  - creating output file
+  - changing output file access
+  - truncating output file
 * 2a:
   - prefix

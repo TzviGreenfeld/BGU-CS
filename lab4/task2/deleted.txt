@@ -1,3 +1,0 @@
-
-line 50     debug(strcat("syscall: 04 returned: ", itoa(write)));
-line 86     debug(strcat(strcat(deb, itoa(fd)), "\n"));
