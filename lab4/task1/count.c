@@ -1,11 +1,9 @@
 #include "util.h"
+#include "sys/fcntl.h"
 
 #define STDIN 0
 #define STDOUT 1
 #define STDERR 2
-#define O_WRONLY 01
-#define O_RDWR 02
-#define	O_CREAT	0x0200	
 #define SYS_READ 3
 #define SYS_WRITE 4
 #define OPEN 5
@@ -67,7 +65,7 @@ int main (int argc , char* argv[], char* envp[])
                 debug("output file flag found:", DEBUG, 0);
                 debug(fileName, DEBUG, 1);
 				OUT_FILE = 1;
-				outStream = system_call(OPEN, fileName, O_WRONLY | O_CREAT);
+				outStream = system_call(OPEN, fileName, O_TRUNC| O_RDWR | O_CREAT );
 			}
         }
     }
