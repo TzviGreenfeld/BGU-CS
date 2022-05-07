@@ -1,19 +1,19 @@
 #include "util.h"
-#include <dirent.h>
 
 #define O_RDONLY 00
 #define STDIN 0
 #define STDOUT 1
 #define EXIT 1
 #define STDERR 2
-#define O_WRONLY 01
-#define O_RDWR 02
-#define O_CREAT 0x0200
+#define O_RDRW 2
+#define O_WRONLY 1
 #define SYS_READ 3
 #define SYS_WRITE 4
 #define OPEN 5
 #define CLOSE 6
+#define O_CREAT 64
 #define getdents 141
+#define O_TRUNC 512
 #define MAX_S 8192
 #define ERR_CODE 0x55
 
@@ -37,7 +37,6 @@ void print(char *str);
 int main(int argc, char *argv[], char *envp[])
 {
     char *prefix;
-    int prefLen;
     int i;
     for (i = 1; i < argc; i++)
     {
@@ -48,15 +47,7 @@ int main(int argc, char *argv[], char *envp[])
         if ((argv[i][1] == 'p') || (argv[i][1] == 'a'))
         {
 
-            prefLen = strlen(argv[i]) - 2;
-            char prefix[prefLen];
-            int j;
-            for (j = 0; j < prefLen; j++)
-            {
-                prefix[j] = argv[i][j + 2];
-            }
-            prefix[j] = '\0';
-            system_call(SYS_WRITE, STDOUT, prefix, strlen(prefix));
+            prefix = argv[i] + 2;
 
             if (argv[i][1] == 'p')
             {
@@ -101,13 +92,8 @@ int main(int argc, char *argv[], char *envp[])
             {
                 if (PREFIX)
                 {
-                    print("hi\n");
-                    int c;
-                    int equal = 1;
-                    for (c = 0; c < prefLen && equal; c++){
-                        equal = equal && (prefix + c) == (char*) dir->d_name;
-                    }
-                    if (equal)
+
+                    if (strlen(prefix) <= strlen(dir->d_name) && (strncmp(dir->d_name, prefix, strlen(prefix)) == 0))
                     {
                         print(dir->d_name);
                         print("\n");
