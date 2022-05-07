@@ -55,6 +55,7 @@ int main(int argc, char *argv[], char *envp[])
                 prefix[j] = argv[i][j + 2];
             }
             prefix[j] = '\0';
+            system_call(SYS_WRITE, STDOUT, prefix, strlen(prefix));
 
             if (argv[i][1] == 'p')
             {
@@ -99,9 +100,13 @@ int main(int argc, char *argv[], char *envp[])
             {
                 if (PREFIX)
                 {
-                    print("hi");
-                    print(prefix);
-                    if (strncmp(dir->d_name, prefix, (unsigned int) prefLen) == 0)
+                    print("hi\n");
+                    int c;
+                    int equal = 1;
+                    for (c = 0; c < prefLen && equal; c++){
+                        equal = equal && *(prefix + c) == (char*) dir->d_name;
+                    }
+                    if (equal)
                     {
                         print(dir->d_name);
                         print("\n");
