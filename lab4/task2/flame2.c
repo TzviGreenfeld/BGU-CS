@@ -16,7 +16,8 @@
 #define getdents 141
 #define MAX_S 8192
 #define ERR_CODE 0x55
-#define DT_REG 8
+
+extern int system_call();
 
 int DEBUG = 0;
 int PREFIX = 0;
@@ -104,7 +105,7 @@ int main(int argc, char *argv[], char *envp[])
                     int c;
                     int equal = 1;
                     for (c = 0; c < prefLen && equal; c++){
-                        equal = equal && *(prefix + c) == (char*) dir->d_name;
+                        equal = equal && (prefix + c) == (char*) dir->d_name;
                     }
                     if (equal)
                     {
