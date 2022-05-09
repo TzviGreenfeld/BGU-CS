@@ -7,7 +7,7 @@ import { isBoolExp, isCExp, isLitExp, isNumExp, isPrimOp, isStrExp, isVarRef, is
          isAppExp, isDefineExp, isIfExp, isLetrecExp, isLetExp, isProcExp, Binding, VarDecl, VarRef, CExp, Exp, IfExp, LetrecExp, LetExp, ProcExp, Program, SetExp,
          parseL4Exp, DefineExp, isTraceExp as isTraceExp, TraceExp, makeVarRef} from "./L4-ast";
 import { applyEnv, applyEnvBdg, globalEnvAddBinding, makeExtEnv, setFBinding,
-            theGlobalEnv, Env, FBinding } from "./L4-env-box";
+            theGlobalEnv, Env, FBinding, setVarFrame } from "./L4-env-box";
 import { isClosure, makeClosure, Closure, Value, valueToString, TracedClosure, isTraceClosure, makeTracedClosure } from "./L4-value-box";
 import { applyPrimitive } from "./evalPrimitive-box";
 import { first, rest, isEmpty, cons } from "../shared/list";
@@ -43,13 +43,15 @@ export const isTrueValue = (x: Value): boolean =>
 
     
 // HW3
-const evalTraceExp = (exp: TraceExp): Result<void> =>{
-    applyEnv(theGlobalEnv, exp.var.var) // assumme is closure
-    
-    
+const evalTraceExp = (exp: TraceExp): Result<void> =>      
+{
+    const clos = applyEnv(theGlobalEnv, exp.var.var);
+    if(isOk(clos) && isClosure(clos.value)){
+        return makeOk(globalEnvAddBinding(exp.var.var, makeTracedClosure(clos.value, exp.var.var)));
+    }
+    return makeFailure("not Closure");
+
 }
-bind(applyEnv(theGlobalEnv,exp.var.var),(x: Closure)=>makeTracedClosure(x ,exp.var.var)) )
-    //makeOk(makeTracedClosure(x ,exp.var.var))
 
 
 // HW3 use these functions
@@ -79,6 +81,7 @@ const applyProcedure = (proc: Value, args: Value[]): Result<Value> =>
 const applyClosure = (proc: Closure, args: Value[]): Result<Value> => {
     const vars = map((v: VarDecl) => v.var, proc.params);
     return evalSequence(proc.body, makeExtEnv(vars, args, proc.env));
+
 }
 
 const applyTracedClosure = (proc: TracedClosure, args: Value[]): Result<Value> => 
