@@ -11,7 +11,7 @@ import { applyEnv, applyEnvBdg, globalEnvAddBinding, makeExtEnv, setFBinding,
 import { isClosure, makeClosure, Closure, Value, valueToString, TracedClosure, isTraceClosure, makeTracedClosure } from "./L4-value-box";
 import { applyPrimitive } from "./evalPrimitive-box";
 import { first, rest, isEmpty, cons } from "../shared/list";
-import { Result, bind, mapv, mapResult, makeFailure, makeOk } from "../shared/result";
+import { Result, bind, mapv, mapResult, makeFailure, makeOk, isOk } from "../shared/result";
 import { parse as p } from "../shared/parser";
 
 // ========================================================
@@ -43,8 +43,14 @@ export const isTrueValue = (x: Value): boolean =>
 
     
 // HW3
-const evalTraceExp = (exp: TraceExp): Result<void> =>
-    // complete this
+const evalTraceExp = (exp: TraceExp): Result<void> =>{
+    applyEnv(theGlobalEnv, exp.var.var) // assumme is closure
+    
+    
+}
+bind(applyEnv(theGlobalEnv,exp.var.var),(x: Closure)=>makeTracedClosure(x ,exp.var.var)) )
+    //makeOk(makeTracedClosure(x ,exp.var.var))
+
 
 // HW3 use these functions
 const printPreTrace = (name: string, vals: Value[], counter: number): void =>

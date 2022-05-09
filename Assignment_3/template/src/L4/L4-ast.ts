@@ -6,7 +6,7 @@ import { allT, first, second, rest, isEmpty } from "../shared/list";
 import { isArray, isString, isNumericString, isIdentifier } from "../shared/type-predicates";
 import { parse as p, isSexpString, isToken } from "../shared/parser";
 import { Result, makeOk, makeFailure, bind, mapResult, mapv } from "../shared/result";
-import { isSymbolSExp, isEmptySExp, isCompoundSExp } from './L4-value-box';
+import { isSymbolSExp, isEmptySExp, isCompoundSExp, isClosure, makeClosure } from './L4-value-box';
 import { makeEmptySExp, makeSymbolSExp, SExpValue, makeCompoundSExp, valueToString } from './L4-value-box'
 
 /*
@@ -131,6 +131,7 @@ export const makeSetExp = (v: VarRef, val: CExp): SetExp =>
 
 // HW3
 export const makeTraceExp = (v: VarRef): TraceExp =>
+    ({tag: "TraceExp", var: v});
     // to be completed.
 
 // Type predicates for disjoint types
@@ -156,7 +157,8 @@ export const isLetrecExp = (x: any): x is LetrecExp => x.tag === "LetrecExp";
 export const isSetExp = (x: any): x is SetExp => x.tag === "SetExp";
 
 // HW3
-export const isTraceExp = (x: any): x is TraceExp => // complete this
+export const isTraceExp = (x: any): x is TraceExp => x.tag === "TraceExp";
+ // complete this
 
 // Type predicates for type unions
 export const isExp = (x: any): x is Exp => isDefineExp(x) || isCExp(x);
@@ -251,7 +253,8 @@ const parseProcExp = (vars: Sexp, body: Sexp[]): Result<ProcExp> =>
 
 // HW3
 export const parseTraceExp: (params: Sexp[]) => Result<TraceExp> = 
-    (params) => 
+    (params) => (params.length == 1 && isIdentifier(first(params))) ? makeOk(makeTraceExp(makeVarRef(first(params)))) :
+        makeFailure("invalid TraceExp")
         // completer this 
         
 const isGoodBindings = (bindings: Sexp): bindings is [string, Sexp][] =>

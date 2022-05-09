@@ -45,13 +45,17 @@ export interface SymbolSExp {
 
 // HW3
 export interface TracedClosure {
-    // add missing fields
+    tag: "TracedClosure";
+    name: string,
+    value: Closure
 }
 export const makeTracedClosure = (closure: Closure, name: string): TracedClosure =>
-    // complete this
+({  tag: "TracedClosure",
+    name: name,
+    value: closure });
     
 export const isTraceClosure = (x: any): x is TracedClosure => 
-    // complete this
+    x.tag === "TracedClosure";
 
 // @@L4-BOX-VALUE
 // Add void for value of side-effect expressions - set! and define
@@ -79,6 +83,9 @@ export type LitSExp = number | boolean | string | SymbolSExp | EmptySExp | Compo
 export const closureToString = (c: Closure): string =>
     `<Closure ${c.params} ${map(unparse, c.body)}>`
 
+export const tracedClosureToString = (c: TracedClosure): string =>
+    `<Traced Closure ${c.name} ${closureToString(c.closure)}>`    
+
 export const compoundSExpToArray = (cs: CompoundSExp, res: string[]): string[] | { s1: string[], s2: string } =>
     isEmptySExp(cs.val2) ? append(valueToString(cs.val1), res) :
     isCompoundSExp(cs.val2) ? compoundSExpToArray(cs.val2, append(valueToString(cs.val1), res)) :
@@ -94,6 +101,7 @@ export const valueToString = (val: Value): string =>
     val === false ? '#f' :
     isString(val) ? `"${val}"` :
     isClosure(val) ? closureToString(val) :
+    isTraceClosure(val) ? tracedClosureToString(val) :
     isPrimOp(val) ? val.op :
     isSymbolSExp(val) ? val.val :
     isEmptySExp(val) ? "'()" :
