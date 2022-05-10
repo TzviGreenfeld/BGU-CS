@@ -68,7 +68,9 @@ int main(int argc, char *argv[], char *envp[])
     }
     print("Flame 2 strikes!\n");
     int fd = system_call(OPEN, ".", O_RDONLY, 0777);
-    debug("syscall: 05 returned: ");
+    debug("system call [arg1, arg2, arg3, arg4, ret code] = 5 '.' ");
+    debug(itoa(O_RDONLY));
+    debug(" 0777 ");
     debug(itoa(fd));
     debug("\n");
 
@@ -187,7 +189,13 @@ void debug(char *er)
 void print(char *str)
 {
     int write = system_call(SYS_WRITE, STDOUT, str, strlen(str));
-    debug("syscall: 04 returned: ");
-    debug(itoa(write));
+    debug("\nsystem call [arg1, arg2, arg3, arg4, ret code] = 4 ");
+    debug(itoa(SYS_WRITE));
+    debug(" ");
+    debug(itoa(STDOUT));
+    debug(" ");
+    debug(str);
+    debug(" ");
+    debug(itoa(strlen(str)));
     debug("\n");
 }
