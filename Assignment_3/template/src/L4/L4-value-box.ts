@@ -8,6 +8,7 @@ import { append, map } from 'ramda';
 import { isArray, isNumber, isString } from '../shared/type-predicates';
 import { CExp, isPrimOp, PrimOp, VarDecl, unparse } from './L4-ast';
 import { Env } from './L4-env-box';
+import { Box, makeBox } from '../shared/box';
 
 // Add void for value of side-effect expressions - set! and define
 export type Value = SExpValue | Closure | TracedClosure // HW3
@@ -24,7 +25,7 @@ export interface Closure {
     env: Env;
 }
 export const makeClosure = (params: VarDecl[], body: CExp[], env: Env): Closure =>
-    ({tag: "Closure", params, body, env});
+    ({ tag: "Closure", params, body, env });
 export const isClosure = (x: any): x is Closure => x.tag === "Closure";
 
 
@@ -47,32 +48,38 @@ export interface SymbolSExp {
 export interface TracedClosure {
     tag: "TracedClosure";
     name: string,
-    value: Closure
+    value: Closure,
+    counter: Box<number>
 }
 export const makeTracedClosure = (closure: Closure, name: string): TracedClosure =>
-({  tag: "TracedClosure",
-    name: name,
-    value: closure });
-    
-export const isTraceClosure = (x: any): x is TracedClosure => 
+    ({
+        tag: "TracedClosure",
+        name: name,
+        value: closure,
+        counter: makeBox(0)
+    });
+
+export const isTraceClosure = (x: any): x is TracedClosure =>
     x.tag === "TracedClosure";
 
 // @@L4-BOX-VALUE
 // Add void for value of side-effect expressions - set! and define
 export type SExpValue = void | number | boolean | string | PrimOp | Closure | SymbolSExp | EmptySExp | CompoundSExp | TracedClosure; //HW3
 export const isSExp = (x: any): x is SExpValue =>
-    typeof(x) === 'string' || typeof(x) === 'boolean' || typeof(x) === 'number' ||
+    typeof (x) === 'string' || typeof (x) === 'boolean' || typeof (x) === 'number' ||
     isSymbolSExp(x) || isCompoundSExp(x) || isEmptySExp(x) || isPrimOp(x) || isClosure(x);
 
 export const makeCompoundSExp = (val1: SExpValue, val2: SExpValue): CompoundSExp =>
-    ({tag: "CompoundSexp", val1: val1, val2 : val2});
+    ({ tag: "CompoundSexp", val1: val1, val2: val2 });
+
 export const isCompoundSExp = (x: any): x is CompoundSExp => x.tag === "CompoundSexp";
 
-export const makeEmptySExp = (): EmptySExp => ({tag: "EmptySExp"});
+export const makeEmptySExp = (): EmptySExp => ({ tag: "EmptySExp" });
+
 export const isEmptySExp = (x: any): x is EmptySExp => x.tag === "EmptySExp";
 
 export const makeSymbolSExp = (val: string): SymbolSExp =>
-    ({tag: "SymbolSExp", val: val});
+    ({ tag: "SymbolSExp", val: val });
 export const isSymbolSExp = (x: any): x is SymbolSExp => x.tag === "SymbolSExp";
 
 // LitSExp are equivalent to JSON - they can be parsed and read as literal values
@@ -84,26 +91,26 @@ export const closureToString = (c: Closure): string =>
     `<Closure ${c.params} ${map(unparse, c.body)}>`
 
 export const tracedClosureToString = (c: TracedClosure): string =>
-    `<Traced Closure ${c.name} ${closureToString(c.closure)}>`    
+    `<Traced Closure ${c.name} ${closureToString(c.value)}>`
 
 export const compoundSExpToArray = (cs: CompoundSExp, res: string[]): string[] | { s1: string[], s2: string } =>
     isEmptySExp(cs.val2) ? append(valueToString(cs.val1), res) :
-    isCompoundSExp(cs.val2) ? compoundSExpToArray(cs.val2, append(valueToString(cs.val1), res)) :
-    ({ s1: append(valueToString(cs.val1), res), s2: valueToString(cs.val2)})
- 
-export const compoundSExpToString = (cs: CompoundSExp, css = compoundSExpToArray(cs, [])): string => 
+        isCompoundSExp(cs.val2) ? compoundSExpToArray(cs.val2, append(valueToString(cs.val1), res)) :
+            ({ s1: append(valueToString(cs.val1), res), s2: valueToString(cs.val2) })
+
+export const compoundSExpToString = (cs: CompoundSExp, css = compoundSExpToArray(cs, [])): string =>
     isArray(css) ? `(${css.join(' ')})` :
-    `(${css.s1.join(' ')} . ${css.s2})`
+        `(${css.s1.join(' ')} . ${css.s2})`
 
 export const valueToString = (val: Value): string =>
-    isNumber(val) ?  val.toString() :
-    val === true ? '#t' :
-    val === false ? '#f' :
-    isString(val) ? `"${val}"` :
-    isClosure(val) ? closureToString(val) :
-    isTraceClosure(val) ? tracedClosureToString(val) :
-    isPrimOp(val) ? val.op :
-    isSymbolSExp(val) ? val.val :
-    isEmptySExp(val) ? "'()" :
-    isCompoundSExp(val) ? compoundSExpToString(val) :
-    "#void";
+    isNumber(val) ? val.toString() :
+        val === true ? '#t' :
+            val === false ? '#f' :
+                isString(val) ? `"${val}"` :
+                    isClosure(val) ? closureToString(val) :
+                        isTraceClosure(val) ? tracedClosureToString(val) :
+                            isPrimOp(val) ? val.op :
+                                isSymbolSExp(val) ? val.val :
+                                    isEmptySExp(val) ? "'()" :
+                                        isCompoundSExp(val) ? compoundSExpToString(val) :
+                                            "#void";
