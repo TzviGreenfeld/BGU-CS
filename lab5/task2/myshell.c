@@ -8,14 +8,31 @@
 #include "LineParser.h"
 
 #define INPUT_BUFF_SIZE 2048 
-
 #define FASLE 0
 #define TRUE 1
+#define TERMINATED -1
+#define RUNNING 1
+#define SUSPENDED 0
 
-int DEBUG = FASLE;
+
+typedef struct process{
+    cmdLine* cmd;       /* the parsed command line*/
+    pid_t pid;          /* the process id that is running the command*/
+    int status;         /* status of the process RUNNING/SUSPENDED/TERMINATED */
+    struct process *next;  /* next process in chain */
+} process;
 
 void cd (cmdLine *lineptr);
 void execute(cmdLine *lineptr);
+void addProcess( process** process_list, cmdLine* cmd, pid_t pid);
+void printProcessList( process** process_list);
+void printSingleProcess(process* proc);
+void freeProcessList(process* process_list);
+void updateProcessList(process **process_list);
+void updateProcessStatus(process* process_list, int pid, int status);
+
+int DEBUG = FASLE;
+
 
 
 int main(int argc, char **argv){
@@ -24,7 +41,10 @@ int main(int argc, char **argv){
             DEBUG = TRUE;
             }
         }
-              
+
+
+    process **process_list = (process**) malloc(sizeof(process*));
+    *process_list = NULL;
 
     while (1){
         char cwd[PATH_MAX];
@@ -36,27 +56,34 @@ int main(int argc, char **argv){
 
         fgets (inputBuffer, INPUT_BUFF_SIZE, stdin);
         if(strcmp(inputBuffer, "quit\n") == 0){
+            freeProcessList(*process_list);
+            free(process_list);
             exit(0);
         }
 
         cmdLine *line = parseCmdLines(inputBuffer);
-        int pid;
+        int currPid;
 
         if (DEBUG) 
-            fprintf(stderr, "PID is: %d\tExecuting command: %s\n", getpid(), line->arguments[0]);
+            fprintf(stderr, "PID: %d\tExecuting command: %s\n", getpid(), line->arguments[0]);
 
         if(strcmp(line->arguments[0], "cd") == 0){
             cd(line);
-        }
+
+        } else if(strcmp(line->arguments[0], "showprocs") == 0){
+            printProcessList(process_list);
+            freeCmdLines(line);
+
+        } else if((currPid = fork()) == 0){
         // child process 
-        else if((pid = fork()) == 0){
-            // invokes the program specified in the cmdLine
             execute(line);
-        // parent process
+
         }else{
+        // parent process
+            addProcess(process_list, line, currPid);
             if(line->blocking){
                 // got &, waiting for the child process
-                waitpid(pid, NULL, 0);
+                waitpid(currPid, NULL, 0);
             }
             freeCmdLines(line);
         }
@@ -80,4 +107,115 @@ void cd (cmdLine *lineptr){
      if(lineptr->argCount != 2 || chdir(strcat(path, lineptr->arguments[1])) == -1){
          perror ("error\n");
      } 
+}
+
+
+void addProcess(process** process_list, cmdLine* cmd, pid_t pid){
+    process *proc = malloc(sizeof(process));
+    proc-> cmd = cmd;
+    proc-> pid = pid;
+    proc-> status = RUNNING;
+    proc-> next = *process_list;
+    *process_list = proc;
+}
+
+void printSingleProcess(process* proc){
+    printf("%d\t%s\t", proc->pid, proc->cmd->arguments[0]);
+    if (proc->status == TERMINATED)
+        printf("Terminated\n");
+    else if(proc->status == RUNNING)
+        printf("Running\n");
+    else
+        printf("Suspended\n");
+}
+
+void printProcessList(process** process_list){
+    updateProcessList(process_list);
+    printf("PID\tCommand\tSTATUS\n");
+    process *prevProc = NULL;
+    process *currProc; // head
+
+    for (currProc = *process_list; currProc != NULL; currProc = currProc->next){
+        printSingleProcess(currProc);
+        currProc = currProc->next;
+        if(currProc->status == TERMINATED){
+            if(currProc == *process_list){
+                // head termineted, delete by reassigning head
+                *process_list =  currProc->next;
+                prevProc = NULL;
+            }else{
+                // curr is not head, remove it like normal link
+                prevProc->next = currProc->next;
+            }
+            freeCmdLines(currProc->cmd);
+            free(currProc);
+            if (prevProc == NULL){
+                // reassign head if prev was head
+                currProc = *process_list;
+            }
+        }
+        else{
+            prevProc = currProc;
+            // this = next happens in the for def
+        }
+    }
+
+}
+
+void freeProcessList(process* process_list){
+    // loop over the linked list and free each process and its line struct
+    process *currProc = process_list;
+    process *nextProc;
+    while(currProc != NULL){
+        nextProc = currProc->next;
+        freeCmdLines(currProc->cmd);
+        free(currProc);
+        currProc = nextProc;
+    }
+}
+
+void updateProcessStatus(process* process_list, int pid, int status){
+    // find the process in a given list
+    process *currProc;
+    for(currProc = process_list; currProc != NULL; currProc = currProc->next){
+        if(currProc->pid == pid){
+            currProc->status = status;
+            return;
+        }
+    }
+}
+
+void updateProcessList(process **process_list){
+    int pid;
+    int status;
+    process *currProc;
+    for(currProc = *process_list; currProc != NULL; currProc = currProc->next){
+        if (currProc->cmd->blocking){
+            // waitpid is a blocking method, when using blocking
+            // therfore it returns when the process is TERMINATED
+            updateProcessStatus(*process_list, currProc->pid, TERMINATED);
+        } else {
+            // WNOHANG returns immedieately might be good for busy wait
+            // WUNTRACED check for child process, returns if cild has stopped
+            // WCONTINUED check for child process, returns if cild has continued
+            pid = waitpid(currProc->pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
+            if (pid > 0){
+                // is child process
+                // WIFSTOPPED returns 1 if the given process stopped
+                // WIFCONTINUED returns 1 if the given process resumed
+                if( WIFSTOPPED(status) ){
+                        updateProcessStatus(*process_list, currProc->pid, SUSPENDED);
+
+                }else if( WIFCONTINUED(status) ){
+                        updateProcessStatus(*process_list, currProc->pid, RUNNING);
+
+                }else{
+                    // the other optin is terminated              
+                    updateProcessStatus(*process_list, currProc->pid, TERMINATED);
+                    }
+
+            }
+        }  
+        
+    }   
 }
