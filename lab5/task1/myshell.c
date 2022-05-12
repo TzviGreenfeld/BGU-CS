@@ -52,6 +52,13 @@ int main(int argc, char **argv){
         else if((pid = fork()) == 0){
             // invokes the program specified in the cmdLine
             execute(line);
+        // parent process
+        }else{
+            if(line->blocking){
+                // got &, waiting for the child process
+                waitpid(pid, NULL, 0);
+            }
+            freeCmdLines(line);
         }
     }
     return 0;
@@ -62,7 +69,7 @@ void execute(cmdLine *lineptr){
     execvp(lineptr->arguments[0],lineptr->arguments);
     // if execvp returned 
     perror ("executaion failed\n");
-    exit(1);
+    _exit(1);
 }
 
 void cd (cmdLine *lineptr){
