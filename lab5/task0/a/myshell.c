@@ -20,10 +20,16 @@ int main(int argc, char *argv[]){
     
     // take user input
     char inputBuffer[INPUT_BUFF_SIZE];
-    fgets(inputBuffer, INPUT_BUFF_SIZE, stdin);
-    cmdLine *line = parseCmdLines(inputBuffer);
-    execute(line);
-    freeCmdLines(line);
+    struct cmdLine *line;
+    while(1){
+        fgets(inputBuffer, INPUT_BUFF_SIZE, stdin);
+        if (strncmp(inputBuffer, "quit", 4) == 0){
+            return 0;
+        }
+        line = parseCmdLines(inputBuffer);
+        execute(line);
+        freeCmdLines(line);
+    }
 
 
     return 0;
@@ -32,11 +38,12 @@ int main(int argc, char *argv[]){
 
 void execute(cmdLine *pCmdLine){
     char* command = pCmdLine->arguments[0];
-    char commandPath[5 + strlen(command)];
-    strcat(commandPath, "/bin/");
+    char commandPath[] = "/bin/";
     strcat(commandPath, command);
+    printf(command);
+    printf(commandPath);
     if (execv(commandPath, pCmdLine->arguments) == - 1){
         perror("Error");
-        // exit "abnormally" ???
+        exit(1);
     }
 }

