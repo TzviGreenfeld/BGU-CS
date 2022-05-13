@@ -30,6 +30,7 @@ void printSingleProcess(process* proc);
 void freeProcessList(process* process_list);
 void updateProcessList(process **process_list);
 void updateProcessStatus(process* process_list, int pid, int status);
+void nap(process** process_list, int pid, int t );
 
 int DEBUG = FASLE;
 
@@ -39,9 +40,8 @@ int main(int argc, char **argv){
     for (int i=1; i< argc;i++){
         if (strcmp(argv[i], "-d") == 0){
             DEBUG = TRUE;
-            }
         }
-
+    }
 
     process **process_list = (process**) malloc(sizeof(process*));
     *process_list = NULL;
@@ -89,7 +89,7 @@ int main(int argc, char **argv){
         }
     }
     return 0;
-  }
+}
 
 
 void execute(cmdLine *lineptr){
@@ -105,7 +105,7 @@ void cd (cmdLine *lineptr){
      char *path = strcat(cwd,"/");
      // error handleing
      if(lineptr->argCount != 2 || chdir(strcat(path, lineptr->arguments[1])) == -1){
-         perror ("error\n");
+        perror ("error\n");
      } 
 }
 
@@ -159,7 +159,6 @@ void printProcessList(process** process_list){
             // this = next happens in the for def
         }
     }
-
 }
 
 void freeProcessList(process* process_list){
@@ -212,10 +211,23 @@ void updateProcessList(process **process_list){
                 }else{
                     // the other optin is terminated              
                     updateProcessStatus(*process_list, currProc->pid, TERMINATED);
-                    }
-
+                }
             }
         }  
-        
     }   
+}
+
+
+void nap(process** process_list, int pid, int t ){
+    if(fork() == 0){
+        if(kill(pid, SIGTSTP) != -1){
+            updateProcessStatus(*process_list, pid, SUSPENDED);
+            sleep(t); 
+            if(kill(pid, SIGCONT) != -1){
+                updateProcessStatus(*process_list,pid, RUNNING);
+                exit(0);
+            }
+        }
+        exit(1); // one of the kill failed
+    }
 }
