@@ -34,7 +34,10 @@ int main(int argc, char **argv){
         getcwd(cwd, PATH_MAX);
         printf("%s\n", cwd);
 
+        // get line from user
         fgets (inputBuffer, INPUT_BUFF_SIZE, stdin);
+
+        // handle line
         if(strcmp(inputBuffer, "quit\n") == 0){
             exit(0);
         }
@@ -76,8 +79,8 @@ void cd (cmdLine *lineptr){
     char cwd[PATH_MAX];
     getcwd(cwd, PATH_MAX);
      char *path = strcat(cwd,"/");
-     // error handleing
+     // execute and handle error
      if(lineptr->argCount != 2 || chdir(strcat(path, lineptr->arguments[1])) == -1){
-         perror ("error\n");
+         perror ("CD ERROR\n");
      } 
 }

@@ -8,7 +8,7 @@
 
 void sig_handler(int signum) {
    char* signame = strsignal(signum);
-   printf("\nreceived signal: %s\n", signame);
+   printf("\nLooper handling %s\n", signame);
    if (signum == SIGTSTP){
 		signal(SIGINT, sig_handler);
 		signal(SIGCONT, sig_handler);
