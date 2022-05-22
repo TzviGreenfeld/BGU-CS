@@ -32,6 +32,7 @@ void updateProcessList(process **process_list);
 void updateProcessStatus(process *process_list, int pid, int status);
 void nap(process **process_list, int pid, int t);
 void stop(process **process_list, int pid);
+void gameOver(process **process_list);
 
 int DEBUG = FASLE;
 int main(int argc, char **argv)
@@ -59,7 +60,7 @@ int main(int argc, char **argv)
         fgets(inputBuffer, INPUT_BUFF_SIZE, stdin);
         if (strcmp(inputBuffer, "quit\n") == 0)
         {
-            freeProcessList(*process_list);
+            freeProcessList(process_list);
             free(process_list);
             exit(0);
         }
@@ -82,13 +83,25 @@ int main(int argc, char **argv)
         }
         else if (strcmp(line->arguments[0], "nap") == 0)
         {
-            nap(*process_list, atoi(line->arguments[1]), atoi(line->arguments[2]));
-            freeCmdLines(line);
+            if (line->arguments[2] == NULL)
+            {
+                printf("please supply process id\n");
+            }
+            else
+            {
+                nap(*process_list, atoi(line->arguments[1]), atoi(line->arguments[2]));
+                freeCmdLines(line);
+            }
         }
         else if (strcmp(line->arguments[0], "stop") == 0)
         {
             stop(*process_list, atoi(line->arguments[1]));
             freeCmdLines(line);
+        }
+        else if (strcmp(line->arguments[0], "gameover") == 0)
+        {
+            gameOver(process_list);
+            // freeCmdLines(line);
         }
         else if ((currPid = fork()) == 0)
         {
@@ -150,42 +163,50 @@ void printSingleProcess(process *proc)
         printf("Suspended\n");
 }
 
+
 void printProcessList(process **process_list)
 {
     updateProcessList(process_list);
-    printf("PID\tCommand\t\tSTATUS\n");
-    process *prevProc = NULL;
-    process *currProc; // head
-    currProc = *process_list;
-    while (currProc != NULL)
+    printf("PID     Command     STATUS\n");
+    process *temp = *process_list;
+    process *prev = NULL;
+    while (temp != NULL)
     {
-        printSingleProcess(currProc);
-        // currProc = currProc->next;
-        if (currProc->status == TERMINATED)
+        printf("%d     %s     %s\n", temp->pid, temp->cmd->arguments[0], (temp->status == TERMINATED) ? "Terminated" : (temp->status == RUNNING) ? "Running"
+                                                                                                                                                 : "Suspended");
+        // if the current process terminated
+        if (temp->status == TERMINATED)
         {
-            if (currProc == *process_list)
+            // if temp if the head of process_list
+            if (temp == *process_list)
             {
-                // head termineted, delete by reassigning head
-                *process_list = currProc->next;
-                prevProc = NULL;
+                // update the head of process_list
+                *process_list = temp->next;
+                prev = NULL;
+            }
+            // temp isn't the head
+            else
+            {
+                prev->next = temp->next;
+            }
+            // free memory allocations of temp
+            freeCmdLines(temp->cmd);
+            free(temp);
+            // if the head of process_list was freed , temp is updated to be the new head of the list
+            if (prev == NULL)
+            {
+                temp = *process_list;
             }
             else
             {
-                // curr is not head, remove it like normal link
-                prevProc->next = currProc->next;
-            }
-            freeCmdLines(currProc->cmd);
-            free(currProc);
-            if (prevProc == NULL)
-            {
-                // reassign head if prev was head
-                currProc = *process_list;
+                temp = prev->next;
             }
         }
+        // the process not terminated
         else
         {
-            prevProc = currProc;
-            currProc = currProc->next;
+            prev = temp;
+            temp = temp->next;
         }
     }
 }
@@ -284,7 +305,31 @@ void stop(process **process_list, int pid)
     {
         updateProcessStatus(process_list, pid, TERMINATED);
     }
-    else{
+    else
+    {
         exit(1);
     }
+}
+
+void gameOver(process **process_list)
+{
+    if (fork() == 0)
+    {
+
+        process *currProc = *process_list;
+        printf("KILLED:\nPID\tCommand\t\tSTATUS\n");
+        while (currProc != NULL)
+        {
+            if (currProc->status == RUNNING)
+            {
+                stop(*process_list, currProc->pid);
+                printf("%d\t%s\tTerminated\n", currProc->pid, currProc->cmd->arguments[0]);
+                
+            }
+            currProc = currProc->next;
+        }
+
+    }
+
+    return;
 }
