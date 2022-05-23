@@ -21,6 +21,7 @@ void execute(cmdLine *lineptr);
 void printcwd();
 void testArgs(int argc, char **argv);
 void setIO(cmdLine *line);
+void handleSinglePipe(cmdLine *line);
 
 int main(int argc, char **argv)
 {
@@ -79,6 +80,11 @@ void printcwd()
 void execute(cmdLine *lineptr)
 {
     setIO(lineptr);
+    if (lineptr->next != NULL)
+    {
+        // handleSinglePipe(lineptr);
+        pipeCommands(lineptr);
+    }
     if (strcmp(lineptr->arguments[0], "quit") == 0)
     {
         exit(0);
@@ -89,10 +95,11 @@ void execute(cmdLine *lineptr)
         return;
     }
 
-    execvp(lineptr->arguments[0], lineptr->arguments);
-    // if execvp returned
-    perror("executaion failed\n");
-    _exit(1);
+    if (execvp(lineptr->arguments[0], lineptr->arguments) == -1)
+    {
+        perror("executaion failed\n");
+        _exit(1);
+    }
 }
 
 void cd(cmdLine *lineptr)
@@ -121,3 +128,49 @@ void setIO(cmdLine *line)
         open(line->outputRedirect, O_WRONLY | O_CREAT, 0777);
     }
 }
+
+void handleSinglePipe(cmdLine *line)
+{
+    int pid1;
+    int pid2;
+    int fd[2];
+
+    if (pipe(fd) == -1)
+        exit(1);
+
+    pid1 = fork();
+    if (pid1 == -1)
+        exit(1);
+
+    if (pid1 > 0)
+    { // parent process
+        close(STDOUT);
+        dup(fd[1]);
+        close(fd[1]);
+        execute(line);
+        
+    }
+    else
+    { // child process
+        close(fd[1]);
+        pid2 = fork();
+        if (pid2 == -1)
+            exit(1);
+
+        if (pid2 > 0)
+        { // parent process
+            close(STDIN);
+            dup(fd[0]);
+            close(fd[0]);
+            execute(line);
+        }
+        else
+        { // child process
+            close(fd[0]);
+            waitpid(pid1, NULL, 0);
+            waitpid(pid2, NULL, 0);
+        }
+    }
+}
+
+

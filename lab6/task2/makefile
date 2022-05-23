@@ -1,12 +1,12 @@
 
 all: exec
 
-exec: task1.o LineParser.o
+exec: task2.o LineParser.o
 
-	gcc -g -m32 -Wall -o myshell task1.o LineParser.o
+	gcc -g -m32 -Wall -o myshell task2.o LineParser.o
 
-task1.o: task1.c
-	gcc -m32 -Wall -c task1.c -o task1.o
+task2.o: task2.c
+	gcc -m32 -Wall -c task2.c -o task2.o
 
 LineParser.o: LineParser.c
 	gcc -m32 -Wall -c LineParser.c -o LineParser.o
