@@ -27,7 +27,9 @@ void releasePipes(int **pipes, int nPipes);
 int *leftPipe(int **pipes, cmdLine *pCmdLine);
 int *rightPipe(int **pipes, cmdLine *pCmdLine);
 int pipeCount(cmdLine *line);
-void executePipes (cmdLine *line);
+void executePipes (cmdLine *line, int npipes);
+
+
 
 void debug(char *err)
 {
@@ -40,33 +42,49 @@ void debug(char *err)
 int main(int argc, char **argv)
 {
     testArgs(argc, argv);
-
+    char inputBuffer[INPUT_BUFF_SIZE];
+    int pid, pipesAmount;
+    cmdLine *line;
     while (1)
     {
         printcwd();
-        char inputBuffer[INPUT_BUFF_SIZE];
         // get line from user
         fgets(inputBuffer, INPUT_BUFF_SIZE, stdin);
-        cmdLine *line = parseCmdLines(inputBuffer);
-        int pid;
-
-        if (DEBUG)
-            fprintf(stderr, "PID is: %d\tExecuting command: %s\n", getpid(), line->arguments[0]);
-
-        pid = fork();
-        if (pid == 0)
-        { // child process
-            execute(line);
+        line = parseCmdLines(inputBuffer);
+        if (strncmp(inputBuffer, "quit", 4) == 0)
+        {
+            exit(0);
         }
-        else if (pid > 0)
-        { // parent process
-            if (line->blocking)
+        else if (strcmp(line->arguments[0], "cd") == 0)
+        {
+            cd(line);
+        // if (DEBUG)
+        //     fprintf(stderr, "PID is: %d\tExecuting command: %s\n", getpid(), line->arguments[0]);
+        }
+        else{
+            pipesAmount = pipeCount(line);
+            if (pipesAmount > 1)
             {
-                // got &, waiting for the child process
-                waitpid(pid, NULL, 0);
+               executePipes(line, pipesAmount -1);
             }
-            freeCmdLines(line);
+            else{
+                pid = fork();
+                if (pid == 0)
+                { // child process
+                    execute(line);
+                }
+                else if (pid > 0)
+                { // parent process
+                    if (line->blocking)
+                    {
+                        // got &, waiting for the child process
+                        waitpid(pid, NULL, 0);
+                    }
+                }
+            
+            }
         }
+        freeCmdLines(line);
     }
     return 0;
 }
@@ -94,27 +112,11 @@ void execute(cmdLine *lineptr)
 {
 
     setIO(lineptr);
-    int pipesAmount = pipeCount(lineptr);
-    if (pipesAmount > 1)
-    {
-       executePipes(lineptr);
-    }
-    if (strcmp(lineptr->arguments[0], "quit") == 0)
-    {
-        exit(0);
-    }
-    else if (strcmp(lineptr->arguments[0], "cd") == 0)
-    {
-        cd(lineptr);
-        return;
-    }
-
-    if (execvp(lineptr->arguments[0], lineptr->arguments) == -1)
-    {
-        perror("executaion failed\n");
-        printf("%s failed\n", lineptr->arguments[0]);
-        _exit(1);
-    }
+    execvp(lineptr->arguments[0], lineptr->arguments);
+    perror("executaion failed\n");
+    printf("%s failed\n", lineptr->arguments[0]);
+    _exit(1);
+    
 }
 
 void cd(cmdLine *lineptr)
@@ -134,7 +136,7 @@ void setIO(cmdLine *line)
     if (line->inputRedirect)
     {
         close(STDIN);
-        open(line->outputRedirect, O_RDONLY);
+        open(line->inputRedirect, O_RDONLY, 0777);
     }
 
     if (line->outputRedirect)
@@ -253,28 +255,60 @@ int pipeCount(cmdLine *line)
     return i;
 }
 
-void executePipes (cmdLine *line){
-    cmdLine* head = line;
+void executePipes (cmdLine *line, int npipes){
+    cmdLine* head;
     int i, pid, pipesAmount;
-    pipesAmount = pipeCount(line);
-    int **pipes = createPipes(line, pipesAmount);
+    pipesAmount = npipes;
+    int **pipes = createPipes(pipesAmount);
     i = 0;
-    while (head)
+    for (head = line; head != NULL; (head = head->next, i++))
     {
         pid = fork();
         if (pid != 0)
         { // parent process
-            if(leftPipe(pipes,next)!=NULL){
-                if(debug){debug_p(PRE_CLOSE_READ,0);}
-                close(*leftPipe(pipes,next));
+            if (leftPipe(pipes, head))
+            { // if not first link
+                close(*leftPipe(pipes, head));
             }
-            if(rightPipe(pipes,next)!=NULL){
-                if(debug){debug_p(PRE_CLOSE_WRITE,0);}
-                close(*(rightPipe(pipes,next)+1));
+            if (rightPipe(pipes, head))
+            { // if not last link
+                close(*(rightPipe(pipes, head)+1));
             }
         }
+        else if (pid == 0)
+        { // child process
+            if (i != 0)
+            { // not first link
+                if (dup2(*leftPipe(pipes, head), pid) == -1)
+                {
+                    perror("ERR");
+                    _exit(1);
+                }
+            }
+            if (i != pipesAmount)
+            { // not last link
+                if( dup2(*(rightPipe(pipes, head) + 1), 1) == -1) 
+                { // duplicate next link read end
+                    perror("ERR");
+                    _exit(1);
+                }
+            }
+            if (leftPipe(pipes, head))
+            { // close read
+                close(*leftPipe(pipes, head));
+            }
+            if (rightPipe(pipes, head))
+            { // close write
+                close(*rightPipe(pipes, head) + 1);
+            }
+            execute(head);
+        }
+        else if (pid == -1)
+        {
+            perror("ERR");
+            _exit(1);
+        }
+
     }
-
-
-
+    releasePipes(pipes, i);
 }
