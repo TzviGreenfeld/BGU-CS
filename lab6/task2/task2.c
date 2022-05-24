@@ -22,6 +22,16 @@ void printcwd();
 void testArgs(int argc, char **argv);
 void setIO(cmdLine *line);
 void handleSinglePipe(cmdLine *line);
+void pipeCommands(cmdLine *line);
+
+void debug(char *err)
+{
+    if (DEBUG)
+    {
+        fprintf(stderr, "%s\n", err);
+    }
+}
+
 
 int main(int argc, char **argv)
 {
@@ -84,6 +94,7 @@ void execute(cmdLine *lineptr)
     {
         // handleSinglePipe(lineptr);
         pipeCommands(lineptr);
+        return;
     }
     if (strcmp(lineptr->arguments[0], "quit") == 0)
     {
@@ -98,6 +109,7 @@ void execute(cmdLine *lineptr)
     if (execvp(lineptr->arguments[0], lineptr->arguments) == -1)
     {
         perror("executaion failed\n");
+        printf("%s failed\n", lineptr->arguments[0]);
         _exit(1);
     }
 }
@@ -129,6 +141,7 @@ void setIO(cmdLine *line)
     }
 }
 
+/*
 void handleSinglePipe(cmdLine *line)
 {
     int pid1;
@@ -172,5 +185,68 @@ void handleSinglePipe(cmdLine *line)
         }
     }
 }
+*/
 
+void pipeCommands(cmdLine *line){
+
+    int fd[2];
+    if (pipe(fd) == -1)
+    {
+        printf("error in first pipe");
+        exit(1);
+    }
+
+    debug("(parent_process>forking…)");
+    int pid1 = fork();
+    if (DEBUG && pid1 > 0)
+        fprintf(stderr, "(parent_process>created processwith id: %d\n", pid1);
+
+    if (pid1 == -1)
+    {
+        printf("error in first fork");
+        exit(1);
+    }
+    else if (pid1 == 0)
+    { // child1 process
+
+        close(STDOUT);
+        debug("(child1>redirecting stdout to the write end of the pipe…)");
+        dup(fd[1]);
+        close(fd[1]);
+        debug("(child1>going to execute cmd: ls -l)");
+
+        execvp(line->arguments[0], line->arguments);
+    }
+    else if (pid1 > 0)
+    { // parnet process
+        debug("(parent_process>closing the write end of the pipe…)");
+        close(fd[1]);
+        int pid2 = fork();
+        if (pid2 == -1)
+        {
+            printf("error in first fork");
+            exit(1);
+        }
+        else if (pid2 == 0)
+        { // child2 process
+
+            close(STDIN);
+            dup(fd[0]);
+            debug("(child2>redirecting stdin to the read end of thepipe…)");
+            close(fd[0]);
+            debug( "(child2>going to execute cmd: …)");
+            execvp(line->next->arguments[0], line->next->arguments);
+        }
+        else if (pid2 > 0)
+        { // parent process
+            debug("(parent_process>closing the read end of the pipe…)");
+            close(fd[0]);
+            debug("(parent_process>waiting for child processes to terminate…)");
+            waitpid(pid1, NULL, 0);
+            waitpid(pid2, NULL, 0);
+            debug("(parent_process>exiting…)");
+            freeCmdLines(line);
+        }
+    }
+}
 
