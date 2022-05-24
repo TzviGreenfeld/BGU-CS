@@ -27,6 +27,7 @@ void releasePipes(int **pipes, int nPipes);
 int *leftPipe(int **pipes, cmdLine *pCmdLine);
 int *rightPipe(int **pipes, cmdLine *pCmdLine);
 int pipeCount(cmdLine *line);
+void executePipes (cmdLine *line);
 
 void debug(char *err)
 {
@@ -93,68 +94,10 @@ void execute(cmdLine *lineptr)
 {
 
     setIO(lineptr);
-    if (lineptr->next != NULL)
+    int pipesAmount = pipeCount(lineptr);
+    if (pipesAmount > 1)
     {
-        int numPipes = pipeCount(lineptr);
-        int i;
-        int pipefds[2 * numPipes];
-        // handleSinglePipe(lineptr);
-        for (i = 0; i < numPipes; i++)
-        {
-            if (pipe(pipefds + i * 2) < 0)
-            {
-                printf(stderr, "pipe error");
-            }
-        }
-
-        int cmdCounter = 0;
-        while (lineptr)
-        {
-            int pid = fork();
-            if (pid == 0)
-            { // child process
-                /* child gets input from the previous command,
-                    if it's not the first command */
-                if (lineptr->idx > 0)
-                {
-                    if (dup2(pipefds[(cmdCounter - 1) * 2], 0) < 0)
-                    {
-                        exit(1);
-                    }
-                }
-                /* child outputs to next command, if it's not
-                    the last command */
-                if (lineptr->next)
-                {
-                    if (dup2(pipefds[cmdCounter * 2 + 1], 1) < 0)
-                    {
-                        exit(1);
-                    }
-                }
-                close((pipefds[cmdCounter - 1] * 2));
-                if (execvp(lineptr->arguments[0], lineptr->arguments) == -1)
-                {
-                    printf(stderr, "execvp error");
-                    exit(1);
-                }
-            }
-            else if (pid < 0)
-            {
-                printf(stderr, "fork error");
-                exit(1);
-            }
-            lineptr = lineptr->next;
-            cmdCounter++;
-        }
-        releasePipes(pipefds, numPipes);
-
-        /* parent closes all of its copies at the end */
-        for (i = 0; i < 2 * numPipes; i++)
-        {
-            close(pipefds[i]);
-        }
-
-        return;
+       executePipes(lineptr);
     }
     if (strcmp(lineptr->arguments[0], "quit") == 0)
     {
@@ -308,4 +251,30 @@ int pipeCount(cmdLine *line)
         i++;
     }
     return i;
+}
+
+void executePipes (cmdLine *line){
+    cmdLine* head = line;
+    int i, pid, pipesAmount;
+    pipesAmount = pipeCount(line);
+    int **pipes = createPipes(line, pipesAmount);
+    i = 0;
+    while (head)
+    {
+        pid = fork();
+        if (pid != 0)
+        { // parent process
+            if(leftPipe(pipes,next)!=NULL){
+                if(debug){debug_p(PRE_CLOSE_READ,0);}
+                close(*leftPipe(pipes,next));
+            }
+            if(rightPipe(pipes,next)!=NULL){
+                if(debug){debug_p(PRE_CLOSE_WRITE,0);}
+                close(*(rightPipe(pipes,next)+1));
+            }
+        }
+    }
+
+
+
 }
