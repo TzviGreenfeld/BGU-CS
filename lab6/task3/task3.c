@@ -27,9 +27,7 @@ void releasePipes(int **pipes, int nPipes);
 int *leftPipe(int **pipes, cmdLine *pCmdLine);
 int *rightPipe(int **pipes, cmdLine *pCmdLine);
 int pipeCount(cmdLine *line);
-void executePipes (cmdLine *line, int npipes);
-
-
+void executePipes(cmdLine *line, int npipes);
 
 void debug(char *err)
 {
@@ -41,6 +39,7 @@ void debug(char *err)
 
 int main(int argc, char **argv)
 {
+    char lastPipe[INPUT_BUFF_SIZE];
     testArgs(argc, argv);
     char inputBuffer[INPUT_BUFF_SIZE];
     int pid, pipesAmount;
@@ -58,16 +57,23 @@ int main(int argc, char **argv)
         else if (strcmp(line->arguments[0], "cd") == 0)
         {
             cd(line);
-        // if (DEBUG)
-        //     fprintf(stderr, "PID is: %d\tExecuting command: %s\n", getpid(), line->arguments[0]);
+            // if (DEBUG)
+            //     fprintf(stderr, "PID is: %d\tExecuting command: %s\n", getpid(), line->arguments[0]);
         }
-        else{
+        else if (strncmp(inputBuffer, "printpipe", 9 ) == 0)
+        {
+            printf("%s\n", lastPipe);
+        }
+        else
+        {
             pipesAmount = pipeCount(line);
             if (pipesAmount > 1)
             {
-               executePipes(line, pipesAmount -1);
+                strcpy(lastPipe, inputBuffer);
+                executePipes(line, pipesAmount - 1);
             }
-            else{
+            else
+            {
                 pid = fork();
                 if (pid == 0)
                 { // child process
@@ -81,7 +87,6 @@ int main(int argc, char **argv)
                         waitpid(pid, NULL, 0);
                     }
                 }
-            
             }
         }
         freeCmdLines(line);
@@ -116,7 +121,6 @@ void execute(cmdLine *lineptr)
     perror("executaion failed\n");
     printf("%s failed\n", lineptr->arguments[0]);
     _exit(1);
-    
 }
 
 void cd(cmdLine *lineptr)
@@ -255,8 +259,9 @@ int pipeCount(cmdLine *line)
     return i;
 }
 
-void executePipes (cmdLine *line, int npipes){
-    cmdLine* head;
+void executePipes(cmdLine *line, int npipes)
+{
+    cmdLine *head;
     int i, pid, pipesAmount;
     pipesAmount = npipes;
     int **pipes = createPipes(pipesAmount);
@@ -272,14 +277,14 @@ void executePipes (cmdLine *line, int npipes){
             }
             if (rightPipe(pipes, head))
             { // if not last link
-                close(*(rightPipe(pipes, head)+1));
+                close(*(rightPipe(pipes, head) + 1));
             }
         }
         else if (pid == 0)
         { // child process
             if (i != 0)
             { // not first link
-                if (dup2(*leftPipe(pipes, head), pid) == -1)
+                if (dup2(*leftPipe(pipes, head), 0) == -1)
                 {
                     perror("ERR");
                     _exit(1);
@@ -287,7 +292,7 @@ void executePipes (cmdLine *line, int npipes){
             }
             if (i != pipesAmount)
             { // not last link
-                if( dup2(*(rightPipe(pipes, head) + 1), 1) == -1) 
+                if (dup2(*(rightPipe(pipes, head) + 1), 1) == -1)
                 { // duplicate next link read end
                     perror("ERR");
                     _exit(1);
@@ -308,7 +313,6 @@ void executePipes (cmdLine *line, int npipes){
             perror("ERR");
             _exit(1);
         }
-
     }
-    releasePipes(pipes, i);
+    releasePipes(pipes, i - 1);
 }

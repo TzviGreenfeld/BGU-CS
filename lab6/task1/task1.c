@@ -112,7 +112,7 @@ void setIO(cmdLine *line)
     if (line->inputRedirect)
     {
         close(STDIN);
-        open(line->outputRedirect, O_RDONLY);
+        open(line->inputRedirect, O_RDONLY);
     }
 
     if (line->outputRedirect)

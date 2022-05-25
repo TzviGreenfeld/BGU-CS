@@ -54,6 +54,7 @@ int main(int argc, char **argv)
         if (pid == 0)
         { // child process
             execute(line);
+
         }
         else if (pid > 0)
         { // parent process
