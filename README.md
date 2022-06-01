@@ -1,5 +1,6 @@
 # ESPL
-### BGU 2022 labs
+### BGU 2022 Extended System Programming Laboratory
+
 
 
 - [lab1 instructions](https://github.com/TzviGreenfeld/ESPL/blob/main/lab1/lab1.pdf)
