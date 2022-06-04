@@ -14,7 +14,8 @@ function printIfContainsSpring() {
 
 function countFunFan() {
     OFS = " : "
-    if ( $0 ~ / f[u,a]n / ) {
+    # if ( $0 ~ /f[u,a]n/ ) {
+    if ( $0 ~ /(,| )(f[u,a]n)(\n| )/ ) {
         funFan++;
     }
 }
@@ -35,10 +36,10 @@ BEGIN {
 
 {
     # printIfContainsSpring();
-    # countFunFan();
-    printIfFirstContainsHappy();
+    countFunFan();
+    # printIfFirstContainsHappy();
 }
 
 END{
-    # print "The number of poem that have fun or fan is", funFan;
+     print "The number of poem that have fun or fan is", funFan;
 }
