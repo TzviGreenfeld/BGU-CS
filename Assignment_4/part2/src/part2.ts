@@ -45,23 +45,43 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
             return sync().then(
                 (table: Table<T>) => sync(Object.assign(toReadWrite(table), { [key]: val }))
             )
-            .then( (t: Table<T>) =>
-                new Promise<void>(
+                .then((t: Table<T>) =>
+                    new Promise<void>(
+                        function (resolve, reject) {
+                            resolve();
+                        }
+                    )
+                )
+        },
+        delete(key: string): Promise<void> {
+            return sync().then(
+                (table: Table<T>) => new Promise<Table<T>>(
+                    function (resolve, reject) {
+                        const currTable = toReadWrite(table);
+                        if (Object.keys(currTable).includes(key)) { // ??
+                            delete currTable.key;
+                        }
+                        else {
+                            reject(MISSING_KEY)
+                        }
+                        return currTable;
+                    }
+                )
+            ).then((table: Table<T>) => sync(table))
+                .then((p: Table<T>) => new Promise<void>(
                     function (resolve, reject) {
                         resolve();
                     }
-                )
-            )
-        },
-        delete(key: string): Promise<void> {
-            return Promise.reject('not implemented')
+                ))
         }
     }
 }
 
+
+
 // Q 2.1 (b)
 export function getAll<T>(store: TableService<T>, keys: string[]): Promise<T[]> {
-    return Promise.reject('not implemented')
+    return Promise.all(keys.map((key) => store.get(key)))        
 }
 
 
