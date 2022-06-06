@@ -81,7 +81,7 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
 
 // Q 2.1 (b)
 export function getAll<T>(store: TableService<T>, keys: string[]): Promise<T[]> {
-    return Promise.all(keys.map((key) => store.get(key)))        
+    return Promise.all(keys.map((key) => store.get(key)))
 }
 
 
@@ -93,9 +93,19 @@ export type TableServiceTable = Table<TableService<object>>
 export function isReference<T>(obj: T | Reference): obj is Reference {
     return typeof obj === 'object' && 'table' in obj
 }
-
+/*
+Before returning the resulting object, do the following recursively:
+    Go over the values of the object (you can use ‘Object.entries’ and ‘Object.fromEntries’) and, if a value
+    contains the ’table’ property (use “ ‘table’ in obj ”), assume this value is reference and search for the key in
+    the appropriate table. Continue, this process until all references are replaced by their value.
+*/
 export async function constructObjectFromTables(tables: TableServiceTable, ref: Reference) {
     async function deref(ref: Reference) {
+        // if (isReference(ref)) {
+        //     if(ref.key in Object.keys(ref.table)){
+        //         const table =  await ref.table.
+        //     }
+        // }
         return Promise.reject('not implemented')
     }
 
@@ -106,13 +116,25 @@ export async function constructObjectFromTables(tables: TableServiceTable, ref: 
 
 export function lazyProduct<T1, T2>(g1: () => Generator<T1>, g2: () => Generator<T2>): () => Generator<[T1, T2]> {
     return function* () {
-        // TODO implement!
+        const generator1 = g1();
+        const generator2 = g2();
+        // g1, g2 will return the same number of elements
+        for (var item1 of generator1) {
+            for (var item2 of generator2) {
+                yield [item1, item2];
+            }
+        }
     }
 }
 
 export function lazyZip<T1, T2>(g1: () => Generator<T1>, g2: () => Generator<T2>): () => Generator<[T1, T2]> {
     return function* () {
-        // TODO implement!
+        const generator1 = g1();
+        const generator2 = g2();
+        // g1, g2 will return the same number of elements
+        for (var item1 of generator1) {
+            yield [item1, generator2.next().value]
+        }
     }
 }
 
