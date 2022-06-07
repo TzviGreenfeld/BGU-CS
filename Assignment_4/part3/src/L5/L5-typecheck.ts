@@ -1,12 +1,12 @@
 // L5-typecheck
 // ========================================================
-import { equals, filter, flatten, includes, map, intersection, zipWith, reduce } from 'ramda';
+import { equals, filter, flatten, includes, map, intersection, zipWith, reduce, empty } from 'ramda';
 import {
     isAppExp, isBoolExp, isDefineExp, isIfExp, isLetrecExp, isLetExp, isNumExp,
     isPrimOp, isProcExp, isProgram, isStrExp, isVarRef, unparse, parseL51,
     AppExp, BoolExp, DefineExp, Exp, IfExp, LetrecExp, LetExp, NumExp, SetExp, LitExp,
     Parsed, PrimOp, ProcExp, Program, StrExp, isSetExp, isLitExp,
-    isDefineTypeExp, isTypeCaseExp, DefineTypeExp, TypeCaseExp, CaseExp, isAtomicExp, isCompoundExp
+    isDefineTypeExp, isTypeCaseExp, DefineTypeExp, TypeCaseExp, CaseExp, isAtomicExp, isCompoundExp, makeProcExp, makeVarDecl, VarDecl, CExp, makeCaseExp, makeIfExp
 } from "./L5-ast";
 import { applyTEnv, makeEmptyTEnv, makeExtendTEnv, TEnv } from "./TEnv";
 import {
@@ -14,11 +14,12 @@ import {
     parseTE, unparseTExp, Record,
     BoolTExp, NumTExp, StrTExp, TExp, VoidTExp, UserDefinedTExp, isUserDefinedTExp, UDTExp,
     isNumTExp, isBoolTExp, isStrTExp, isVoidTExp,
-    isRecord, ProcTExp, makeUserDefinedNameTExp, Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, makeRecord, makeUserDefinedTExp
+    isRecord, ProcTExp, makeUserDefinedNameTExp, Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, makeRecord, makeUserDefinedTExp, isTExp
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
 import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either, resultToOptional, isOk } from '../shared/result';
 import { REFUSED } from 'dns';
+import { diffieHellman } from 'crypto';
 
 // L51
 export const getTypeDefinitions = (p: Program): UserDefinedTExp[] => {
@@ -95,11 +96,11 @@ const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>
 export const checkEqualType = (te1: TExp, te2: TExp, exp: Exp, p: Program): Result<TExp> =>
     isSubType(te1, te2, p) ? makeOk(te2) :
         makeFailure(`Incompatible types: ${te1} and ${te2} in ${p}`);
-    // i think it should work because every type is in its own parents
+// i think it should work because every type is in its own parents
 
-    // old:
-    // equals(te1, te2) ? makeOk(te2) :
-        // makeFailure(`Incompatible types: ${te1} and ${te2} in ${exp}`);
+// old:
+// equals(te1, te2) ? makeOk(te2) :
+// makeFailure(`Incompatible types: ${te1} and ${te2} in ${exp}`);
 
 
 // L51
@@ -156,18 +157,58 @@ export const checkCoverType = (types: TExp[], p: Program): Result<TExp> => {
 // All globally defined variables (with define)
 
 // TODO: Define here auxiliary functions for TEnv computation
-const getUDNameExpFromDefExp = (defexp : DefineExp) : UserDefinedTExp =>
-    makeUserDefinedTExp(defexp.var.var, )
+const getUDNameExpFromDefExp = (defexp: DefineExp, p: Program): Result<UserDefinedTExp> => {
+    const records = getRecords(p);
+    const parent = getTypeByName(defexp.var.var, p);
+    if (isOk(parent)) {
+        const subs = filter((r: Record) => isSubType(r, parent.value, p), records);
+        return makeOk(makeUserDefinedTExp(defexp.var.var, subs));
+    }
+    else {
+        return makeFailure("defExp not defined in p");
+    }
+}
+
+const makePred = (tName: string): ProcTExp =>
+    makeProcTExp([makeUserDefinedNameTExp(tName)], makeBoolTExp())
+
+const makeConstructor = (record: Record, p: Program): Result<ProcTExp> => {
+    const recType = getTypeByName(record.typeName, p);
+    return isOk(recType) ?
+        makeOk(makeProcTExp(map((f: Field) => f.te, record.fields), recType.value)) :
+        makeFailure(recType.message);
+
+}
+
+
 // TOODO L51
 // Initialize TEnv with:
 // * Type of global variables (define expressions at top level of p)
 // * Type of implicitly defined procedures for user defined types (define-type expressions in p)
-export const initTEnv = (p: Program): TEnv =>{
-    getDefinitions(p)
-    map()
-    return makeEmptyTEnv();
+export const initTEnv = (p: Program): TEnv => {
+
+    const defs = getDefinitions(p)
+    // generate the types with records
+    const globalUDTypesRES = mapResult((d: DefineExp) => getUDNameExpFromDefExp(d, p), defs) // returns ok with array if all ok
+    const names = map((n: UserDefinedTExp) => n.typeName, getTypeDefinitions(p))
+    const globals = map(makeUserDefinedNameTExp, names)
+
+    // generate type-predicats
+    const preds = map(makePred, names);
+    const predsVars = map((s: string) => s + "?", names);
+
+    // generate constructors
+    const recs = getRecords(p);
+    const constructors = mapResult((r: Record) => makeConstructor(r, p), recs);
+    const consVars = map((s: string) => "make-" + s, names);
+
+    const envWithGlobals = makeExtendTEnv(names, globals, makeEmptyTEnv());
+    const envWithPreds = makeExtendTEnv(predsVars, preds, envWithGlobals);
+    return isOk(constructors) ?
+        makeExtendTEnv(consVars, constructors.value, envWithPreds) :
+        makeEmptyTEnv();
 }
-    
+
 
 /*
     accroding to the tests we need to have the values for the functions: (we need to generate these functions)
@@ -404,7 +445,7 @@ export const typeofProgram = (exp: Program, tenv: TEnv, p: Program): Result<TExp
 
 // TODO L51
 // Write the typing rule for DefineType expressions
-export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): Result<TExp> =>
+// export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): Result<TExp> =>
 
 
 // TODO L51
@@ -418,24 +459,24 @@ export const typeofSet = (exp: SetExp, _tenv: TEnv, _p: Program): Result<TExp> =
 
 
 
-    // TODO L51
-    export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =>
-        makeFailure(`Todo ${JSON.stringify(exp, null, 2)}`);
-    // number | boolean | string | PrimOp | CompoundSExp // atommic (cExp) ((Exp))
-    // Closure
-    // SymbolSExp | EmptySExp  |
-    //  void; voidTexp
+// TODO L51
+export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =>
+    makeFailure(`Todo ${JSON.stringify(exp, null, 2)}`);
+// number | boolean | string | PrimOp | CompoundSExp // atommic (cExp) ((Exp))
+// Closure
+// SymbolSExp | EmptySExp  |
+//  void; voidTexp
 
-    // TODO: L51
-    // Purpose: compute the type of a type-case
-    // Typing rule:
-    // For all user-defined-type id
-    //         with component records record_1 ... record_n
-    //         with fields (field_ij) (i in [1...n], j in [1..R_i])
-    //         val CExp
-    //         body_i for i in [1..n] sequences of CExp
-    //   ( type-case id val (record_1 (field_11 ... field_1r1) body_1)...  )
-    //  TODO
-    export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
-        return makeFailure(`TODO: typecase ${JSON.stringify(exp, null, 2)}`);
-    }
+// TODO: L51
+// Purpose: compute the type of a type-case
+// Typing rule:
+// For all user-defined-type id
+//         with component records record_1 ... record_n
+//         with fields (field_ij) (i in [1...n], j in [1..R_i])
+//         val CExp
+//         body_i for i in [1..n] sequences of CExp
+//   ( type-case id val (record_1 (field_11 ... field_1r1) body_1)...  )
+//  TODO
+export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
+    return makeFailure(`TODO: typecase ${JSON.stringify(exp, null, 2)}`);
+}
