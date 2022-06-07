@@ -91,7 +91,9 @@ export type Reference = { table: string, key: string }
 export type TableServiceTable = Table<TableService<object>>
 
 export function isReference<T>(obj: T | Reference): obj is Reference {
-    return typeof obj === 'object' && 'table' in obj
+    // thats all you need?
+    return typeof obj === 'object' && 'table' in obj;
+    // WOW
 }
 /*
 Before returning the resulting object, do the following recursively:
@@ -100,13 +102,10 @@ Before returning the resulting object, do the following recursively:
     the appropriate table. Continue, this process until all references are replaced by their value.
 */
 export async function constructObjectFromTables(tables: TableServiceTable, ref: Reference) {
+    const tableName = ref.table;
+    const enrtys = Object.entries(tables)
     async function deref(ref: Reference) {
-        // if (isReference(ref)) {
-        //     if(ref.key in Object.keys(ref.table)){
-        //         const table =  await ref.table.
-        //     }
-        // }
-        return Promise.reject('not implemented')
+
     }
 
     return deref(ref)
