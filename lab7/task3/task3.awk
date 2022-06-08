@@ -27,6 +27,15 @@ function printIfFirstContainsHappy() {
     
 }
 
+function printIfThreeWords() {
+    FS = ",";
+    
+    if (gsub(/ /, " ", $2) == 2){
+        print $2;
+        count++;
+    }
+}
+
 
 BEGIN {
     FS = ",";
@@ -36,9 +45,11 @@ BEGIN {
 {
     # printIfContainsSpring();
     # countFunFan();
-    printIfFirstContainsHappy();
+    # printIfFirstContainsHappy();
+    printIfThreeWords();
 }
 
 END{
+    print "The number of lines where first part has 3 words is", count;
     # print "The number of poem that have fun or fan is", funFan;
 }
