@@ -58,8 +58,9 @@ export function makeTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>
                 (table: Table<T>) => new Promise<Table<T>>(
                     function (resolve, reject) {
                         const currTable = toReadWrite(table);
-                        if (Object.keys(currTable).includes(key)) { // ??
-                            delete currTable.key;
+                        // if (Object.keys(currTable).includes(key)) { // ??
+                        if (key in currTable) {
+                            delete currTable[key];
                         }
                         else {
                             reject(MISSING_KEY)
@@ -108,13 +109,13 @@ export async function constructObjectFromTables(tables: TableServiceTable, ref: 
     */
 
     async function deref(ref: Reference) {
+        const tableName: string = ref.table;
+        const refKey: string = ref.key;
 
-        if (!Object.keys(tables).includes(ref.table)) {
+        if (!(tableName in tables)) {
             return Promise.reject(MISSING_TABLE_SERVICE);
         }
 
-        const tableName: string = ref.table;
-        const refKey: string = ref.key;
         // get table
         const table: TableService<object> = tables[tableName];
 
@@ -137,7 +138,7 @@ export async function constructObjectFromTables(tables: TableServiceTable, ref: 
         return currObj;
     }
 
-    return deref(ref)
+    return deref(ref);
 }
 
 // Q 2.3
@@ -171,14 +172,41 @@ export type ReactiveTableService<T> = {
     subscribe(observer: (table: Table<T>) => void): void
 }
 
+// notify observers
+const notify = <T>(observers: ((table: Table<T>) => void)[], newTable: Table<T>): void =>
+    observers.forEach((observer: (table: Table<T>) => void) => observer(newTable));
+
 export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>>, optimistic: boolean): Promise<ReactiveTableService<T>> {
     // optional initialization code
 
-    let _table: Table<T> = await sync()
+    let _table: readWriteTable<T> = toReadWrite(await sync());
+    let subscribers: ((table: Table<T>) => void)[] = [];
+
 
     const handleMutation = async (newTable: Table<T>) => {
-        // TODO implement!
+        if (optimistic) {
+            // call subscribers immediatly
+            notify(subscribers, newTable);
+        }
+
+        // replace table with new
+        _table = await sync(newTable)
+            .catch(
+                (error) => {
+                    if (optimistic){
+                        // revert update because mutation failed
+                        notify(subscribers, _table);
+                    }
+                    throw (error);
+                }
+            );
+
+        if (!optimistic) {
+            notify(subscribers, newTable);
+        }
+
     }
+
     return {
         get(key: string): T {
             if (key in _table) {
@@ -188,14 +216,22 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
             }
         },
         set(key: string, val: T): Promise<void> {
-            return handleMutation(null as any /* TODO */)
+            return handleMutation(Object.assign(toReadWrite(_table), { [key]: val }))
         },
         delete(key: string): Promise<void> {
-            return handleMutation(null as any /* TODO */)
+            let currTable = toReadWrite(_table);
+            if (key in currTable) {
+                delete currTable[key];
+            }
+            else {
+                throw (MISSING_KEY);
+            }
+            return handleMutation(currTable);
         },
 
         subscribe(observer: (table: Table<T>) => void): void {
-            // TODO implement!
+            // update subscribers
+            subscribers.push(observer);
         }
     }
 }
