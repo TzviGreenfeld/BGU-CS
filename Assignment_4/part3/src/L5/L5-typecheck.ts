@@ -1,6 +1,6 @@
 // L5-typecheck
 // ========================================================
-import { equals, filter, flatten, includes, map, intersection, zipWith, reduce, empty } from 'ramda';
+import { equals, filter, flatten, includes, map, intersection, zipWith, reduce, empty, all } from 'ramda';
 import {
     isAppExp, isBoolExp, isDefineExp, isIfExp, isLetrecExp, isLetExp, isNumExp,
     isPrimOp, isProcExp, isProgram, isStrExp, isVarRef, unparse, parseL51,
@@ -17,7 +17,7 @@ import {
     isRecord, ProcTExp, makeUserDefinedNameTExp, Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, makeRecord, makeUserDefinedTExp, isTExp
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
-import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either, resultToOptional, isOk } from '../shared/result';
+import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either, resultToOptional, isOk, isOkT } from '../shared/result';
 import { REFUSED } from 'dns';
 import { diffieHellman } from 'crypto';
 
@@ -123,10 +123,11 @@ export const getParentsType = (te: TExp, p: Program): TExp[] =>
 
 // L51
 // Get the list of types that cover all ts in types.
-export const coverTypes = (types: TExp[], p: Program): TExp[] =>
+export const coverTypes = (types: TExp[], p: Program): TExp[] => {
     // [[p11, p12], [p21], [p31, p32]] --> types in intersection of all lists
-    ((parentsList: TExp[][]): TExp[] => reduce(intersection, first(parentsList), rest(parentsList)))
-        (map((t) => getParentsType(t, p), types));
+    const parentsList: TExp[][] = map((t) => getParentsType(t, p), types);
+    return reduce<TExp[], TExp[]>(intersection, first(parentsList), rest(parentsList));
+}
 
 // Return the most specific in a list of TExps
 // For example given UD(R1, R2):
@@ -232,10 +233,40 @@ const checkUserDefinedTypes = (p: Program): Result<true> =>
     makeOk(true);
 
 // TODO L51
-const checkTypeCase = (tc: TypeCaseExp, p: Program): Result<true> =>
-    // Check that all type case expressions have exactly one clause for each constituent subtype 
-    // (in any order)
-    makeOk(true);
+// 1.
+// When a type-case is used on user-defined type UD, we must have exactly one clause for each of the
+// constituent sub-types of the UD type.
+// 2.
+// In each of the case clauses, the number of variable declarations that are added must correspond to the
+// number of fields defined in the corresponding Record type. For example
+
+const getCaseByRecName = (r: Record, cs: CaseExp[]): CaseExp =>
+    cs.filter((c: CaseExp) => c.typeName === r.typeName)[0]
+
+const isValidCase = (r: Record, c: CaseExp): boolean =>
+    (c !== undefined) && (r.fields.length === c.varDecls.length)
+
+const testRecsCases = (rs: Record[], cs: CaseExp[]): boolean =>
+    all((r: Record) => isValidCase(r, getCaseByRecName(r, cs)), rs)
+
+const checkTypeCase = (tc: TypeCaseExp, p: Program): Result<true> => {
+    const cases = tc.cases;
+    const typeNameRes = getTypeByName(tc.typeName, p)
+    if (isOk(typeNameRes)) {
+        if (isUserDefinedTExp(typeNameRes.value)) {
+            if (typeNameRes.value.records.length === cases.length) {
+                const res = testRecsCases(typeNameRes.value.records, cases);
+                if (res) {
+                    return makeOk(res)
+                }
+            }
+        }
+    }
+    return makeFailure("Failure");
+}
+// Check that all type case expressions have exactly one clause for each constituent subtype 
+// (in any order)
+
 
 
 // Compute the type of L5 AST exps to TE
@@ -445,7 +476,7 @@ export const typeofProgram = (exp: Program, tenv: TEnv, p: Program): Result<TExp
 
 // TODO L51
 // Write the typing rule for DefineType expressions
-// export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): Result<TExp> =>
+export const typeofDefineType = (exp: DefineTypeExp, _tenv: TEnv, _p: Program): Result<TExp> =>
 
 
 // TODO L51
@@ -459,24 +490,24 @@ export const typeofSet = (exp: SetExp, _tenv: TEnv, _p: Program): Result<TExp> =
 
 
 
-// TODO L51
-export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =>
-    makeFailure(`Todo ${JSON.stringify(exp, null, 2)}`);
-// number | boolean | string | PrimOp | CompoundSExp // atommic (cExp) ((Exp))
-// Closure
-// SymbolSExp | EmptySExp  |
-//  void; voidTexp
+    // TODO L51
+    export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =>
+        makeFailure(`Todo ${JSON.stringify(exp, null, 2)}`);
+    // number | boolean | string | PrimOp | CompoundSExp // atommic (cExp) ((Exp))
+    // Closure
+    // SymbolSExp | EmptySExp  |
+    //  void; voidTexp
 
-// TODO: L51
-// Purpose: compute the type of a type-case
-// Typing rule:
-// For all user-defined-type id
-//         with component records record_1 ... record_n
-//         with fields (field_ij) (i in [1...n], j in [1..R_i])
-//         val CExp
-//         body_i for i in [1..n] sequences of CExp
-//   ( type-case id val (record_1 (field_11 ... field_1r1) body_1)...  )
-//  TODO
-export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
-    return makeFailure(`TODO: typecase ${JSON.stringify(exp, null, 2)}`);
-}
+    // TODO: L51
+    // Purpose: compute the type of a type-case
+    // Typing rule:
+    // For all user-defined-type id
+    //         with component records record_1 ... record_n
+    //         with fields (field_ij) (i in [1...n], j in [1..R_i])
+    //         val CExp
+    //         body_i for i in [1..n] sequences of CExp
+    //   ( type-case id val (record_1 (field_11 ... field_1r1) body_1)...  )
+    //  TODO
+    export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
+        return makeFailure(`TODO: typecase ${JSON.stringify(exp, null, 2)}`);
+    }
