@@ -10,3 +10,4 @@
 - [lab5 instructions](https://github.com/TzviGreenfeld/ESPL/blob/main/lab5/lab5.pdf)
 - [lab6 instructions](https://github.com/TzviGreenfeld/ESPL/blob/main/lab6/lab6.pdf)
 - [lab7 instructions](https://github.com/TzviGreenfeld/ESPL/blob/main/lab7/lab7.pdf)
+- [lab8 instructions](https://github.com/TzviGreenfeld/ESPL/blob/main/lab8/lab8.pdf)
