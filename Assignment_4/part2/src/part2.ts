@@ -92,8 +92,7 @@ export type TableServiceTable = Table<TableService<object>>
 
 export function isReference<T>(obj: T | Reference): obj is Reference {
     // thats all you need?
-    return typeof obj === 'object' && 'table' in obj;
-    // WOW
+    return typeof (obj) === 'object' && 'table' in obj;
 }
 /*
 Before returning the resulting object, do the following recursively:
@@ -102,10 +101,40 @@ Before returning the resulting object, do the following recursively:
     the appropriate table. Continue, this process until all references are replaced by their value.
 */
 export async function constructObjectFromTables(tables: TableServiceTable, ref: Reference) {
-    const tableName = ref.table;
-    const enrtys = Object.entries(tables)
+    /*
+        we get a table of tables and reference which may contain refrence as value
+        we need to construct an objec tby getting the keys and value of the reference
+        
+    */
+
     async function deref(ref: Reference) {
 
+        if (!Object.keys(tables).includes(ref.table)) {
+            return Promise.reject(MISSING_TABLE_SERVICE);
+        }
+
+        const tableName: string = ref.table;
+        const refKey: string = ref.key;
+        // get table
+        const table: TableService<object> = tables[tableName];
+
+        // get the key given in reference from the table
+        var currObj = await table.get(refKey);
+
+
+        // looping over the table entries.
+        // for every Refernce value we need a recursive call
+        if (typeof (currObj) === 'object') { // is resolved
+            for (const [key, val] of Object.entries(currObj)) {
+
+                if (isReference(val)) {
+                    const derefrenced = { [key]: await deref(val) };
+                    Object.assign(currObj, derefrenced);
+                }
+            }
+        }
+
+        return currObj;
     }
 
     return deref(ref)
@@ -115,11 +144,8 @@ export async function constructObjectFromTables(tables: TableServiceTable, ref: 
 
 export function lazyProduct<T1, T2>(g1: () => Generator<T1>, g2: () => Generator<T2>): () => Generator<[T1, T2]> {
     return function* () {
-        const generator1 = g1();
-        const generator2 = g2();
-        // g1, g2 will return the same number of elements
-        for (var item1 of generator1) {
-            for (var item2 of generator2) {
+        for (let item1 of g1()) {
+            for (let item2 of g2()) {
                 yield [item1, item2];
             }
         }
@@ -131,7 +157,7 @@ export function lazyZip<T1, T2>(g1: () => Generator<T1>, g2: () => Generator<T2>
         const generator1 = g1();
         const generator2 = g2();
         // g1, g2 will return the same number of elements
-        for (var item1 of generator1) {
+        for (let item1 of generator1) {
             yield [item1, generator2.next().value]
         }
     }
