@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "mman.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stat.h": "c"
     }
 }

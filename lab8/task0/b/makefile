@@ -3,7 +3,7 @@ all: exec
 
 exec: task0b.o
 
-	gcc -g -m32 -Wall -o task0b task0b.o	
+	gcc -g -m32 -Wall -o myELF task0b.o	
 
 task0b.o: task0b.c
 	gcc -m32 -Wall -c task0b.c -o task0b.o
@@ -11,5 +11,5 @@ task0b.o: task0b.c
 
 .PHONY: clean
 clean:
-	rm -f *.o task0b
+	rm -f *.o myELF
 
