@@ -14,8 +14,10 @@ BEGIN{
     # if he got 80 in each one of the scores.
     if ($5 >= 80 && $6 >= 80 && $7 >= 80 && $8 >= 80)
     {
-        print $0;
-        cnt++;
+        if( $0 !~ /race/){
+            print $0;
+            cnt++;
+        }
     }
 
 }

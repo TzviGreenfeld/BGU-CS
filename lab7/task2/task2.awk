@@ -26,17 +26,17 @@ BEGIN{
 }
 
 {
-    calcAvgs();
+    # calcAvgs();
     countParentBchelors();
 }
 
 END{
     # print avereges for math, reading, writing
-    if (n != 0) {
-        print "math: " math / n;
-        print "reading: " reading / n;
-        print "writing: " writing / n;
-    }
+    # if (n != 0) {
+    #     print "math: " math / n;
+    #     print "reading: " reading / n;
+    #     print "writing: " writing / n;
+    # }
 
     print "number of students whose parents have bachelor's degree: " pConuter;
 }

@@ -2,7 +2,7 @@
     
 
 function printArgs() {
-	for (i = 0; i <= ARGC; i++){
+	for (i = 0; i < ARGC; i++){
 
 		printf ("ARGV[%d] = %s\n", i, ARGV[i]);
 	}
@@ -35,6 +35,7 @@ function printMovieIndexBetween(start, end) {
 
 BEGIN{
 	FS = ",";
+	# printArgs();
 	
 
 }
@@ -44,11 +45,11 @@ BEGIN{
 # Index,Year,Age,Actor Name,Movie Name.
 
 {
-	# printArgs();
-	# printNameAgeYear();
-	# printNameAndMovieAfterYear(1970);
-	# printMovieIndexBetween(50,70);
-	
+	if ($0 !~ /Name/){
+		# printNameAgeYear();
+		# printNameAndMovieAfterYear(1970);
+		printMovieIndexBetween(50,70);
+	}
 }
 
 END{
