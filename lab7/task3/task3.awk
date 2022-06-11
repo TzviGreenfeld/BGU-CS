@@ -14,7 +14,8 @@ function printIfContainsSpring() {
 
 function countFunFan() {
     OFS = " : "
-    if ( $0 ~ / f[u,a]n / ) {
+    # if ( $0 ~ /f[u,a]n/ ) {
+    if ( $0 ~ /(,| )(f[u,a]n)(\n| )/ ) {
         funFan++;
     }
 }
@@ -44,6 +45,7 @@ BEGIN {
 
 {
     # printIfContainsSpring();
+<<<<<<< HEAD
     # countFunFan();
     # printIfFirstContainsHappy();
     printIfThreeWords();
@@ -52,4 +54,12 @@ BEGIN {
 END{
     print "The number of lines where first part has 3 words is", count;
     # print "The number of poem that have fun or fan is", funFan;
+=======
+    countFunFan();
+    # printIfFirstContainsHappy();
+}
+
+END{
+     print "The number of poem that have fun or fan is", funFan;
+>>>>>>> 2c105ba5d3857cf72948d44fe6b27c38b5b6dfb5
 }

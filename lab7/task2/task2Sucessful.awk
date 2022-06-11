@@ -23,5 +23,5 @@ BEGIN{
 }
 
 END{
-    print "The number of students: " cnt;
+    print "The number of students: " cnt - 1;
 }
