@@ -31,6 +31,9 @@ void mapFile();
 void printElfHeader(Elf32_Ehdr *hdr);
 int isELF(Elf32_Ehdr *hdr);
 int takeUserChoice();
+void printSectionNames();
+char *tsect(int t);
+void printSingleSectionHeader(int index, char *sectName, Elf32_Shdr *section);
 
 // globals
 int DEBUG = FALSE;
@@ -109,10 +112,6 @@ void examineELFFile()
       Currentfd = 0;
    }
 }
-void printSectionNames()
-{
-   printf("%s\n", "Not Implemented yet");
-}
 void printSymbols()
 {
    printf("%s\n", "Not Implemented yet");
@@ -190,3 +189,75 @@ void printElfHeader(Elf32_Ehdr *hdr)
    printf(dataDescription[7], hdr->e_phnum);
    printf(dataDescription[8], hdr->e_phentsize);
 }
+
+void printSectionNames()
+{
+   if (Currentfd != -1)
+   {
+      // calculate section tables start byte
+      
+      Elf32_Shdr *sectTables = mapBeginPtr + ELFheader->e_shoff;
+
+      // calculate section tables names
+      // start of file + section header offset + (table index * table size)
+      Elf32_Shdr *sectTablesNames = mapBeginPtr + ELFheader->e_shoff + (ELFheader->e_shstrndx * ELFheader->e_shentsize);
+      if (DEBUG)
+      {
+         printf("Section table is at: %p\nstring table entry is at: %p\n", sectTables, sectTablesNames);
+         // [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+         // [index] section_name section_address section_offset section_size  section_type
+         printf("[Nr] Name\t\tAddr\t\tOff\tSize\tType\t\toffset(bytes)\n");
+      }
+      else
+      {
+         printf("[Nr] Name\t\tAddr\t\tOff\tSize\tType\n");
+      }
+
+      int sectCount = ELFheader->e_shnum;
+      for (int i = 0; i < sectCount; i++)
+      {
+         Elf32_Shdr *sectHdr = mapBeginPtr + ELFheader->e_shoff + (i * ELFheader->e_shentsize);
+         char *name = mapBeginPtr + sectTablesNames->sh_offset + sectHdr->sh_name;
+         printSingleSectionHeader(i, name, sectHdr);
+      }
+   }
+   else
+   {
+      printf("open a file first\n");
+   }
+}
+
+char *tsect(int t)
+{
+   char *typesByNum[12] = {
+       "NULL",
+       "PROGBITS",
+       "SYMTAB",
+       "STRTAB",
+       "RELA",
+       "HASH",
+       "DYNAMIC",
+       "NOTE",
+       "NOBITS",
+       "REL",
+       "SHLIB",
+       "DYNSYM",
+   };
+
+   return (typesByNum[t]);
+}
+
+void printSingleSectionHeader(int index, char *sectName, Elf32_Shdr *sect)
+{
+   // [index] section_name section_address section_offset section_size  section_type
+   printf("[%d] ", index);
+   printf("%s\t", sectName);
+   printf("%#09x\t", sect->sh_addr);
+   printf("%06d\t", sect->sh_offset);
+   printf("%06d\t", sect->sh_size);
+   printf("%s\t", tsect(sect->sh_type));
+   if (DEBUG){
+      printf("offset = %d", ELFheader->e_shoff+(index * ELFheader->e_shentsize));
+   }
+}
+
