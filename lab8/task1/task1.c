@@ -51,7 +51,7 @@ Elf32_Ehdr *ELFheader;
 
 int main()
 {
-   system("clear");
+   // system("clear");
    while (1)
    {
       presentOptions();
@@ -178,7 +178,7 @@ void printElfHeader(Elf32_Ehdr *hdr)
    char *dtype =
        hdr->e_ident[5] == ELFDATA2LSB ? "Little endian" : hdr->e_ident[5] == ELFDATA2MSB ? "Big endian"
                                                                                          : "None";
-
+   
    printf(dataDescription[0], hdr->e_ident[EI_MAG0], hdr->e_ident[EI_MAG1], hdr->e_ident[EI_MAG2]);
    printf(dataDescription[1], dtype);
    printf(dataDescription[2], hdr->e_entry);
@@ -229,6 +229,7 @@ void printSectionNames()
 
 char *tsect(int t)
 {
+   // printf("HIHIH\n\nt is %d\n\n", t);
    char *typesByNum[12] = {
        "NULL",
        "PROGBITS",
@@ -243,8 +244,9 @@ char *tsect(int t)
        "SHLIB",
        "DYNSYM",
    };
-
-   return (typesByNum[t]);
+   if (0 <= t && t <= 11)
+      return (typesByNum[t]);
+   return "ERROR";
 }
 
 void printSingleSectionHeader(int index, char *sectName, Elf32_Shdr *sect)
@@ -259,5 +261,6 @@ void printSingleSectionHeader(int index, char *sectName, Elf32_Shdr *sect)
    if (DEBUG){
       printf("offset = %d", ELFheader->e_shoff+(index * ELFheader->e_shentsize));
    }
+   printf("\n");
 }
 
