@@ -18,7 +18,7 @@ import {
     isNumTExp, isBoolTExp, isStrTExp, isVoidTExp,
     isRecord, ProcTExp, makeUserDefinedNameTExp,
     Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, makeRecord,
-    makeUserDefinedTExp, isTExp, isAtomicTExp, isCompoundTExp, isTVar
+    makeUserDefinedTExp, isTExp, isAtomicTExp, isCompoundTExp, isTVar, UserDefinedNameTExp
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
 import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either, resultToOptional, isOk, isOkT } from '../shared/result';
@@ -259,17 +259,6 @@ export const checkCoverType = (types: TExp[], p: Program): Result<TExp> => {
 // All globally defined variables (with define)
 
 // TODO: Define here auxiliary functions for TEnv computation
-const getUDNameExpFromDefExp = (defexp: DefineExp, p: Program): Result<UserDefinedTExp> => {
-    const records = getRecords(p);
-    const parent = getTypeByName(defexp.var.var, p);
-    if (isOk(parent)) {
-        const subs = filter((r: Record) => isSubType(r, parent.value, p), records);
-        return makeOk(makeUserDefinedTExp(defexp.var.var, subs));
-    }
-    else {
-        return makeFailure("defExp not defined in p");
-    }
-}
 
 const makePred = (tName: string): ProcTExp =>
     makeProcTExp([makeUserDefinedNameTExp(tName)], makeBoolTExp())
@@ -279,9 +268,7 @@ const makeConstructor = (record: Record, p: Program): Result<ProcTExp> => {
     return isOk(recType) ?
         makeOk(makeProcTExp(map((f: Field) => f.te, record.fields), recType.value)) :
         makeFailure(recType.message);
-
 }
-
 
 // TOODO L51
 // Initialize TEnv with:
@@ -289,26 +276,47 @@ const makeConstructor = (record: Record, p: Program): Result<ProcTExp> => {
 // * Type of implicitly defined procedures for user defined types (define-type expressions in p)
 export const initTEnv = (p: Program): TEnv => {
 
-    const defs = getDefinitions(p)
-    // generate the types with records
-    const globalUDTypesRES = mapResult((d: DefineExp) => getUDNameExpFromDefExp(d, p), defs) // returns ok with array if all ok
-    const names = map((n: UserDefinedTExp) => n.typeName, getTypeDefinitions(p))
-    const globals = map(makeUserDefinedNameTExp, names)
+    const names: string[] = map((n: UserDefinedTExp) => n.typeName, getTypeDefinitions(p)) // Shape, UD
+    const globals: UserDefinedNameTExp[] = map(makeUserDefinedNameTExp, names) // Shape, UD
+    const recs: Record[] = getRecords(p); // circle, square
+    const recNames: string[] = map((r: Record) => r.typeName, recs); // circle, square
 
-    // generate type-predicats
-    const preds = map(makePred, names);
-    const predsVars = map((s: string) => s + "?", names);
 
     // generate constructors
-    const recs = getRecords(p);
-    const constructors = mapResult((r: Record) => makeConstructor(r, p), recs);
-    const consVars = map((s: string) => "make-" + s, names);
+    const constructors: Result<ProcTExp[]> = mapResult((r: Record) => makeConstructor(r, p), recs);
+    if (isFailure(constructors)){
+        return makeEmptyTEnv();
+    }
+    const consVars: string[] = map((s: string) => "make-" + s, recNames); // constructors names
 
+    // generate type-predicats
+    const preds: ProcTExp[] = map(makePred, names.concat(recNames));
+    const predsVars: string[] = map((s: string) => s + "?", names.concat(recNames)); // predicats names
+
+    // DEBUG
+    // console.log(`names: ${names}\n
+    // globals:${map((u: UserDefinedNameTExp) => u.typeName, globals)}\n
+    // predsvars:${predsVars}\n
+    // records:${map((r: Record) => r.typeName, recs)}\n
+    // consvars:${consVars}\n
+    // constructors:${map((x: ProcTExp)=>x.tag ,constructors.value)}\n
+    // predicats:${map((x: ProcTExp)=>x.tag ,preds)}
+    // predicatsNames:${predsVars}`)
+
+    // assemble env
     const envWithGlobals = makeExtendTEnv(names, globals, makeEmptyTEnv());
     const envWithPreds = makeExtendTEnv(predsVars, preds, envWithGlobals);
-    return isOk(constructors) ?
-        makeExtendTEnv(consVars, constructors.value, envWithPreds) :
-        makeEmptyTEnv();
+    const envWithConstructors = makeExtendTEnv(consVars, constructors.value, envWithPreds);
+    
+    // DEBUG
+    // console.log(`last env:\n
+    //     tag:${envWithConstructors.tag}\n
+    //     tenv:${envWithConstructors.tenv}\n
+    //     texps:${envWithConstructors.texps}\n
+    //     vars:${envWithConstructors.vars}\n`)
+
+    return envWithConstructors;
+
 }
 
 
