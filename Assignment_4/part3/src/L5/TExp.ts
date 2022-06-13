@@ -47,7 +47,7 @@ import { cons, first, rest } from '../shared/list';
 import { Result, bind, makeOk, makeFailure, mapResult, mapv } from "../shared/result";
 import { isCompoundSexp, isToken, parse as p } from "../shared/parser";
 
-export type TExp =  AtomicTExp | CompoundTExp | TVar | UserDefinedNameTExp; // L51
+export type TExp =  LitTExp | AtomicTExp | CompoundTExp | TVar | UserDefinedNameTExp; // L51
 export const isTExp = (x: any): x is TExp => isAtomicTExp(x) || isCompoundTExp(x) || isTVar(x) || isUserDefinedNameTExp(x); // L51
 
 export type AtomicTExp = NumTExp | BoolTExp | StrTExp | VoidTExp | UserDefinedNameTExp | AnyTExp; // L51
@@ -89,6 +89,10 @@ export const isUserDefinedTExp = (x: any): x is UserDefinedTExp => x.tag === "Us
 // A user defined type - either a disjoint union UserDefinedTExp or a Record
 export type UDTExp = UserDefinedTExp | Record;
 // L51>
+// added
+export type LitTExp = {tag: "LitTExp"};
+export const makeLitTExp = (): LitTExp => ({tag: "LitTExp"});
+export const isLitTExp = (x: any): x is LitTExp => x.tag === "LitTExp";
 
 
 export type NumTExp = { tag: "NumTExp" };
@@ -331,6 +335,7 @@ export const unparseTExp = (te: TExp): Result<string> => {
 
     const up = (x?: TExp): Result<string | string[]> =>
         isNumTExp(x) ? makeOk('number') :
+        isLitTExp(x) ? makeOk('literal') :
         isBoolTExp(x) ? makeOk('boolean') :
         isStrTExp(x) ? makeOk('string') :
         isVoidTExp(x) ? makeOk('void') :
