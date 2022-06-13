@@ -3,6 +3,7 @@ import { Optional, makeSome, makeNone } from "./optional";
 
 export type Result<T> = Ok<T> | Failure;
 
+
 interface Ok<T> {
     tag: "Ok";
     value: T;

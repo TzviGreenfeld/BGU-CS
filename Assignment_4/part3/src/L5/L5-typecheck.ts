@@ -100,7 +100,6 @@ const isSubs = (tes1: TExp[], tes2: TExp[], p: Program): boolean => {
 
     for (let i = 0; i < tes1.length; i++) {
         if (!isSubType(tes1[i], tes2[i], p)) {
-            console.log("here14")
             return false;
         }
     }
@@ -133,9 +132,9 @@ const isSubType = (te1: TExp, te2: TExp, p: Program): boolean => {
                 return false;
             }
             /// AMITTTTTTTTTTTTTT
-            if (isRecord(te1)){
+            if (isRecord(te1)) {
                 return map((t: UserDefinedTExp): string => t.typeName, getRecordParents(te1.typeName, p))
-                .includes(te2.typeName)
+                    .includes(te2.typeName)
             }
             // te2 is UserDefinedNameTExp, te1 AtomicTexp not UserDefinedNameTExp
             if (isOk(te2Res)) {
@@ -191,14 +190,8 @@ const isSubType = (te1: TExp, te2: TExp, p: Program): boolean => {
 // Exp is only passed for documentation purposes.
 // p is passed to provide the context of all user defined types
 export const checkEqualType = (te1: TExp, te2: TExp, exp: Exp, p: Program): Result<TExp> => {
-    if (isUserDefinedNameTExp(te2)) {
-        const te2NameRes: Result<UserDefinedTExp> = getUserDefinedTypeByName(te2.typeName, p)
-        if (isOk(te2NameRes)) {
-            if (isSubType(te1, te2NameRes.value, p)) {
-                return makeOk(te2)
-            }
-            console.log(`te1: ${te1.tag}, te2: ${te2.typeName}`)
-        }
+    if(equals(te1,te2)){
+        return makeOk(te2);
     }
     return isSubType(te1, te2, p) ? makeOk(te2) :
         makeFailure(`Incompatible types: ${te1.tag} and ${te2.tag} in ${exp.tag}`);
@@ -265,9 +258,9 @@ const makePred = (tName: string): ProcTExp =>
 
 const makeConstructor = (record: Record, p: Program): Result<ProcTExp> => {
     const recType = getTypeByName(record.typeName, p);
-    return isOk(recType) ? (console.log(`Make constructor ${recType.value.tag}`),
+    return isOk(recType) ?
         // makeOk(makeProcTExp(map((f: Field) => f.te, record.fields), recType.value))) :
-        makeOk(makeProcTExp(map((f: Field) => f.te, record.fields), makeUserDefinedNameTExp(record.typeName)))) :
+        makeOk(makeProcTExp(map((f: Field) => f.te, record.fields), makeUserDefinedNameTExp(record.typeName))) :
         makeFailure(recType.message);
 }
 
@@ -304,7 +297,7 @@ export const initTEnv = (p: Program): TEnv => {
     const definitons: DefineExp[] = getDefinitions(p);
     const definitonsTExp: TExp[] = map((d: DefineExp) => d.var.texp, definitons);
     const definitionsVars: string[] = map((d: DefineExp) => d.var.var, definitons);
-
+    
     // UserDefinedNameTExp and Records
     const UDTExpsVars: string[] = map((n: UserDefinedTExp) => n.typeName, getTypeDefinitions(p));
     const UDTExps: UserDefinedNameTExp[] = map(makeUserDefinedNameTExp, UDTExpsVars);
@@ -331,7 +324,7 @@ export const initTEnv = (p: Program): TEnv => {
     const envWithPreds: TEnv = makeExtendTEnv(predsVars, preds, envWithDefinitions);
     const envWithConstructors: TEnv = makeExtendTEnv(consVars, constructors.value, envWithPreds);
     const envWithRecords: TEnv = makeExtendTEnv(recVars, UDTNames, envWithConstructors);
-    // printDebugEnv(envWithConstructors, p);
+    // printDebugEnv(envWithRecords, p);
     return envWithRecords;
 
 }
@@ -344,16 +337,6 @@ export const initTEnv = (p: Program): TEnv => {
 //      -then it must have the same fields definition.
 //2. Recursive type definitions are possible. For example:
 
-
-// const hasDuplicates = (p: Program): boolean => {
-//     const names: string[] = map((n: UserDefinedTExp) => n.typeName, getTypeDefinitions(p));
-//     for (let i = 0; i < names.length; i++) {
-//         const firstIndex = names.indexOf(names[i])
-//         if ()
-//         }
-//     }
-//     return false;
-// }
 
 const checkDupRecordsWithDiffFields = (p: Program): boolean => {
     const records = getRecords(p);
@@ -695,6 +678,8 @@ export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =
 //  TODO
 export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
     const UserDefinedOfTypeCase = exp.val
+    /// we need to extend the env for cases with var-ref (like (* r r))
+
     const returnTypes = mapResult((x: CaseExp) => typeofExps(x.body, tenv, p), exp.cases);
     return isOk(checkTypeCase(exp, p)) ? bind(returnTypes, (exps: TExp[]) => checkCoverType(exps, p)) :
         makeFailure("semantic of typecase no good bro!")
