@@ -132,6 +132,11 @@ const isSubType = (te1: TExp, te2: TExp, p: Program): boolean => {
                 }
                 return false;
             }
+            /// AMITTTTTTTTTTTTTT
+            if (isRecord(te1)){
+                return map((t: UserDefinedTExp): string => t.typeName, getRecordParents(te1.typeName, p))
+                .includes(te2.typeName)
+            }
             // te2 is UserDefinedNameTExp, te1 AtomicTexp not UserDefinedNameTExp
             if (isOk(te2Res)) {
                 return isSubType(te1, te2Res.value, p);
@@ -179,19 +184,6 @@ const isSubType = (te1: TExp, te2: TExp, p: Program): boolean => {
     return false;
 }
 
-
-// const isSubType = (te1: TExp, te2: TExp, p: Program): boolean =>{
-//     // AtomicTExp | CompoundTExp | TVar | UserDefinedNameTExp
-//     console.log("te1")
-//     console.log(te1)
-//     console.log(getParentsType(te1, p))
-//     console.log("te2")
-//     console.log(te2)
-//     console.log(getParentsType(te2,p))
-//     return getParentsType(te1, p).includes(te2);
-// }
-
-
 // TODO L51: Change this definition to account for user defined types
 // Purpose: Check that the computed type te1 can be accepted as an instance of te2
 // test that te1 is either the same as te2 or more specific
@@ -211,12 +203,6 @@ export const checkEqualType = (te1: TExp, te2: TExp, exp: Exp, p: Program): Resu
     return isSubType(te1, te2, p) ? makeOk(te2) :
         makeFailure(`Incompatible types: ${te1.tag} and ${te2.tag} in ${exp.tag}`);
 }
-// i think it should work because every type is in its own parents
-
-// old:
-// equals(te1, te2) ? makeOk(te2) :
-// makeFailure(`Incompatible types: ${te1} and ${te2} in ${exp}`);
-
 
 // L51
 // Return te and its parents in type hierarchy to compute type cover
@@ -279,8 +265,9 @@ const makePred = (tName: string): ProcTExp =>
 
 const makeConstructor = (record: Record, p: Program): Result<ProcTExp> => {
     const recType = getTypeByName(record.typeName, p);
-    return isOk(recType) ?(console.log(`Make constructor ${recType.value.tag}`),
-        makeOk(makeProcTExp(map((f: Field) => f.te, record.fields), recType.value))) :
+    return isOk(recType) ? (console.log(`Make constructor ${recType.value.tag}`),
+        // makeOk(makeProcTExp(map((f: Field) => f.te, record.fields), recType.value))) :
+        makeOk(makeProcTExp(map((f: Field) => f.te, record.fields), makeUserDefinedNameTExp(record.typeName)))) :
         makeFailure(recType.message);
 }
 
@@ -321,8 +308,10 @@ export const initTEnv = (p: Program): TEnv => {
     // UserDefinedNameTExp and Records
     const UDTExpsVars: string[] = map((n: UserDefinedTExp) => n.typeName, getTypeDefinitions(p));
     const UDTExps: UserDefinedNameTExp[] = map(makeUserDefinedNameTExp, UDTExpsVars);
+    //records as UDtypNaname
     const recs: Record[] = getRecords(p);
     const recVars: string[] = map((r: Record) => r.typeName, recs);
+    const UDTNames = map(makeUserDefinedNameTExp, recVars)
 
     // generate constructors
     const constructors: Result<ProcTExp[]> = mapResult((r: Record) => makeConstructor(r, p), recs);
@@ -341,9 +330,9 @@ export const initTEnv = (p: Program): TEnv => {
     // const envWithPreds: TEnv = makeExtendTEnv(predsVars, preds, envWithUDTExps);
     const envWithPreds: TEnv = makeExtendTEnv(predsVars, preds, envWithDefinitions);
     const envWithConstructors: TEnv = makeExtendTEnv(consVars, constructors.value, envWithPreds);
-
+    const envWithRecords: TEnv = makeExtendTEnv(recVars, UDTNames, envWithConstructors);
     // printDebugEnv(envWithConstructors, p);
-    return envWithConstructors;
+    return envWithRecords;
 
 }
 
