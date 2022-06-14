@@ -18,18 +18,19 @@ import {
     isNumTExp, isBoolTExp, isStrTExp, isVoidTExp,
     isRecord, ProcTExp, makeUserDefinedNameTExp,
     Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, makeRecord,
-    makeUserDefinedTExp, isTExp, isAtomicTExp, isCompoundTExp, isTVar, UserDefinedNameTExp
+    makeUserDefinedTExp, isTExp, isAtomicTExp, isCompoundTExp, isTVar, UserDefinedNameTExp, makeNonEmptyTupleTExp
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
 import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either, resultToOptional, isOk, isOkT } from '../shared/result';
 import { REFUSED } from 'dns';
 import { diffieHellman } from 'crypto';
-import { isClosure } from './L5-value';
+import { isClosure, isCompoundSExp, isEmptySExp, isSymbolSExp, makeSymbolSExp } from './L5-value';
 import { equal } from 'assert';
 import { isatty } from 'tty';
 import { BlobOptions } from 'buffer';
 import { format } from 'path';
 import { Box, makeBox, setBox, unbox } from '../shared/box';
+import { isNumber, isString } from '../shared/type-predicates';
 
 // L51
 export const getTypeDefinitions = (p: Program): UserDefinedTExp[] => {
@@ -663,8 +664,18 @@ export const typeofSet = (exp: SetExp, _tenv: TEnv, _p: Program): Result<TExp> =
 }
 
 // TODO L51
+
+/// fix this
 export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =>
-    makeOk(makeLitTExp());
+    isNumber(exp.val) ? makeOk(makeNumTExp()) :
+        exp.val === true ? makeOk(makeBoolTExp()) :
+            exp.val === false ? makeOk(makeBoolTExp()) :
+                isString(exp.val) ? makeOk(makeStrTExp()) :
+                    isSymbolSExp(exp.val) ? makeOk(makeVoidTExp()) :
+                        isEmptySExp(exp.val) ? makeOk(makeLitTExp()) :
+                            isCompoundSExp(exp.val) ? makeOk(makeVoidTExp()) :
+                                makeFailure("lit error");
+
 
 
 // TODO: L51
@@ -685,13 +696,13 @@ export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result
     if (isOk(recordsRes)) {
         const records = recordsRes.value;
         records.forEach((rec: UDTExp, index: number) => {
-                if (isRecord(rec)) {
-                    const fieldTypes: TExp[] = map((f: Field) => f.te, rec.fields);
-                    vars.forEach(
-                        (vs: VarDecl[], index: number) =>
-                            setBox(newEnv, makeExtendTEnv(map((v: VarDecl) => v.var, vars[index]), fieldTypes, unbox(newEnv))))
-                }
+            if (isRecord(rec)) {
+                const fieldTypes: TExp[] = map((f: Field) => f.te, rec.fields);
+                vars.forEach(
+                    (vs: VarDecl[], index: number) =>
+                        setBox(newEnv, makeExtendTEnv(map((v: VarDecl) => v.var, vars[index]), fieldTypes, unbox(newEnv))))
             }
+        }
         )
     }
 
