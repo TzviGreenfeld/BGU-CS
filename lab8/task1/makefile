@@ -10,5 +10,5 @@ task1.o: task1.c
 
 .PHONY: clean
 clean:
-	rm -f *.o task1
+	rm -f *.o myELF
 
