@@ -34,6 +34,8 @@ int takeUserChoice();
 void printSectionNames();
 char *tsect(int t);
 void printSingleSectionHeader(int index, char *sectName, Elf32_Shdr *section);
+Elf32_Shdr *getTable(char *_name);
+void printSymbol();
 
 // globals
 int DEBUG = FALSE;
@@ -112,10 +114,7 @@ void examineELFFile()
       Currentfd = 0;
    }
 }
-void printSymbols()
-{
-   printf("%s\n", "Not Implemented yet");
-}
+
 void quit()
 {
    exit(0);
@@ -178,7 +177,7 @@ void printElfHeader(Elf32_Ehdr *hdr)
    char *dtype =
        hdr->e_ident[5] == ELFDATA2LSB ? "Little endian" : hdr->e_ident[5] == ELFDATA2MSB ? "Big endian"
                                                                                          : "None";
-   
+
    printf(dataDescription[0], hdr->e_ident[EI_MAG0], hdr->e_ident[EI_MAG1], hdr->e_ident[EI_MAG2]);
    printf(dataDescription[1], dtype);
    printf(dataDescription[2], hdr->e_entry);
@@ -195,7 +194,7 @@ void printSectionNames()
    if (Currentfd != -1)
    {
       // calculate section tables start byte
-      
+
       Elf32_Shdr *sectTables = mapBeginPtr + ELFheader->e_shoff;
 
       // calculate section tables names
@@ -258,9 +257,85 @@ void printSingleSectionHeader(int index, char *sectName, Elf32_Shdr *sect)
    printf("%06d\t", sect->sh_offset);
    printf("%06d\t", sect->sh_size);
    printf("%-13.10s\t", tsect(sect->sh_type));
-   if (DEBUG){
-      printf("offset = %d", ELFheader->e_shoff+(index * ELFheader->e_shentsize));
+   if (DEBUG)
+   {
+      printf("offset = %d", ELFheader->e_shoff + (index * ELFheader->e_shentsize));
    }
    printf("\n");
 }
 
+void printSymbols()
+{
+   if (Currentfd != -1)
+   {
+      Elf32_Shdr *symbolTable = getTable(".symtab");
+      // get the entry of "name" symbol name
+      Elf32_Shdr *strtab = getTable(".strtab");
+      //  section name
+      Elf32_Shdr *shstrtab = getTable(".shstrtab");
+      if (symbolTable != NULL)
+      {
+         int entryCount = (symbolTable->sh_size / sizeof(Elf32_Sym));
+
+         printf("[Num]\tValue\t\tsection_index\tsection_name\t\tsymbol_name\n");
+         for (int i = 0; i < entryCount; i++)
+         {
+            Elf32_Sym *entry = mapBeginPtr + symbolTable->sh_offset + (i * sizeof(Elf32_Sym));
+            char *sectName;
+            if (entry->st_shndx == 0xFFF1)
+            {
+               sectName = "ABS";
+            }
+            else if (entry->st_shndx == 0x0)
+            {
+               sectName = "UND";
+            }
+            else
+            {
+               Elf32_Shdr *sectPos = mapBeginPtr + ELFheader->e_shoff + (entry->st_shndx * ELFheader->e_shentsize);
+               sectName = mapBeginPtr + shstrtab->sh_offset + sectPos->sh_name;
+            }
+            char *symbolName = mapBeginPtr + strtab->sh_offset + entry->st_name;
+            char *symbolSize = mapBeginPtr + strtab->sh_offset + entry->st_size;
+
+            printSymbol(i, entry->st_value, entry->st_shndx, sectName, symbolName, symbolSize);
+         }
+      }
+      else
+      {
+         printf("Error: symbol not found\n");
+      }
+   }
+   else
+   {
+      printf("Error: open a file first");
+   }
+}
+
+Elf32_Shdr *getTable(char *_name)
+{
+   Elf32_Shdr *table = mapBeginPtr + ELFheader->e_shoff + (ELFheader->e_shstrndx * ELFheader->e_shentsize);
+   for (size_t i = 0; i < ELFheader->e_shnum; i++)
+   {
+      Elf32_Shdr *entry = mapBeginPtr + ELFheader->e_shoff + (i * ELFheader->e_shentsize);
+      char *name = mapBeginPtr + table->sh_offset + entry->sh_name;
+      if (strcmp(_name, name) == 0)
+      {
+         return entry;
+      }
+   }
+   return NULL;
+}
+
+void printSymbol(int index, int symbolVal, int sTableIndex, char *sectName, char *symbolName, char *symbolSize)
+{
+   printf("[%2d]\t", index);
+   printf("%#09x\t", symbolVal);
+   printf("%d\t\t", sTableIndex);
+   printf("%-13.20s\t\t", sectName);
+   printf("\%-20.30s\n", symbolName);
+   if (DEBUG)
+   {
+      printf("Symbol size: %-20.30s\n", symbolSize);
+   }
+}
