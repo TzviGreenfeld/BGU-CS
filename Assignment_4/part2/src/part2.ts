@@ -129,7 +129,7 @@ export async function constructObjectFromTables(tables: TableServiceTable, ref: 
             for (const [key, val] of Object.entries(currObj)) {
 
                 if (isReference(val)) {
-                    const derefrenced = { [key]: await deref(val) };
+                    const derefrenced: Object = { [key]: await deref(val) };
                     Object.assign(currObj, derefrenced);
                 }
             }
@@ -155,8 +155,8 @@ export function lazyProduct<T1, T2>(g1: () => Generator<T1>, g2: () => Generator
 
 export function lazyZip<T1, T2>(g1: () => Generator<T1>, g2: () => Generator<T2>): () => Generator<[T1, T2]> {
     return function* () {
-        const generator1 = g1();
-        const generator2 = g2();
+        const generator1: Generator<T1> = g1();
+        const generator2: Generator<T2> = g2();
         // g1, g2 will return the same number of elements
         for (let item1 of generator1) {
             yield [item1, generator2.next().value]
@@ -177,10 +177,9 @@ const notify = <T>(observers: ((table: Table<T>) => void)[], newTable: Table<T>)
     observers.forEach((observer: (table: Table<T>) => void) => observer(newTable));
 
 export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Promise<Table<T>>, optimistic: boolean): Promise<ReactiveTableService<T>> {
-    // optional initialization code
 
-    let _table: readWriteTable<T> = toReadWrite(await sync());
     let subscribers: ((table: Table<T>) => void)[] = [];
+    let _table: readWriteTable<T> = toReadWrite(await sync());
 
 
     const handleMutation = async (newTable: Table<T>) => {
@@ -193,7 +192,7 @@ export async function makeReactiveTableService<T>(sync: (table?: Table<T>) => Pr
         _table = await sync(newTable)
             .catch(
                 (error) => {
-                    if (optimistic){
+                    if (optimistic) {
                         // revert update because mutation failed
                         notify(subscribers, _table);
                     }
