@@ -680,7 +680,7 @@ export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =
         exp.val === true ? makeOk(makeBoolTExp()) :
             exp.val === false ? makeOk(makeBoolTExp()) :
                 isString(exp.val) ? makeOk(makeStrTExp()) :
-                    isSymbolSExp(exp.val) ? makeOk(makeSymbolTExp()) :
+                    isSymbolSExp(exp.val) ? makeOk(makeSymbolTExp(exp.val)) :
                         isEmptySExp(exp.val) ? makeOk(makeLitTExp()) :
                             isCompoundSExp(exp.val) ? makeOk(makePairTExp()) :
                                 makeFailure("lit error");

@@ -46,6 +46,7 @@ import { makeBox, setBox, unbox, Box } from '../shared/box';
 import { cons, first, rest } from '../shared/list';
 import { Result, bind, makeOk, makeFailure, mapResult, mapv } from "../shared/result";
 import { isCompoundSexp, isToken, parse as p } from "../shared/parser";
+import { SymbolSExp } from "./L5-value";
 
 export type TExp = LitTExp | AtomicTExp | CompoundTExp | TVar | UserDefinedNameTExp | PairTExp | SymbolTExp; // L51
 export const isTExp = (x: any): x is TExp => isAtomicTExp(x) || isCompoundTExp(x) || isTVar(x) || isUserDefinedNameTExp(x); // L51
@@ -95,8 +96,8 @@ export const makeLitTExp = (): LitTExp => ({ tag: "LitTExp" });
 export const isLitTExp = (x: any): x is LitTExp => x.tag === "LitTExp";
 
 // added
-export type SymbolTExp = { tag: "SymbolTExp" };
-export const makeSymbolTExp = (): SymbolTExp => ({ tag: "SymbolTExp" });
+export type SymbolTExp = { tag: "SymbolTExp", val?: SymbolSExp };
+export const makeSymbolTExp = (s?: SymbolSExp): SymbolTExp => ({tag: "SymbolTExp", val: s});
 export const isSymbolTExp = (x: any): x is SymbolTExp => x.tag === "SymbolTExp";
 
 export type PairTExp = { tag: "PairTExp" };
