@@ -97,7 +97,7 @@ export const isLitTExp = (x: any): x is LitTExp => x.tag === "LitTExp";
 
 // added
 export type SymbolTExp = { tag: "SymbolTExp", val?: SymbolSExp };
-export const makeSymbolTExp = (s?: SymbolSExp): SymbolTExp => ({tag: "SymbolTExp", val: s});
+export const makeSymbolTExp = (sym?: SymbolSExp): SymbolTExp => ({tag: "SymbolTExp", val: sym});
 export const isSymbolTExp = (x: any): x is SymbolTExp => x.tag === "SymbolTExp";
 
 export type PairTExp = { tag: "PairTExp" };
