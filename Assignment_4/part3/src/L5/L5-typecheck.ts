@@ -18,13 +18,13 @@ import {
     isNumTExp, isBoolTExp, isStrTExp, isVoidTExp,
     isRecord, ProcTExp, makeUserDefinedNameTExp,
     Field, makeAnyTExp, isAnyTExp, isUserDefinedNameTExp, makeRecord,
-    makeUserDefinedTExp, isTExp, isAtomicTExp, isCompoundTExp, isTVar, UserDefinedNameTExp
+    makeUserDefinedTExp, isTExp, isAtomicTExp, isCompoundTExp, isTVar, UserDefinedNameTExp, makeSymbolTExp, makePairTExp
 } from "./TExp";
 import { isEmpty, allT, first, rest, cons } from '../shared/list';
 import { Result, makeFailure, bind, makeOk, zipWithResult, mapv, mapResult, isFailure, either, resultToOptional, isOk, isOkT } from '../shared/result';
 import { REFUSED } from 'dns';
 import { diffieHellman } from 'crypto';
-import { isClosure, isCompoundSExp, isEmptySExp, isSymbolSExp } from './L5-value';
+import { isClosure, isCompoundSExp, isEmptySExp, isSymbolSExp, makeSymbolSExp } from './L5-value';
 import { equal } from 'assert';
 import { isatty } from 'tty';
 import { BlobOptions } from 'buffer';
@@ -529,7 +529,10 @@ export const typeofPrim = (p: PrimOp): Result<TExp> =>
                                                                         (p.op === 'string=?') ? parseTE('(T1 * T2 -> boolean)') :
                                                                             (p.op === 'display') ? parseTE('(T -> void)') :
                                                                                 (p.op === 'newline') ? parseTE('(Empty -> void)') :
-                                                                                    makeFailure(`Primitive not yet implemented: ${p.op}`);
+                                                                                    (p.op === 'car') ? parseTE('(cons -> T)') :
+                                                                                        (p.op === 'cdr') ? parseTE('(cons -> T)') :
+                                                                                            (p.op === 'cons') ? parseTE('(T1 * T2 -> cons)') :
+                                                                                                makeFailure(`Primitive not yet implemented: ${p.op}`);
 
 // TODO L51
 // Change this definition to account for possibility of subtype expressions between thenTE and altTE
@@ -677,9 +680,9 @@ export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =
         exp.val === true ? makeOk(makeBoolTExp()) :
             exp.val === false ? makeOk(makeBoolTExp()) :
                 isString(exp.val) ? makeOk(makeStrTExp()) :
-                    isSymbolSExp(exp.val) ? makeOk(makeVoidTExp()) :
+                    isSymbolSExp(exp.val) ? makeOk(makeSymbolTExp()) :
                         isEmptySExp(exp.val) ? makeOk(makeLitTExp()) :
-                            isCompoundSExp(exp.val) ? makeOk(makeVoidTExp()) :
+                            isCompoundSExp(exp.val) ? makeOk(makePairTExp()) :
                                 makeFailure("lit error");
 
 
