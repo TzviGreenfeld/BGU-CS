@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Jun 17 20:05:12 2022
+# Make data base, printed on Sun Jun 19 17:57:52 2022
 
 # Variables
 
@@ -55,7 +55,7 @@ LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-4c5b3f07-92b5-465d-821c-3084cf9d0f48.sock
+VSCODE_IPC_HOOK_CLI = /tmp/vscode-ipc-3223a39c-43d1-4722-8ae7-ad48217c568c.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -69,7 +69,7 @@ PWD = /home/tzvigr/ESPL/ESPL/lab9
 # default
 .LOADED := 
 # environment
-WSL_INTEROP = /run/WSL/278_interop
+WSL_INTEROP = /run/WSL/10_interop
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
@@ -87,7 +87,7 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # environment
 MAKELEVEL := 0
 # environment
-PLATFORMIO_PATH = /home/tzvigr/.platformio/penv/bin:/home/tzvigr/.platformio/penv:/home/tzvigr/.platformio/python3/bin:/home/tzvigr/.vscode-server/bin/30d9c6cd9483b2cc586687151bcbcd635f373630/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/WindowsApps/CanonicalGroupLimited.Ubuntu_2004.4.4.0_x64__79rhkp1fndgsc:/mnt/c/Python310/Scripts/:/mnt/c/Python310/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Microsoft VS Code/bin:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/nodejs/:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Users/tzvig/AppData/Local/Programs/Python/Python39/Scripts/:/mnt/c/Users/tzvig/AppData/Local/Programs/Python/Python39/:/mnt/c/Users/tzvig/AppData/Local/Microsoft/WindowsApps:/mnt/c/Program Files/JetBrains/PyCharm Community Edition 2021.3.2/bin:/mnt/c/Users/tzvig/AppData/Roaming/npm
+PLATFORMIO_PATH = /home/tzvigr/.platformio/python3/bin:/home/tzvigr/.vscode-server/bin/30d9c6cd9483b2cc586687151bcbcd635f373630/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/WindowsApps/CanonicalGroupLimited.Ubuntu_2004.4.4.0_x64__79rhkp1fndgsc:/mnt/c/Python310/Scripts/:/mnt/c/Python310/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files/Microsoft VS Code/bin:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/nodejs/:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Users/tzvig/AppData/Local/Programs/Python/Python39/Scripts/:/mnt/c/Users/tzvig/AppData/Local/Programs/Python/Python39/:/mnt/c/Users/tzvig/AppData/Local/Microsoft/WindowsApps:/mnt/c/Program Files/JetBrains/PyCharm Community Edition 2021.3.2/bin:/mnt/c/Users/tzvig/AppData/Roaming/npm
 # default
 MAKE = $(MAKE_COMMAND)
 # default
@@ -225,6 +225,6 @@ GNUmakefile:
 # strcache performance: lookups = 18 / hit rate = 16%
 # hash-table stats:
 # Load=15/8192=0%, Rehash=0, Collisions=1/18=6%
-# Finished Make data base on Fri Jun 17 20:05:12 2022
+# Finished Make data base on Sun Jun 19 17:57:52 2022
 
  

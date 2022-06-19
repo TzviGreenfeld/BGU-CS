@@ -68,7 +68,7 @@ _start:
     .read_file:                                             ; symbol name
     call get_my_loc_b                                       ; ??
     add ebx, FileName                                       ; push filename to ebx
-    open ebx,RDWR, 0x777                                    ; open in read/write mode
+    open ebx, RDWR, 0x777                                    ; open in read/write mode
     mov FD, eax                                             ; save fs of opend file
     cmp FD, -1                                              ; if couldnt open file
     je err                                                  ; display error msg and exit
@@ -98,7 +98,7 @@ err:
     write STDOUT, ecx, 13
     exit 1
 
-FileName:	db "ELFexec", 0
+FileName:	db "ELFexec2short", 0
 OutStr:		db "The lab 9 proto-virus strikes!", 10, 0         ; 32 length
 Failstr:	db "perhaps not", 10 , 0
 

