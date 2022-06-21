@@ -66,7 +66,7 @@ _start:
     sub	esp, STK_RES                                        ; Set up ebp and reserve space on the stack for local storage
 
     .read_file:                                             ; symbol name
-    call get_my_loc_b                                       ; ??
+    call get_my_loc_b                                       ; get string relative address
     add ebx, FileName                                       ; push filename to ebx
     open ebx, RDWR, 0x777                                    ; open in read/write mode
     mov FD, eax                                             ; save fs of opend file
@@ -82,7 +82,7 @@ _start:
     jne err                                                 ; bytes dont match, print the FailStr
 
     .print_msg:                                             ; else, it is an elf file, print  outStr
-    call get_my_loc                                         ; ??
+    call get_my_loc                                         ; get string relative address
     add  ecx, OutStr                                        ; put the string in ecx
     write STDOUT, ecx, 32                                   ; print the string to STDOUT
 

