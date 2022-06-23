@@ -687,15 +687,15 @@ export const typeofLit = (exp: LitExp, _tenv: TEnv, _p: Program): Result<TExp> =
 
 
 // TODO: L51
-// Purpose: compute the type of a type-case
-// Typing rule:
+Purpose: compute the type of a type-case
+// Typing rule type-case:
 // For all user-defined-type id
 //         with component records record_1 ... record_n
 //         with fields (field_ij) (i in [1...n], j in [1..R_i])
 //         val CExp
 //         body_i for i in [1..n] sequences of CExp
 //   ( type-case id val (record_1 (field_11 ... field_1r1) body_1)...  )
-//  TODO
+ TODO
 export const typeofTypeCase = (exp: TypeCaseExp, tenv: TEnv, p: Program): Result<TExp> => {
     const newEnv: Box<TEnv> = makeBox(tenv);
     const vars: (VarDecl[])[] = map((c: CaseExp) => c.varDecls, exp.cases);
