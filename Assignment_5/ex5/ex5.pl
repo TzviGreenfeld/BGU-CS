@@ -22,7 +22,7 @@ in(X, [H|T]) :-
     X=H; in(X, T).
 
 % this function assume both lists unique
-subset([], [H|T]).
+subset([], [_]).
 subset([H|T], L) :-
     in(H, L),
     subset(T, L).
@@ -35,7 +35,7 @@ dup(X, [H|T]) :-
 
 
 % every item in [H|T] appears at least twice in L
-alldups([], L).
+alldups([], [_]).
 alldups([H|T], L) :-
     dup(H,L),
     alldups(T, L).
@@ -54,18 +54,19 @@ setoflist(S, L) :-
    	subset(S, L),
     subset(L,S).
     
-    
-
 unique(List, UniqueList, Dups) :-
     isunique(UniqueList),
     alldups(Dups, List),
     subset(List, UniqueList),
-    subset(List, Dups),
     subset(UniqueList, List),
-    subset(UniqueList, Dups),
     subset(Dups, List),
     subset(Dups, UniqueList).
     
+    
+    
+
+    
+
     
     
 
