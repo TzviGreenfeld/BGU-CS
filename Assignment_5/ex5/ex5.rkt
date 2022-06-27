@@ -62,7 +62,7 @@
   (lambda (fs cont)  
       (if (empty? (cdr fs))
           (cont (car fs))
-          (pipe$ (cdr fs) (lambda (pipe-res)  (compose$ (car fs) pipe-res cont)))
+          (pipe$ (cdr fs) (lambda (pipe-res) (cont (compose$ (car fs) pipe-res id))))
            )))
 
 
@@ -110,8 +110,6 @@
     )
   )
 )
- (require racket/trace)
- (trace reduce-user$)
 
 ;;; Q2.c.1
 ; Signature: take1(lz-lst,pred)

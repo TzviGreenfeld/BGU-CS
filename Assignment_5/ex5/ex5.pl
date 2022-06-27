@@ -12,50 +12,41 @@ maximum_printing_depth(100).
    maximum_printing_depth(MPD),
    set_prolog_flag(toplevel_print_options, [max_depth(MPD)|B]).
 
-% Signature: member(Item, List)/2
-% Purpose: succeeds if and only if Item is an element of List
-member(X, [X|Xs]).
-member(X, [Y|Ys]) :-
-     member(X, Ys).
+% Signature: notmember(X, List)/2
+% Purpose: X is not a member of List.
+member(X, [X|_Xs]).
+member(X, [_Y|Ys]) :-
+    member(X, Ys).
+
+% Signature: member(X, List)/2
+% Purpose: X is a member of List.
+notmember(_X ,[]).
+notmember(X, [H|T]) :-
+    X \= H, notmember(X,T).
 
 % Signature: subset(List1, List2)/2
-% Purpose: succeeds if and only if List1 is a subset of List2
-subset([],[]).
-subset([],[_|_]).
-subset([H|T],Y) :-
-    member(H,Y), subset(T,Y).
+% Purpose: List1 is subset of List2
+subset([], _L).
+subset([H|T], L) :-
+    member(H, L), subset(T, L).
 
-% Signature: subsuperset(List1, List2)/2
-% Purpose: succeeds if and only if List1 is a superset of List2
-subsuperset([],[]).
-subsuperset([_|_],[]).
-subsuperset(X,[H|T]):-
-    member(H,X), subsuperset(X,T).
+% Signature: isunique(List)/1
+% Purpose: List has unique values
+isunique([]).
+isunique([H|T]) :-
+    notmember(H,T), isunique(T).
 
-% signature: duplicate(Item, List)/2
-% Purpose: succeeds if and only if Item  appears at least twice in List
-duplicate(H,[H|A]) :-
-     member(H,A).
-duplicate(H,[_|T]) :-
-     duplicate(H,T).
-
-% Signature: dups(List1, List2)/2
-% Purpose: succeeds if and only if every item in List1 appears at least twice in List2
-dups([],[]).
-dups([],[_|_]).
-dups([H|T],X) :-
-    (duplicate(H,X)), dups(T,X).
-
-% Signature: unique2(List, UniqueList, Dups, List2)/4
-% Purpose: succeeds if and only if UniqueList contains the same elements of List without duplicates (according to their order in List), and Dups contains the duplicates, and List2 contains the same elements of List without duplicates (according to their order in List) and Dups contains the duplicates
-% we use List2 because we want to move forward on the list but still have the originial List
-unique2([],[],[],[],[]).
-unique2(LIST,[],DUPS,UNIQ,ORIGINALLIST):-
-    dups(DUPS,ORIGINALLIST), subsuperset(DUPS,LIST), subset(LIST,UNIQ).
-unique2([H|LIST],[H|T],DUPS, UNIQ,ORIGINALLIST):-
-    unique2(LIST, T, DUPS, UNIQ, ORIGINALLIST).
+% Signature: unique_(List, UniqueList, Dups, Current_Item)/4
+% Purpose: succeeds if and only if UniqueList contains the same elements of List without duplicates (according to their order in List), and Dups contains the duplicates
+unique_([],[],[],_CURR).
+unique_([LH|LT], [UH|UT], D, _CURR) :-
+    LH=UH, unique_(LT, UT, D, LH).
+unique_([LH|LT], [], [DH|DT], _CURR) :-
+    LH=DH, unique_(LT, [], DT, LH).
+unique_([LH|LT], U, [DH|DT], CURR) :-
+    LH=DH, LH=CURR, unique_(LT, U, DT, LH).
 
 % Signature: unique(List, UniqueList, Dups)/3
-% Purpose: unique2 wrapper to send LIST twice
-unique(LIST,UNIQ,DUPS):-
-    unique2(LIST,UNIQ,DUPS,UNIQ,LIST).
+% Purpose: unique_ wrapper
+unique(List, UniqueList, Dups) :-
+    unique_(List, UniqueList, Dups, _CURR), isunique(UniqueList), subset(Dups, UniqueList). 
