@@ -37,12 +37,16 @@
 
 
 ;; Q1b
+(require racket/trace)
+(trace add1$) 
+(trace square$) 
+(trace div2$) 
 (check-equal? ((pipe$ (list add1$ square$ div2$) id) 3 id)  8 "incorrect pipe$ test1")
-(check-equal? ((pipe$ (list square$ add1$ div2$) id) 3 id)  5 "incorrect pipe$ test2")
-(check-equal? ((pipe$ (list add1$ square$ div2$) (lambda (f$) (id (lambda (x cont) (f$ x (lambda (res) (add1$ res cont))))))) 3 id)  9 "incorrect pipe$ test3")
-(check-equal? ((pipe$ (list square$ add1$ div2$) id) 3 (lambda (x) (* x 10)))  50 "incorrect pipe$ test4")
-(check-equal? ((pipe$ (list square$ add1$ div2$) (lambda (f$) (id (lambda (x cont) (f$ x (lambda (res) (add1$ res cont))))))) 3 (lambda (x) (* x 10)))  60 "incorrect pipe$ test5")
-(check-equal? ((pipe$ (list g-0$ bool-num$) id) 3 id)  1 "incorrect pipe$ test1")
+;;; (check-equal? ((pipe$ (list square$ add1$ div2$) id) 3 id)  5 "incorrect pipe$ test2")
+;;; (check-equal? ((pipe$ (list add1$ square$ div2$) (lambda (f$) (id (lambda (x cont) (f$ x (lambda (res) (add1$ res cont))))))) 3 id)  9 "incorrect pipe$ test3")
+;;; (check-equal? ((pipe$ (list square$ add1$ div2$) id) 3 (lambda (x) (* x 10)))  50 "incorrect pipe$ test4")
+;;; (check-equal? ((pipe$ (list square$ add1$ div2$) (lambda (f$) (id (lambda (x cont) (f$ x (lambda (res) (add1$ res cont))))))) 3 (lambda (x) (* x 10)))  60 "incorrect pipe$ test5")
+;;; (check-equal? ((pipe$ (list g-0$ bool-num$) id) 3 id)  1 "incorrect pipe$ test1")
 
 ;; Q1c
 (check-equal? (reduce-prim$ + 0 '(3 8 2 2) id) 15 "incorrect reduce-prim$ test1")

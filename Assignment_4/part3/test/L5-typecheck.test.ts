@@ -1,10 +1,9 @@
-import { isTypedArray } from 'util/types';
 import { isProgram, parseL51, Program } from '../src/L5/L5-ast';
 import { typeofProgram, L51typeof, initTEnv, getRecords, getTypeDefinitions,
          checkEqualType, getParentsType, coverTypes, checkCoverType, getUserDefinedTypeByName, mostSpecificType } from '../src/L5/L5-typecheck';
 import { applyTEnv } from '../src/L5/TEnv';
 import { isNumTExp, isProcTExp, makeBoolTExp, makeNumTExp, makeProcTExp, makeTVar, 
-         makeVoidTExp, parseTE, unparseTExp, TExp, makeUserDefinedNameTExp, 
+         makeVoidTExp, parseTE, unparseTExp, TExp, makeUserDefinedNameTExp, makeSExpTExp,
          isUserDefinedTExp, isUserDefinedNameTExp, makeAnyTExp, isAnyTExp, UserDefinedTExp, isTExp } from '../src/L5/TExp';
 import { makeOk, isOkT, bind, mapv, isFailure, Result } from '../src/shared/result';
 
@@ -124,7 +123,7 @@ describe('L5 Type Checker', () => {
             expect(L51typeof("(define (x : (Empty -> number)) (lambda () : number 1))")).toEqual(makeOk("void"));
         });
 
-        it('returns "literal" as the type for literal expressions', () => {
+        it.skip('returns "literal" as the type for literal expressions', () => {
             expect(L51typeof("(quote ())")).toEqual(makeOk("literal"));
         });
 	});
@@ -165,6 +164,9 @@ describe('L5 Type Checker', () => {
 		
         it('checkEqualType knows about any and subtypes across records and UD types', () => {
             mapv(pp, (p: Program) => {
+                // const UDD = getUserDefinedTypeByName(UD.typeName, p);
+                // const ShapeD = getUserDefinedTypeByName(Shape.typeName, p);
+
                 const c1 = checkEqualType(R1, UD, p.exps[2], p);
                 expect(c1).toSatisfy(isOkT(isUserDefinedNameTExp));
                 mapv(c1, (ud) => expect(ud).toStrictEqual(UD));
@@ -445,6 +447,179 @@ describe('L5 Type Checker', () => {
             })
         });
 
-	});
 
+        it('analyzes type-case with a record parameter in val position', () => {
+            const tc3 = `
+            (L51 
+                (define-type Shape
+                    (circle (radius : number))
+                    (rectangle (width : number)
+                               (height : number)))
+
+                (define (area : (Shape -> number))
+                    (lambda ((s : Shape)) : number
+                        (type-case Shape s
+                            (circle (r) (* (* r r) 3.14))
+                            (rectangle (w h) (* w h)))))
+
+                (area (make-circle 1))
+                (area (make-rectangle 2 3))
+
+                (define (r1 : Shape) (make-rectangle 2 3))
+                (circle? r1)
+                (rectangle? r1)
+            )`;
+            const ptc = parseL51(tc3);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                // console.log(`Analyzed type ${JSON.stringify(t, null, 2)}`);
+                expect(t).toSatisfy(isOkT(isTExp));
+                mapv(t, (t1: TExp) => {
+                    expect(t1).toStrictEqual(makeBoolTExp());
+                });
+            });
+        });
+
+
+        it('analyzes recursive define-type and type-case', () => {
+            const tc4 = `
+            (L51 
+                (define-type Env
+                    (Empty-Env)
+                    (Extended-Env (var : string) (val : number) (tail : Env)))
+                (define (env-length : (Env -> number))
+                    (lambda ((e : Env)) : number
+                        (type-case Env e
+                            (Empty-Env () 0)
+                            (Extended-Env (var val tail) (+ 1 (env-length tail))))))
+                (define (e1 : Env) (make-Extended-Env "a" 1 (make-Empty-Env)))
+                (env-length e1)
+            )`;
+            const ptc = parseL51(tc4);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                // console.log(`Analyzed type ${JSON.stringify(t, null, 2)}`);
+                expect(t).toSatisfy(isOkT(isTExp));
+                mapv(t, (t1: TExp) => {
+                    expect(t1).toStrictEqual(makeNumTExp());
+                });
+            });
+        });
+
+        it('analyzes set!', () => {
+            const tc5 = `
+            (L51 
+                (define (x : number) 5)
+                (set! x 6)
+            )`;
+            const ptc = parseL51(tc5);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                // console.log(`Analyzed type ${JSON.stringify(t, null, 2)}`);
+                expect(t).toSatisfy(isOkT(isTExp));
+                mapv(t, (t1: TExp) => {
+                    expect(t1).toStrictEqual(makeVoidTExp());
+                });
+            });
+        });
+    
+        it('fails bad set!', () => {
+            const tc6 = `
+            (L51 
+                (define (x : number) 5)
+                (set! x #t)
+            )`;
+            const ptc = parseL51(tc6);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                expect(t).toSatisfy(isFailure);
+            });
+        });
+
+        it('analyzes literal exps', () => {
+            const tc7 = `
+            (L51 
+                (define (x : sexp) '(a b))
+                x
+            )`;
+            const ptc = parseL51(tc7);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                expect(t).toSatisfy(isOkT(isTExp));
+                mapv(t, (t1: TExp) => {
+                    expect(t1).toStrictEqual(makeSExpTExp());
+                });
+            });
+        });
+
+        it('analyzes literal exps - symbol', () => {
+            const tc8 = `
+            (L51 
+                'a
+            )`;
+            const ptc = parseL51(tc8);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                expect(t).toSatisfy(isOkT(isTExp));
+                mapv(t, (t1: TExp) => {
+                    expect(t1).toStrictEqual(makeSExpTExp());
+                });
+            });
+        });
+
+        it('analyzes literal exps - different sexps', () => {
+            const tc9 = `
+            (L51 
+                (if #t '() 'a)
+            )`;
+            const ptc = parseL51(tc9);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                expect(t).toSatisfy(isOkT(isTExp));
+                mapv(t, (t1: TExp) => {
+                    expect(t1).toStrictEqual(makeSExpTExp());
+                });
+            });
+        });
+
+        it('analyzes literal exps - different sexps', () => {
+            const tc9 = `
+            (L51 
+                (if #t '() 'a)
+            )`;
+            const ptc = parseL51(tc9);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                expect(t).toSatisfy(isOkT(isTExp));
+                mapv(t, (t1: TExp) => {
+                    expect(t1).toStrictEqual(makeSExpTExp());
+                });
+            });
+        });
+
+        it('analyzes literal exps - different sexps in lambda', () => {
+            const tc10 = `
+            (L51 
+                ((lambda () : sexp (if #t '() 1)))
+            )`;
+            const ptc = parseL51(tc10);
+            expect(ptc).toSatisfy(isOkT(isProgram));
+            // Fails if the SExp type is not detailed - succeeds otherwise
+            mapv(ptc, (p: Program) => {
+                const t = typeofProgram(p, initTEnv(p), p);
+                expect(t).toSatisfy(isOkT(isTExp));
+                mapv(t, (t1: TExp) => {
+                    expect(t1).toStrictEqual(makeSExpTExp());
+                });
+            });
+        });
+    });
 });

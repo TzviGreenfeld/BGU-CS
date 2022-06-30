@@ -56,7 +56,7 @@ describe('Assignment 4 Part 2', () => {
             service = makeTableService<Book>(exampleBookSync)
         })
 
-        test('stores and retrieves value', async () => {
+        test('(2pts) stores and retrieves value', async () => {
             const B = await service.get('B')
             expect(B).toEqual(templateBookTable['B'])
             await service.set('C', {title: 'title_C', author: 'author_C'})
@@ -66,15 +66,26 @@ describe('Assignment 4 Part 2', () => {
             expect(B).toEqual(templateBookTable['B'])
         })
 
-        test('throws on missing key (get)', async () => {
+        test('(2pts) throws on missing key (get)', async () => {
             await expect(service.get('C')).rejects.toEqual(MISSING_KEY)
         })
 
-        test('getAll retrieves an array', async () => {
+        test('(2pts) throws on missing key (delete)', async () => {
+            await expect(service.delete('C')).rejects.toEqual(MISSING_KEY)
+        })
+
+        test('(2pts) deletes a value', async () => {
+            await service.delete('A')
+            await expect(service.get('A')).rejects.toEqual(MISSING_KEY)
+        })
+
+        test('(2pts) getAll retrieves an array', async () => {
             expect(await getAll(service, ['A', 'B'])).toEqual(Object.values(templateBookTable))
+            expect(await getAll(service, ['B'])).toEqual([templateBookTable['B']])
+            expect(await getAll(service, ['B', 'A'])).toEqual([templateBookTable['B'], templateBookTable['A']])
         })
         //
-        test('getAll throws on missing value', async () => {
+        test('(1pts) getAll throws on missing value', async () => {
             await expect(getAll(service, ['A', 'C'])).rejects.toEqual(MISSING_KEY)
         })
     })
@@ -175,14 +186,14 @@ describe('Assignment 4 Part 2', () => {
 
         test('observers get updates', async () => {
             const mockFn = jest.fn()
-            optService.subscribe(mockFn)
+            service.subscribe(mockFn)
 
             const bookC = {title: 'title_C', author: 'author_C'}
-            await optService.set('C', bookC)
+            await service.set('C', bookC)
             expect(mockFn).toHaveBeenCalledTimes(1)
             expect(mockFn).toHaveBeenNthCalledWith(1, {...templateBookTable, 'C': bookC})
             mockFn.mockReset()
-            await optService.delete('B')
+            await service.delete('B')
             expect(mockFn).toHaveBeenCalledTimes(1)
             expect(mockFn).toHaveBeenNthCalledWith(1, {'A': templateBookTable['A'], 'C': bookC})
         })
