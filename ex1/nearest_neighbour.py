@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial import distance
+from scipy.spatial.distance import cdist
 
 
 def gensmallm(x_list: list, y_list: list, m: int):
@@ -35,7 +36,30 @@ def learnknn(k: int, x_train: np.array, y_train: np.array):
     :param y_train: numpy array of size (m, 1) containing the labels of the training sample
     :return: classifier data structure
     """
-    raise NotImplementedError()
+    m, d = x_train.shape
+    def classifier(test_sample):
+        """
+        :param sample: vector of features
+        :return: label from y_train that fits given sample
+        """
+        # distance[i] is the euclidian distance betweeen xi and sample
+        distance = [np.linalg.norm(test_sample - xi) for xi in x_train]
+        
+        # nearest_neighbours is a list of len k containing the *indices* of nearest neighbours of sample
+        nearest_neighbours = np.argsort(distance, axis=1)[:, :k + 1]
+
+        # get labels of neighbpurs
+        labels = [y_train[i] for i in nearest_neighbours]
+        
+        # should generate a set of the most frequent label
+        # currently returns 1 item and not a set
+        return np.bincount(labels).argmax()
+    
+    return classifier
+        
+
+        
+
 
 def predictknn(classifier, x_test: np.array):
     """
@@ -48,7 +72,8 @@ def predictknn(classifier, x_test: np.array):
 
 
 def simple_test():
-    data = np.load('mnist_all_not_compressed.npz')
+    # data = np.load('mnist_all_not_compressed.npz')
+    data = np.load('mnist_all.npz')
 
     train0 = data['train0']
     train1 = data['train1']
@@ -81,7 +106,11 @@ def simple_test():
 
 
 if __name__ == '__main__':
+    # set the path to be the current directory
+    import os
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+    print("hi")
     # before submitting, make sure that the function simple_test runs without errors
     simple_test()
 
