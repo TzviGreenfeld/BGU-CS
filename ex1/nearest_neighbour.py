@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial import distance
 from scipy.spatial.distance import cdist
+from collections import Counter
 
 
 def gensmallm(x_list: list, y_list: list, m: int):
@@ -36,24 +37,30 @@ def learnknn(k: int, x_train: np.array, y_train: np.array):
     :param y_train: numpy array of size (m, 1) containing the labels of the training sample
     :return: classifier data structure
     """
-    m, d = x_train.shape
+    # transpose
+    y_train = np.reshape(y_train, (-1, 1))
+
+    # def classifier(x_test):
+    #     # distances = np.array([[euclidean_dist(x_test, vector) for vector in x_train]]).T
+    #     distances = np.array([[np.linalg.norm(x_test - vector) for vector in x_train]]).T
+    #     dist_labels = np.concatenate((distances, np.reshape(y_train, (-1, 1))), axis=1)
+    #     k_sorted_labels = dist_labels[np.argsort(dist_labels[:, 0])][:k, 1]
+    #     predicted_label = np.argmax(np.bincount(np.array(k_sorted_labels, dtype=np.int64)))
+    #     return predicted_label    
     def classifier(test_sample):
         """
         :param sample: vector of features
         :return: label from y_train that fits given sample
         """
         # distance[i] is the euclidian distance betweeen xi and sample
-        distance = [np.linalg.norm(test_sample - xi) for xi in x_train]
-        
-        # nearest_neighbours is a list of len k containing the *indices* of nearest neighbours of sample
-        nearest_neighbours = np.argsort(distance, axis=1)[:, :k + 1]
+        distances = np.array([[np.linalg.norm(test_sample - xi) for xi in x_train]]).T
+        labeled_dist = np.hstack((distances, y_train))
+        sorted_by_dist = labeled_dist[np.argsort(distances[:, 0])]
+        # TODO: output float/int?
+        labels_of_min_k = np.array(sorted_by_dist[:k, 1])
+        counter = Counter(labels_of_min_k)
+        return counter.most_common(1)[0][0]
 
-        # get labels of neighbpurs
-        labels = [y_train[i] for i in nearest_neighbours]
-        
-        # should generate a set of the most frequent label
-        # currently returns 1 item and not a set
-        return np.bincount(labels).argmax()
     
     return classifier
         
@@ -67,12 +74,18 @@ def predictknn(classifier, x_test: np.array):
     :param classifier: data structure returned from the function learnknn
     :param x_test: numpy array of size (n, d) containing test examples that will be classified
     :return: numpy array of size (n, 1) classifying the examples in x_test
-    """
-    raise NotImplementedError()
+    """    
+    
+    predictions =  np.array([[classifier(sample)] for sample in x_test])
+    # print (predictions)
+    # np.reshape(predictions, predictions.size)
+    return predictions
+
 
 
 def simple_test():
     # data = np.load('mnist_all_not_compressed.npz')
+    np.random.seed(0) #TODO: delete this before submission
     data = np.load('mnist_all.npz')
 
     train0 = data['train0']
@@ -99,10 +112,12 @@ def simple_test():
         1] == 1, f"The shape of the output should be ({x_test.shape[0]}, 1)"
 
     # get a random example from the test set
-    i = np.random.randint(0, x_test.shape[0])
+    for i in range(10):
+        print(f"The {i}'th test sample was classified as {preds[i]}")
 
+    # i = np.random.randint(0, x_test.shape[0])
     # this line should print the classification of the i'th test sample.
-    print(f"The {i}'th test sample was classified as {preds[i]}")
+    # print(f"The {i}'th test sample was classified as {preds[i]}")
 
 
 if __name__ == '__main__':
@@ -110,7 +125,8 @@ if __name__ == '__main__':
     import os
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    print("hi")
+    os.system("cls")
+    print("hello")
     # before submitting, make sure that the function simple_test runs without errors
     simple_test()
 
