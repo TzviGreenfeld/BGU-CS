@@ -77,15 +77,13 @@ def predictknn(classifier, x_test: np.array):
     """    
     
     predictions =  np.array([[classifier(sample)] for sample in x_test])
-    # print (predictions)
-    # np.reshape(predictions, predictions.size)
     return predictions
 
 
 
 def simple_test():
     # data = np.load('mnist_all_not_compressed.npz')
-    np.random.seed(0) #TODO: delete this before submission
+    # np.random.seed(0) #TODO: delete this before submission
     data = np.load('mnist_all.npz')
 
     train0 = data['train0']
