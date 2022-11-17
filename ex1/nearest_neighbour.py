@@ -40,13 +40,6 @@ def learnknn(k: int, x_train: np.array, y_train: np.array):
     # transpose
     y_train = np.reshape(y_train, (-1, 1))
 
-    # def classifier(x_test):
-    #     # distances = np.array([[euclidean_dist(x_test, vector) for vector in x_train]]).T
-    #     distances = np.array([[np.linalg.norm(x_test - vector) for vector in x_train]]).T
-    #     dist_labels = np.concatenate((distances, np.reshape(y_train, (-1, 1))), axis=1)
-    #     k_sorted_labels = dist_labels[np.argsort(dist_labels[:, 0])][:k, 1]
-    #     predicted_label = np.argmax(np.bincount(np.array(k_sorted_labels, dtype=np.int64)))
-    #     return predicted_label    
     def classifier(test_sample):
         """
         :param sample: vector of features
