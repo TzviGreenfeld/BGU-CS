@@ -103,12 +103,12 @@ def simple_test():
         1] == 1, f"The shape of the output should be ({x_test.shape[0]}, 1)"
 
     # get a random example from the test set
-    for i in range(10):
-        print(f"The {i}'th test sample was classified as {preds[i]}")
+    # for i in range(10):
+    #     print(f"The {i}'th test sample was classified as {preds[i]}")
 
-    # i = np.random.randint(0, x_test.shape[0])
+    i = np.random.randint(0, x_test.shape[0])
     # this line should print the classification of the i'th test sample.
-    # print(f"The {i}'th test sample was classified as {preds[i]}")
+    print(f"The {i}'th test sample was classified as {preds[i]}")
 
 
 if __name__ == '__main__':

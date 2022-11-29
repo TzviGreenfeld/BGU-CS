@@ -29,8 +29,9 @@ def corrupt_data(Y):
 
 def get_avg_err(m, k, corrupt=False):
     global labels, train_sampels, test_sampels, test_lables
-    print(f"m={m}")
+    # print(f"m={m}")
     err = []
+    labels = np.float64(labels)
     for i in range(10):
         (X, Y) = gensmallm(train_sampels, labels, m)
         if corrupt:
@@ -71,7 +72,7 @@ def plot_fixed_k_1():
 
     plt.plot(sample_size, avg_errors, linewidth=3)
     plt.legend(["Averege Error over 10 iterations", "Min/Max Error"])
-    plt.savefig(f"{t}{title}.png")
+    plt.savefig(f"{title}.png")
 
 
 def plot_fixed_m_200(corrupt=False):
@@ -104,6 +105,6 @@ def plot_fixed_m_200(corrupt=False):
 
 
 if __name__ == '__main__':
-        plot_fixed_k_1()  # Q 2.a
-        plot_fixed_m_200()  # Q 2.e
-        plot_fixed_m_200(corrupt=True)  # Q 2.f
+        # plot_fixed_k_1()  # Q 2.a
+        plot_fixed_m_200(corrupt=False)  # Q 2.e
+        # plot_fixed_m_200(corrupt=True)  # Q 2.f
