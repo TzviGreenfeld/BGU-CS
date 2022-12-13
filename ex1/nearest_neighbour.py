@@ -112,12 +112,7 @@ def simple_test():
 
 
 if __name__ == '__main__':
-    # set the path to be the current directory
-    import os
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    os.system("cls")
-    print("hello")
     # before submitting, make sure that the function simple_test runs without errors
     simple_test()
 

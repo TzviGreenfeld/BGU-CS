@@ -101,6 +101,6 @@ def plot_fixed_m_200(corrupt=False):
                "Min/Max Error"], loc='best')
     plt.savefig(f"{title}.png")
 
-# plot_fixed_k_1()
-# plot_fixed_m_200()
-plot_fixed_m_200(corrupt=True)
+plot_fixed_k_1() # 2.a
+plot_fixed_m_200() # 2.e
+plot_fixed_m_200(corrupt=True) # 2.f
