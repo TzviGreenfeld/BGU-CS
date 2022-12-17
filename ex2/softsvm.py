@@ -13,27 +13,25 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     :return: linear predictor w, a numpy array of size (d, 1)
     """
     m, d = trainX.shape
-
-    u = np.array([0] * d + [1/m] * m)
-
-    # H_top_left = 2 * l * np.identity(d)
+    u = np.hstack((np.full(d, 0), np.full(m, 1/m)))
+    
     H = np.zeros((d + m, d + m))
+    # top left of h is 2l*Id_d
     for i in range(d):
         H[i][i] = 2 * l
-
-    v = np.array([0] * m + [1] * m)
-
+        
     A_top_left = np.zeros((m, d))
     A_top_right = np.identity(m)
     A_bottom_left = trainX * trainy.reshape(-1, 1)
     A_bottom_right = np.identity(m)
-    A = np.hstack([np.vstack([A_top_left, A_top_right]),
-                   np.vstack([A_bottom_left, A_bottom_right])])
-
+    A = np.vstack([np.hstack([A_top_left, A_top_right]),
+                   np.hstack([A_bottom_left, A_bottom_right])])
+    
+    v = np.hstack((np.zeros(m), np.ones(m)))
     z = solvers.qp(matrix(H), matrix(u), -matrix(A), -matrix(v))
-
-    w = z[:d]
+    w = np.array(z["x"])[:d]
     return w
+
 
 
 def simple_test():
