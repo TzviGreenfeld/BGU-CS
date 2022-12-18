@@ -57,7 +57,7 @@ def get_single_error(m, l):
 def get_avg_error(m: int, log_lambdas: np.array, times: int):
     """
     :param m: sample size
-    :param lambdas: the parameter lambda of the soft SVM algorithm, numpy array
+    :param lambdas: the parameter lambda of the soft SVM algorithm
     :param times: number of times to test for each lambda
     :return: dictionary of all the calculated values
     """
