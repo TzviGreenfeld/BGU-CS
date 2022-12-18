@@ -19,19 +19,14 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     m, d = trainX.shape
     u = np.hstack((np.full(d, 0), np.full(m, 1/m)))
 
-    H = float(2) * l * np.vstack([np.hstack([np.identity(d), np.zeros((d, m))]),
-                                  np.hstack([np.zeros((m, d)), np.zeros((m, m))])])
+    H = np.pad(float(2) * l * np.identity(d), [(0, m), (0, m)])
     # handle small eigenvalues
     epsilon = np.finfo(np.float64).eps
     if min(np.linalg.eigvals(H)) == 0:
         H = H + (epsilon * np.eye(H.shape[0]))
 
-    A_top_left = np.zeros((m, d))
-    A_top_right = np.identity(m)
-    A_bottom_left = trainX * trainy.reshape(-1, 1)
-    A_bottom_right = np.identity(m)
-    A = np.vstack([np.hstack([A_top_left, A_top_right]),
-                   np.hstack([A_bottom_left, A_bottom_right])])
+    A = np.block([[np.zeros((m, d)), np.identity(m)],
+                  [trainX * trainy.reshape(-1, 1), np.identity(m)]])
 
     v = np.hstack((np.zeros(m), np.ones(m)))
     z = solvers.qp(matrix(H), matrix(u), -matrix(A), -matrix(v))
