@@ -42,7 +42,7 @@ def get_single_error(m, l):
     """
     :param m: sample size
     :param l: the parameter lambda of the soft SVM algorithm
-    :return: linear predictor w, a numpy array of size (d, 1)
+    :return: tuple of error on train set, error on test set
     """
     _trainX, _trainY = get_random_sample(m, trainX, trainY)
     w = softsvm(l, _trainX, _trainY)
@@ -59,7 +59,7 @@ def get_avg_error(m: int, log_lambdas: np.array, times: int):
     :param m: sample size
     :param lambdas: the parameter lambda of the soft SVM algorithm
     :param times: number of times to test for each lambda
-    :return: dictionary of all the calculated values
+    :return: dictionary of all the calculated values needed to plot
     """
     lambdas = np.power(10, log_lambdas)
 
@@ -75,6 +75,7 @@ def get_avg_error(m: int, log_lambdas: np.array, times: int):
     train_min_values = np.min(train_errors, axis=1)
     train_max_values = np.max(train_errors, axis=1)
     train_avg_values = np.mean(train_errors, axis=1)
+
     test_min_values = np.min(test_errors, axis=1)
     test_max_values = np.max(test_errors, axis=1)
     test_avg_values = np.mean(test_errors, axis=1)
@@ -97,6 +98,7 @@ def plot(exp1_calc: dict, exp2_calc: dict, title: str):
     ax.set(xlabel="log λ", ylabel="error",
            title=title,
            xticks=exp1_calc["log_lambdas"])
+           
     # first experiment
     capsize, alpha = 3, 0.8
     plt.errorbar(x=exp1_calc["log_lambdas"] + 0.025, y=exp1_calc["train_avg_values"],
