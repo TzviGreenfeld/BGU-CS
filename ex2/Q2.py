@@ -98,24 +98,23 @@ def plot(exp1_calc: dict, exp2_calc: dict, title: str):
     ax.set(xlabel="log λ", ylabel="error",
            title=title,
            xticks=exp1_calc["log_lambdas"])
-           
+
     # first experiment
     capsize, alpha = 3, 0.8
+    params =  { capsize
+    }
     plt.errorbar(x=exp1_calc["log_lambdas"] + 0.025, y=exp1_calc["train_avg_values"],
-                 yerr=[exp1_calc["train_min_values"],
-                       exp1_calc["train_max_values"]],
+                 yerr=[exp1_calc["train_min_values"], exp1_calc["train_max_values"]],
                  label="Train sample average error", capsize=capsize, alpha=alpha)
 
     plt.errorbar(x=exp1_calc["log_lambdas"] - 0.025, y=exp1_calc["test_avg_values"],
-                 yerr=[exp1_calc["test_min_values"],
-                       exp1_calc["test_max_values"]],
+                 yerr=[exp1_calc["test_min_values"], exp1_calc["test_max_values"]],
                  label="Test sample average error", capsize=capsize, alpha=alpha)
 
     # second experiment
-    plt.scatter(exp2_calc["log_lambdas"],
-                exp2_calc["train_avg_values"], label="Train error")
-    plt.scatter(exp2_calc["log_lambdas"],
-                exp2_calc["test_avg_values"], label="Test error")
+    plt.scatter(exp2_calc["log_lambdas"], exp2_calc["train_avg_values"], label="Train error")
+    plt.scatter(exp2_calc["log_lambdas"], exp2_calc["test_avg_values"], label="Test error")
+    
     plt.legend(loc="best")
     plt.savefig(f"{title}.png")
 
