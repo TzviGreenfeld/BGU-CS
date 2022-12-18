@@ -8,6 +8,17 @@ data = np.load('ex2q2_mnist.npz')
 trainX, testX = data['Xtrain'], data['Xtest']
 trainY, testY = data['Ytrain'], data['Ytest']
 
+def fix_small_eigvals(M : np.array):
+    """
+    given a matrix M that sould be positive definite,
+    make sure it reallt is by adding small value to the main diagonal
+    """
+    epsilon = np.finfo(np.float64).eps
+    if min(np.linalg.eigvals(M)) == 0:
+        M = M + (epsilon * np.eye(M.shape[0]))
+
+    return M
+
 
 def softsvm(l, trainX: np.array, trainy: np.array):
     """
@@ -20,10 +31,7 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     u = np.hstack((np.full(d, 0), np.full(m, 1/m)))
 
     H = np.pad(float(2) * l * np.identity(d), [(0, m), (0, m)])
-    # handle small eigenvalues
-    epsilon = np.finfo(np.float64).eps
-    if min(np.linalg.eigvals(H)) == 0:
-        H = H + (epsilon * np.eye(H.shape[0]))
+    H = fix_small_eigvals(H)
 
     A = np.block([[np.zeros((m, d)), np.identity(m)],
                   [trainX * trainy.reshape(-1, 1), np.identity(m)]])

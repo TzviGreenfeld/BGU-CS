@@ -1,10 +1,16 @@
 import numpy as np
 from cvxopt import solvers, matrix, spmatrix, spdiag, sparse
 import matplotlib.pyplot as plt
+from softsvm import fix_small_eigvals
 
 
-def K(x1, x2, k):
-    return np.power(1 + np.inner(x1, x2), k)
+def K(dot_res, k):
+    """
+    :param dot_res: dot product of two np.arrays
+    :param k: the power of the poly kernel
+    :return: (1 + dot_res)^k
+    """
+    return np.power(1 + dot_res, k)
 
 # todo: complete the following functions, you may add auxiliary functions or define class to help you
 
@@ -20,21 +26,24 @@ def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
     """
     m, d = trainX.shape
 
-    u = np.hstack((np.full(d, 0), np.full(m, 1/m)))
-
     G = np.dot(trainX, trainX.T)
-    H = np.pad(* l * G, [(0, m), (0, m)])
-    # handle small eigenvalues
-    epsilon = np.finfo(np.float64).eps
-    if min(np.linalg.eigvals(H)) == 0:
-        H = H + (epsilon * np.eye(H.shape[0]))
+    # apply k to every item in G
+    G = np.vectorize(lambda x: K(x, k))(G)
 
-    A = np.block([[np.zeros((m, d)), np.identity(m)],
-                  [trainX @ G, np.identity(m)]])
+
+    H = np.pad(float(2) * l * G, [(0, m), (0, m)])
+    H = fix_small_eigvals(H)
+
+    A = np.block([[np.zeros((m, m)), np.identity(m)],
+                  [G * trainy.reshape(-1, 1), np.identity(m)]])
+
+    u = np.hstack((np.full(m, 0), np.full(m, 1/m)))
+
+    v = np.hstack((np.zeros(m), np.ones(m)))
   
     z = solvers.qp(matrix(H), matrix(u), -matrix(A), -matrix(v))
-    w = np.array(z["x"])[:d]
-    return w
+    alphas = np.array(z["x"])[:m]
+    return alphas
 
 
 def simple_test():
@@ -57,7 +66,7 @@ def simple_test():
 
     # tests to make sure the output is of the intended class and shape
     assert isinstance(w, np.ndarray), "The output of the function softsvmbf should be a numpy array"
-    assert w.shape[0] == 1 and w.shape[1] == 1, f"The shape of the output should be ({m}, 1)"
+    assert w.shape[0] == m and w.shape[1] == 1, f"The shape of the output should be ({m}, 1)"
 
 
 if __name__ == '__main__':
