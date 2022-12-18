@@ -3,7 +3,12 @@ from cvxopt import solvers, matrix, spmatrix, spdiag, sparse
 import matplotlib.pyplot as plt
 
 
+def K(x1, x2, k):
+    return np.power(1 + np.inner(x1, x2), k)
+
 # todo: complete the following functions, you may add auxiliary functions or define class to help you
+
+
 def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
     """
 
@@ -13,7 +18,23 @@ def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
     :param trainy: numpy array of size (m, 1) containing the labels of the training sample
     :return: numpy array of size (m, 1) which describes the coefficients found by the algorithm
     """
-    raise NotImplementedError()
+    m, d = trainX.shape
+
+    u = np.hstack((np.full(d, 0), np.full(m, 1/m)))
+
+    G = np.dot(trainX, trainX.T)
+    H = np.pad(* l * G, [(0, m), (0, m)])
+    # handle small eigenvalues
+    epsilon = np.finfo(np.float64).eps
+    if min(np.linalg.eigvals(H)) == 0:
+        H = H + (epsilon * np.eye(H.shape[0]))
+
+    A = np.block([[np.zeros((m, d)), np.identity(m)],
+                  [trainX @ G, np.identity(m)]])
+  
+    z = solvers.qp(matrix(H), matrix(u), -matrix(A), -matrix(v))
+    w = np.array(z["x"])[:d]
+    return w
 
 
 def simple_test():
