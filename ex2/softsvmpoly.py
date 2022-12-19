@@ -10,7 +10,7 @@ def K(dot_res, k):
     :param k: the power of the poly kernel
     :return: (1 + dot_res)^k
     """
-    return np.power(float(1) + dot_res, k)
+    return np.power(1 + dot_res, k)
 
 # todo: complete the following functions, you may add auxiliary functions or define class to help you
 
