@@ -10,7 +10,7 @@ def K(dot_res, k):
     :param k: the power of the poly kernel
     :return: (1 + dot_res)^k
     """
-    return np.power(1 + dot_res, k)
+    return np.power(float(1) + dot_res, k)
 
 # todo: complete the following functions, you may add auxiliary functions or define class to help you
 
@@ -36,7 +36,8 @@ def softsvmpoly(l: float, k: int, trainX: np.array, trainy: np.array):
 
     A = np.block([[np.zeros((m, m)), np.identity(m)],
                   [G * trainy.reshape(-1, 1), np.identity(m)]])
-
+    A = fix_small_eigvals(A)
+    
     u = np.hstack((np.full(m, 0), np.full(m, 1/m)))
 
     v = np.hstack((np.zeros(m), np.ones(m)))
