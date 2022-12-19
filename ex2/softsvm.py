@@ -8,17 +8,6 @@ data = np.load('ex2q2_mnist.npz')
 trainX, testX = data['Xtrain'], data['Xtest']
 trainY, testY = data['Ytrain'], data['Ytest']
 
-def fix_small_eigvals(M : np.array):
-    """
-    given a matrix M that sould be positive definite,
-    make sure it reallt is by adding small value to the main diagonal
-    """
-    epsilon = np.finfo(np.float64).eps
-    if min(np.linalg.eigvals(M)) == 0:
-        M = M + (epsilon * np.eye(M.shape[0]))
-
-    return M
-
 
 def softsvm(l, trainX: np.array, trainy: np.array):
     """
@@ -74,12 +63,45 @@ def simple_test():
     # this line should print the classification of the i'th test sample (1 or -1).
     print(f"The {i}'th test sample was classified as {predicty}")
 
+# functions to use across the entire assignment
+
+
+def get_random_sample(m: int, trainX: np.array, trainY: np.array):
+    """
+    :param m: sample size
+    :param trainX: all samples: numpy array of shape (k >= m, d)
+    :param: trainY: all labels: numpy array of shape (k >=m, 1)
+    :return: _trainX, _trainY: samples and ther labels. numpy arrays of shape (m, d), (m, 1)  
+    """
+    indices = np.random.permutation(trainX.shape[0])
+    _trainX = trainX[indices[:m]]
+    _trainY = trainY[indices[:m]]
+    return (_trainX, _trainY)
+
+
+def fix_small_eigvals(M: np.array):
+    """
+    given a matrix M that sould be positive definite,
+    make sure it reallt is by adding small value to the main diagonal
+    """
+    epsilon = np.finfo(np.float64).eps
+    if min(np.linalg.eigvals(M)) == 0:
+        M = M + (epsilon * np.eye(M.shape[0]))
+
+    return M
+
+
+def error(real_labels, predicted_labels):
+    """
+    :return: average of difference between two np arrays of shape (1,m)
+    """
+    return np.mean(real_labels != predicted_labels)
+
+
 def Q2():
     data = np.load('ex2q2_mnist.npz', allow_pickle=True)
     trainX, testX = data['Xtrain'], data['Xtest']
     trainY, testY = data['Ytrain'], data['Ytest']
-
-
 
     def predict(w: np.array, testX: np.array):
         """
@@ -88,27 +110,6 @@ def Q2():
         :return: predictions: numpy array of shape (m, 1)
         """
         return np.array([[np.sign(example @ w) for example in testX]])
-
-
-    def error(real_labels, predicted_labels):
-        """
-        :return: average of difference between two np arrays of shape (1,m)
-        """
-        return np.mean(real_labels != predicted_labels)
-
-
-    def get_random_sample(m: int, trainX: np.array, trainY: np.array):
-        """
-        :param m: sample size
-        :param trainX: all samples: numpy array of shape (k >= m, d)
-        :param: trainY: all labels: numpy array of shape (k >=m, 1)
-        :return: _trainX, _trainY: samples and ther labels. numpy arrays of shape (m, d), (m, 1)  
-        """
-        indices = np.random.permutation(trainX.shape[0])
-        _trainX = trainX[indices[:m]]
-        _trainY = trainY[indices[:m]]
-        return (_trainX, _trainY)
-
 
     def get_single_error(m, l):
         """
@@ -125,7 +126,6 @@ def Q2():
 
         return (train_error, test_error)
 
-
     def get_avg_error(m: int, log_lambdas: np.array, times: int):
         """
         :param m: sample size
@@ -139,7 +139,7 @@ def Q2():
         # errors[i][j][0] = train error of the j'th time we ran the expirement with lambdas[i]
         # errors[i][j][1] = test error of the j'th time we ran the expirement with lambdas[i]
         errors = np.array([[get_single_error(m, l)
-                        for i in range(times)] for l in lambdas])
+                            for i in range(times)] for l in lambdas])
         train_errors = errors[:, :, 0]
         test_errors = errors[:, :, 1]
 
@@ -162,34 +162,36 @@ def Q2():
             "test_avg_values": test_avg_values
         }
 
-
     def plot(exp1_calc: dict, exp2_calc: dict, title: str):
 
         plt.figure(figsize=(10, 4))
         ax = plt.axes()
         ax.set(xlabel="log λ", ylabel="error",
-            title=title,
-            xticks=exp1_calc["log_lambdas"])
+               title=title,
+               xticks=exp1_calc["log_lambdas"])
 
         # first experiment
         capsize, alpha = 3, 0.8
-        params =  { capsize
-        }
+        params = {capsize
+                  }
         plt.errorbar(x=exp1_calc["log_lambdas"] + 0.025, y=exp1_calc["train_avg_values"],
-                    yerr=[exp1_calc["train_min_values"], exp1_calc["train_max_values"]],
-                    label="Train sample average error", capsize=capsize, alpha=alpha)
+                     yerr=[exp1_calc["train_min_values"],
+                           exp1_calc["train_max_values"]],
+                     label="Train sample average error", capsize=capsize, alpha=alpha)
 
         plt.errorbar(x=exp1_calc["log_lambdas"] - 0.025, y=exp1_calc["test_avg_values"],
-                    yerr=[exp1_calc["test_min_values"], exp1_calc["test_max_values"]],
-                    label="Test sample average error", capsize=capsize, alpha=alpha)
+                     yerr=[exp1_calc["test_min_values"],
+                           exp1_calc["test_max_values"]],
+                     label="Test sample average error", capsize=capsize, alpha=alpha)
 
         # second experiment
-        plt.scatter(exp2_calc["log_lambdas"], exp2_calc["train_avg_values"], label="Train error")
-        plt.scatter(exp2_calc["log_lambdas"], exp2_calc["test_avg_values"], label="Test error")
-        
+        plt.scatter(exp2_calc["log_lambdas"],
+                    exp2_calc["train_avg_values"], label="Train error")
+        plt.scatter(exp2_calc["log_lambdas"],
+                    exp2_calc["test_avg_values"], label="Test error")
+
         plt.legend(loc="best")
         plt.savefig(f"{title}.png")
-
 
     def solve_Q2():
         experiment1 = get_avg_error(100, np.arange(1, 11), 10)
@@ -197,6 +199,7 @@ def Q2():
         plot(experiment1, experiment2,  "SVM error as function of λ")
 
     solve_Q2()
+
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
