@@ -85,7 +85,7 @@ def fix_small_eigvals(M: np.array):
     make sure it reallt is by adding small value to the main diagonal
     """
     epsilon = np.finfo(np.float64).eps
-    if min(np.linalg.eigvals(M)) == 0:
+    while min(np.linalg.eigvals(M)) == 0:
         M = M + (epsilon * np.eye(M.shape[0]))
 
     return M
@@ -97,19 +97,18 @@ def error(real_labels, predicted_labels):
     """
     return np.mean(real_labels != predicted_labels)
 
+def predict(w: np.array, testX: np.array):
+    """
+    :param w: linear predictor: numpy array of shape (d, 1)
+    :param testX: samples to calssify: numpy array of shape (m, d)
+    :return: predictions: numpy array of shape (m, 1)
+    """
+    return np.array([[np.sign(example @ w) for example in testX]])
 
 def Q2():
     data = np.load('ex2q2_mnist.npz', allow_pickle=True)
     trainX, testX = data['Xtrain'], data['Xtest']
     trainY, testY = data['Ytrain'], data['Ytest']
-
-    def predict(w: np.array, testX: np.array):
-        """
-        :param w: linear predictor: numpy array of shape (d, 1)
-        :param testX: samples to calssify: numpy array of shape (m, d)
-        :return: predictions: numpy array of shape (m, 1)
-        """
-        return np.array([[np.sign(example @ w) for example in testX]])
 
     def get_single_error(m, l):
         """
