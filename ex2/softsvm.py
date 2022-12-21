@@ -97,7 +97,17 @@ def error(real_labels, predicted_labels):
     """
     :return: average of difference between two np arrays of shape (1,m)
     """
+    # if the shapes dont match, try to reshape
+    if real_labels.shape != predicted_labels.shape:
+        try:
+            predicted_labels = predicted_labels.reshape(real_labels.shape)
+        except:
+            raise ValueError(
+                f"real_labels and predicted_labels must be of the same shape. got {real_labels.shape} and {predicted_labels.shape}")
+        
+
     return np.mean(real_labels != predicted_labels)
+
 
 def predict(w: np.array, testX: np.array):
     """
@@ -106,6 +116,7 @@ def predict(w: np.array, testX: np.array):
     :return: predictions: numpy array of shape (m, 1)
     """
     return np.array([[np.sign(example @ w) for example in testX]])
+
 
 def Q2():
     data = np.load('ex2q2_mnist.npz', allow_pickle=True)
@@ -127,7 +138,7 @@ def Q2():
 
         return (train_error, test_error)
 
-    def get_avg_error(m: int, log_lambdas: np.array, times: int)
+    def get_avg_error(m: int, log_lambdas: np.array, times: int):
         """
         :param m: sample size
         :param lambdas: the parameter lambda of the soft SVM algorithm
