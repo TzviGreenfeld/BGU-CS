@@ -16,6 +16,7 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     :param trainy: numpy array of size (m, 1) containing the labels of the training sample
     :return: linear predictor w, a numpy array of size (d, 1)
     """
+    # zTHz + <u,z> s.t. Az >= v
     m, d = trainX.shape
     u = np.hstack((np.full(d, 0), np.full(m, 1/m)))
 
@@ -84,8 +85,9 @@ def fix_small_eigvals(M: np.array):
     given a matrix M that sould be positive definite,
     make sure it reallt is by adding small value to the main diagonal
     """
-    epsilon = np.finfo(np.float64).eps
-    while min(np.linalg.eigvals(M)) == 0:
+    # epsilon = np.finfo(np.float64).eps
+    epsilon = 0.001
+    while min(np.linalg.eigvals(M)) <= 0:
         M = M + (epsilon * np.eye(M.shape[0]))
 
     return M
@@ -125,7 +127,7 @@ def Q2():
 
         return (train_error, test_error)
 
-    def get_avg_error(m: int, log_lambdas: np.array, times: int):
+    def get_avg_error(m: int, log_lambdas: np.array, times: int)
         """
         :param m: sample size
         :param lambdas: the parameter lambda of the soft SVM algorithm
