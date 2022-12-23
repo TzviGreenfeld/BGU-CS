@@ -30,6 +30,9 @@ def get_gram_matrix(X, k):
     G = np.vectorize(lambda x: np.power(x, k))(G)
     return G
 
+def predict_single_sample(alphas: np.array, k: int, sample: np.array, trainX: np.array):
+    train_kernels = np.array([K(sample, xi, k) for xi in trainX])
+    return np.sign(np.dot(train_kernels, alphas))
 
 def softsvmpoly(l: float, k: float, trainX: np.array, trainy: np.array):
     """
@@ -99,10 +102,6 @@ def Q4_b():
 
     def cartesian_product(set_a: np.array, set_b: np.array):
         return [(ai, bi) for ai in set_a for bi in set_b]
-
-    def predict_single_sample(alphas: np.array, k: int, sample: np.array, trainX: np.array):
-        train_kernels = np.array([K(sample, xi, k) for xi in trainX])
-        return np.sign(np.dot(train_kernels, alphas))
 
 
     def predict(alphas: np.array, k: int, testX: np.array, trainX: np.array):
@@ -191,36 +190,26 @@ def Q4_b():
 
 
 def Q4_e():
-    RED, BLUE = [255, 0 ,0], [0, 0, 255]
-    colors = {1.0: RED, -1.0: BLUE}
-    def plot_predictor(l, k, alphas):
-        step_size = 0.2
-        min_x, max_x = trainX[:, 0].min(), trainX[:, 0].max()
-        x = np.arange(min_x, max_x, step_size)
-        min_y, max_y = trainX[:, 1].min(), trainX[:, 1].max()
-        y = np.arange(min_y, max_y, step_size)
-        
-        grid = []
+    def plot_predictor(l, k, alphas, ax):
+        step_size = 0.001
+        x = np.arange(trainX[:, 0].min(), trainX[:, 0].max(), step_size)
+        y = np.arange(trainX[:, 1].min(), trainX[:, 1].max(), step_size)
 
-        for yi in y:
-            row = []
-            for xi in x:
-                point = np.array([xi, yi])
-                prediction = predict_single_sample(alphas, k, point, trainX)
-                
-                row.append(RED) if prediction == 1.0 else row.append(BLUE)
-            grid.insert(0, row)
+        grid = [[predict_single_sample(alphas, k, np.array([xi, yi]), trainX) for xi in x] for yi in reversed(y)]   
+        ax.imshow(grid, cmap='coolwarm', extent=[-1, 1, 1, -1])
+        ax.set_title(f"λ={l} k={k}")
 
-        # plt.imshow(grid,  extent=[min_x, max_x, min_y, max_y])
-        plt.imshow(grid,  extent=[-1, 1, -1, 1])
-        plt.title(f"for lambda=100 and k = {k}")
-        plt.show()
-    
     l = 100.0
     ks = np.array([3.0, 5.0, 8.0])
-    for i, k in enumerate(ks):
+
+    # Create a figure with 3 subplots
+    fig, axs = plt.subplots(1, 3, figsize=(10, 5))
+
+    for ax, k in zip(axs, ks):
         alphas = softsvmpoly(l, k, trainX, trainY)
-        plot_predictor(l ,k, alphas)
+        plot_predictor(l ,k, alphas, ax)
+    plt.savefig("Q4_e.png")
+    plt.show()
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
