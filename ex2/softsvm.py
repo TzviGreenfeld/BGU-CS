@@ -174,41 +174,46 @@ def Q2():
             "test_avg_values": test_avg_values
         }
 
-    def plot(exp1_calc: dict, exp2_calc: dict, title: str):
+    def plot(exp1_calc: dict, exp2_calc: dict, title: str, plot_large_m: bool = False):
 
-        plt.figure(figsize=(10, 4))
-        ax = plt.axes()
-        ax.set(xlabel="log λ", ylabel="error",
-               title=title,
-               xticks=exp1_calc["log_lambdas"])
+            plt.figure(figsize=(10, 4))
+            ax = plt.axes()
+            ax.set(xlabel="log λ", ylabel="error",
+                title=title,
+                xticks=exp1_calc["log_lambdas"])
 
-        # first experiment
-        capsize, alpha = 3, 0.8
-        params = {capsize
-                  }
-        plt.errorbar(x=exp1_calc["log_lambdas"] + 0.025, y=exp1_calc["train_avg_values"],
-                     yerr=[exp1_calc["train_min_values"],
-                           exp1_calc["train_max_values"]],
-                     label="Train sample average error", capsize=capsize, alpha=alpha)
+            # first experiment
+            capsize, alpha = 3, 0.8
+            params = {capsize
+                    }
+            plt.errorbar(x=exp1_calc["log_lambdas"] + 0.025, y=exp1_calc["train_avg_values"],
+                        yerr=[exp1_calc["train_min_values"],
+                            exp1_calc["train_max_values"]],
+                        label="Train sample average error", capsize=capsize, alpha=alpha)
 
-        plt.errorbar(x=exp1_calc["log_lambdas"] - 0.025, y=exp1_calc["test_avg_values"],
-                     yerr=[exp1_calc["test_min_values"],
-                           exp1_calc["test_max_values"]],
-                     label="Test sample average error", capsize=capsize, alpha=alpha)
+            plt.errorbar(x=exp1_calc["log_lambdas"] - 0.025, y=exp1_calc["test_avg_values"],
+                        yerr=[exp1_calc["test_min_values"],
+                            exp1_calc["test_max_values"]],
+                        label="Test sample average error", capsize=capsize, alpha=alpha)
 
-        # second experiment
-        plt.scatter(exp2_calc["log_lambdas"],
-                    exp2_calc["train_avg_values"], label="Train error")
-        plt.scatter(exp2_calc["log_lambdas"],
-                    exp2_calc["test_avg_values"], label="Test error")
+            # second experiment
+            if plot_large_m:
+                plt.scatter(exp2_calc["log_lambdas"],
+                            exp2_calc["train_avg_values"], label="Train error")
+                plt.scatter(exp2_calc["log_lambdas"],
+                            exp2_calc["test_avg_values"], label="Test error")
 
-        plt.legend(loc="best")
-        plt.savefig(f"{title}.png")
+            plt.legend(loc="best")
+            plt.show()
+            title = "_".join(title.split('\n'))
+            plt.savefig(f"{title}.png")
 
     def solve_Q2():
         experiment1 = get_avg_error(100, np.arange(1, 11), 10)
         experiment2 = get_avg_error(1000, [1, 3, 5, 8], 1)
-        plot(experiment1, experiment2,  "SVM error as function of λ")
+
+        plot(experiment1, experiment2, title="SVM error as function of λ\nSmall m") # 2.a
+        plot(experiment1, experiment2, title="SVM error as function of λ\nwith large m", plot_large_m=True) # 2.b
 
     solve_Q2()
 

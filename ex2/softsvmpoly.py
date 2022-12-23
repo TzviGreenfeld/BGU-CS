@@ -3,7 +3,8 @@ from cvxopt import solvers, matrix, spmatrix, spdiag, sparse
 import matplotlib.pyplot as plt
 from softsvm import softsvm, fix_small_eigvals, error, get_random_sample
 import softsvm
-import sys,os
+import sys
+import os
 sys.path.append(os.path.realpath('.'))
 
 data = np.load('ex2q4_data.npz')
@@ -18,12 +19,12 @@ def K(xi, xj, k):
     :return: (1 + dot_res)^k
     """
     # sanity check
-    assert xi.shape == xj.shape, "xi and xj should be of the same shape"
+    assert xi.shape == xj.shape, "xi and xj should be of the same shape\ngot xi.shape = {}, xj.shape = {}".format(
+        xi.shape, xj.shape)
     return np.power(np.dot(xi, xj) + 1.0, k)
 
 
 def get_gram_matrix(X, k):
-    print(X.shape)
     G = np.dot(X, X.T)
     # apply k to every item in G
     G = np.vectorize(lambda x: np.power(x, k))(G)
@@ -86,11 +87,10 @@ def Q4_a():
 
     def plot_taining_set(title: str):
         plt.figure(figsize=(10, 4))
-        plt.title()
+        plt.title(title)
         plt.scatter(x=trainX[:, 0], y=trainX[:, 1],
-                    c=trainY, cmap='cividis', s=5)
+                    c=trainY, cmap=plt.cm.Paired, s=5)
         plt.savefig(f"{title}.png")
-        # plt.show()
 
     plot_taining_set("Training set")
 
@@ -103,6 +103,7 @@ def Q4_b():
     def predict_single_sample(alphas: np.array, k: int, sample: np.array, trainX: np.array):
         train_kernels = np.array([K(sample, xi, k) for xi in trainX])
         return np.sign(np.dot(train_kernels, alphas))
+
 
     def predict(alphas: np.array, k: int, testX: np.array, trainX: np.array):
         """
@@ -126,8 +127,8 @@ def Q4_b():
             train_labales = np.concatenate(np.delete(Y_chunks, i, axis=0))
             splitted.append({"train": train,
                             "train_labales": train_labales,
-                             "test": test,
-                             "test_labales": test_labales})
+                            "test": test,
+                            "test_labales": test_labales})
         return np.array(splitted)
 
     def poly_cross_validation(lambdas: np.array, ks, folds: int):
@@ -143,13 +144,12 @@ def Q4_b():
         a = split_data(folds)
         for fold in split_data(folds):
             for l, k in cartesian_product(lambdas, ks):
-                print(l, k)
-                alphas = softsvmpoly(
-                    l, k, fold["train"], fold["train_labales"])
+                print(l,k)
+                alphas = softsvmpoly(l, k, fold["train"], fold["train_labales"])
                 predicted = predict(alphas, k, fold["test"], fold["train"])
                 # continuesly calculate the avg error
                 errors[(l, k)] += error(fold["test_labales"], predicted) / folds
-
+        
         # get the pair with lowest avg error
         best_lambda, best_k = min(errors.items(), key=lambda x: x[1])[0]
         print(f"best_lambda={best_lambda}, best_k={best_k}")
@@ -161,9 +161,8 @@ def Q4_b():
         for fold in split_data(folds):
             for l in lambdas:
                 w = softsvm.softsvm(l, fold["train"], fold["train_labales"])
-                errors[l] += error(fold["test_labales"],
-                                   softsvm.predict(w, fold["test"])) / folds
-
+                errors[l] += error(fold["test_labales"], softsvm.predict(w, fold["test"])) / folds
+        
         # get the l with lowest avg error
         best_lambda = min(errors.items(), key=lambda x: x[1])[0]
         print(f"best_lambda={best_lambda}")
@@ -177,10 +176,13 @@ def Q4_b():
         # polynomial kernel
         poly_predicions = poly_cross_validation(lambdas, ks, folds=k_folds)
         poly_error = error(testY, poly_predicions)
+        # best_lambda=10.0, best_k=5.0
+
 
         # linear softsvm
         soft_svm_predictions = softsvm_cross_validation(lambdas, folds=k_folds)
-        soft_svm_error = error(testY, soft_svm_predictions)
+        soft_svm_error =  error(testY, soft_svm_predictions)
+        # best_lambda=1.0
 
         print(f"soft_svm_error={soft_svm_error}")
         print(f"poly_error={poly_error}")
@@ -188,9 +190,41 @@ def Q4_b():
     cross_validation_error()
 
 
+def Q4_e():
+    RED, BLUE = [255, 0 ,0], [0, 0, 255]
+    colors = {1.0: RED, -1.0: BLUE}
+    def plot_predictor(l, k, alphas):
+        step_size = 0.2
+        min_x, max_x = trainX[:, 0].min(), trainX[:, 0].max()
+        x = np.arange(min_x, max_x, step_size)
+        min_y, max_y = trainX[:, 1].min(), trainX[:, 1].max()
+        y = np.arange(min_y, max_y, step_size)
+        
+        grid = []
+
+        for yi in y:
+            row = []
+            for xi in x:
+                point = np.array([xi, yi])
+                prediction = predict_single_sample(alphas, k, point, trainX)
+                
+                row.append(RED) if prediction == 1.0 else row.append(BLUE)
+            grid.insert(0, row)
+
+        # plt.imshow(grid,  extent=[min_x, max_x, min_y, max_y])
+        plt.imshow(grid,  extent=[-1, 1, -1, 1])
+        plt.title(f"for lambda=100 and k = {k}")
+        plt.show()
+    
+    l = 100.0
+    ks = np.array([3.0, 5.0, 8.0])
+    for i, k in enumerate(ks):
+        alphas = softsvmpoly(l, k, trainX, trainY)
+        plot_predictor(l ,k, alphas)
+
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
     simple_test()
     # here you may add any code that uses the above functions to solve question 4
-    # Q4_a()
-    Q4_b()
+    Q4_a()
+    # Q4_b()
