@@ -86,9 +86,10 @@ def fix_small_eigvals(M: np.array):
     make sure it reallt is by adding small value to the main diagonal
     """
     # epsilon = np.finfo(np.float64).eps
-    epsilon = 0.001
+    epsilon = 0.01
     while min(np.linalg.eigvals(M)) <= 0:
         M = M + (epsilon * np.eye(M.shape[0]))
+
 
     return M
 
@@ -220,7 +221,7 @@ def Q2():
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
-    simple_test()
+    # simple_test()
 
     # here you may add any code that uses the above functions to solve question 2
     Q2()
