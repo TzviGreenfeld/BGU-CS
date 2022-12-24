@@ -134,6 +134,13 @@ def Q4_b():
                             "test": test,
                             "test_labales": test_labales})
         return np.array(splitted)
+    
+    def log_l_k(dict, source):
+        with open ("cross validation sorted results.txt", "a+") as f:
+            f.write(source + "\n\n")
+            f.write("params\t error\n")
+            for key, val in sorted(dict.items(), key=lambda x: x[1]):
+                f.write(f"{key}\t {val}\n")
 
     def poly_cross_validation(lambdas: np.array, ks, folds: int):
         """
@@ -156,7 +163,7 @@ def Q4_b():
         
         # get the pair with lowest avg error
         best_lambda, best_k = min(errors.items(), key=lambda x: x[1])[0]
-        print(f"best_lambda={best_lambda}, best_k={best_k}")
+        log_l_k(errors, "poly kernel softsvm errors by (lambda, k):")
         alphas = softsvmpoly(best_lambda, best_k, trainX, trainY)
         return predict(alphas, best_k, testX, trainX)
 
@@ -169,7 +176,7 @@ def Q4_b():
         
         # get the l with lowest avg error
         best_lambda = min(errors.items(), key=lambda x: x[1])[0]
-        print(f"best_lambda={best_lambda}")
+        log_l_k(errors, "linear softsvm errors by lambda:")
         w = softsvm.softsvm(best_lambda, trainX, trainY)
         return softsvm.predict(w, testX)
 
@@ -196,7 +203,7 @@ def Q4_b():
 
 def Q4_e():
     def plot_predictor(l, k, alphas, ax):
-        step_size = 0.1
+        step_size = 0.02
         x = np.arange(trainX[:, 0].min(), trainX[:, 0].max(), step_size)
         y = np.arange(trainX[:, 1].min(), trainX[:, 1].max(), step_size)
 
@@ -222,6 +229,6 @@ if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
     simple_test()
     # here you may add any code that uses the above functions to solve question 4
-    Q4_a()
+    # Q4_a()
     Q4_b()
-    Q4_e()
+    # Q4_e()
