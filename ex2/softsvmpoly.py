@@ -25,10 +25,13 @@ def K(xi, xj, k):
 
 
 def get_gram_matrix(X, k):
-    G = np.dot(X, X.T)
-    # apply k to every item in G
-    G = np.vectorize(lambda x: np.power(x, k))(G)
+    m = X.shape[0]
+    G = np.zeros((m, m))
+    for row in range(m):
+        for col in range(row ,m):
+            G[col, row] = G[row, col] = K(X[row], X[col], k)
     return G
+    
 
 def predict_single_sample(alphas: np.array, k: int, sample: np.array, trainX: np.array):
     train_kernels = np.array([K(sample, xi, k) for xi in trainX])
@@ -92,10 +95,12 @@ def Q4_a():
         plt.figure(figsize=(10, 4))
         plt.title(title)
         plt.scatter(x=trainX[:, 0], y=trainX[:, 1],
-                    c=trainY, cmap=plt.cm.Paired, s=5)
-        plt.savefig(f"{title}.png")
+                    c=trainY, cmap='coolwarm', alpha=0.75)
+        plt.savefig(f"Q4_a.png")
 
     plot_taining_set("Training set")
+
+Q4_a()
 
 
 def Q4_b():
@@ -191,29 +196,32 @@ def Q4_b():
 
 def Q4_e():
     def plot_predictor(l, k, alphas, ax):
-        step_size = 0.001
+        step_size = 0.1
         x = np.arange(trainX[:, 0].min(), trainX[:, 0].max(), step_size)
         y = np.arange(trainX[:, 1].min(), trainX[:, 1].max(), step_size)
 
         grid = [[predict_single_sample(alphas, k, np.array([xi, yi]), trainX) for xi in x] for yi in reversed(y)]   
         ax.imshow(grid, cmap='coolwarm', extent=[-1, 1, 1, -1])
-        ax.set_title(f"λ={l} k={k}")
+        ax.set_title(f"λ={int(l)} k={int(k)}")
 
     l = 100.0
     ks = np.array([3.0, 5.0, 8.0])
 
     # Create a figure with 3 subplots
     fig, axs = plt.subplots(1, 3, figsize=(10, 5))
+    # set space between subplots
+    fig.subplots_adjust(wspace=0.5)
 
     for ax, k in zip(axs, ks):
         alphas = softsvmpoly(l, k, trainX, trainY)
         plot_predictor(l ,k, alphas, ax)
     plt.savefig("Q4_e.png")
-    plt.show()
+    # plt.show()
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
     simple_test()
     # here you may add any code that uses the above functions to solve question 4
     Q4_a()
-    # Q4_b()
+    Q4_b()
+    Q4_e()
