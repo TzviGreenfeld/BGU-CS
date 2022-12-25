@@ -5,7 +5,6 @@ from softsvm import softsvm, fix_small_eigvals, error, get_random_sample
 import softsvm
 
 data = np.load('ex2q4_data.npz')
-# data = np.load('ex2/ex2q4_data.npz')
 trainX, testX = data['Xtrain'], data['Xtest']
 trainY, testY = data['Ytrain'], data['Ytest']
 
@@ -57,7 +56,6 @@ def softsvmpoly(l: float, k: float, trainX: np.array, trainy: np.array):
     u = np.hstack((np.full(m, float(0)), np.full(m, 1/m)))
 
     v = np.hstack((np.zeros(m), np.ones(m)))
-    
 
     z = solvers.qp(matrix(H), matrix(u), -matrix(A), -matrix(v))
     alphas = np.array(z["x"])[:m]
@@ -161,7 +159,7 @@ def Q4_b():
 
         # get the pair with lowest avg error
         best_lambda, best_k = min(errors.items(), key=lambda x: x[1])[0]
-        log_l_k(errors, "poly kernel softsvm errors by (lambda, k):")
+        # log_l_k(errors, "poly kernel softsvm errors by (lambda, k):")
         alphas = softsvmpoly(best_lambda, best_k, trainX, trainY)
         return predict(alphas, best_k, testX, trainX)
 
@@ -175,7 +173,7 @@ def Q4_b():
 
         # get the l with lowest avg error
         best_lambda = min(errors.items(), key=lambda x: x[1])[0]
-        log_l_k(errors, "linear softsvm errors by lambda:")
+        # log_l_k(errors, "linear softsvm errors by lambda:")
         w = softsvm.softsvm(best_lambda, trainX, trainY)
         return softsvm.predict(w, testX)
 
@@ -225,10 +223,53 @@ def Q4_e():
     # plt.show()
 
 
+def Q4_f():
+    def B(k, t):
+        """ multinmumial coefficient """
+        denominator = np.prod([np.math.factorial(i) for i in t])
+        numerator = np.math.factorial(k)
+        return numerator / denominator
+
+    def psi(x, k):
+        psi = []
+        for i in np.arange(k + 1):
+            for j in np.arange(k + 1):
+                if i + j <= k:
+                    t = np.array((i, j))
+                    psi.append(np.sqrt(B(k, t)) * np.prod(np.power(x, t)))
+        return np.array(psi)
+
+    l, k = 1.0, 5.0
+
+    def get_w_from_alpha():
+        m, d = trainX.shape
+        alphas = softsvmpoly(l, k, trainX, trainY)
+        w = np.array([alphas[i] * psi(trainX[i], k)
+                     for i in range(m)]).sum(axis=0)
+        return w
+
+    def plot_w_prediction():
+        w = get_w_from_alpha()
+        merged_space = np.vstack((trainX, testX))
+        new_space = np.array([psi(sample, k) for sample in merged_space])
+        prediction = softsvm.predict(w, new_space)
+
+        # plot
+        plt.figure(figsize=(10, 4))
+        plt.title("w predictions on trainig and testing set")
+        plt.scatter(x=merged_space[:, 0], y=merged_space[:, 1],
+                    c=prediction, cmap='coolwarm', alpha=0.75)
+        # plt.show()
+        plt.savefig("Q4_f_iv.png")
+
+    plot_w_prediction()
+
+
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
-    # simple_test()
+    simple_test()
     # here you may add any code that uses the above functions to solve question 4
-    # Q4_a()
+    Q4_a()
     Q4_b()
-    # Q4_e()
+    Q4_e()
+    Q4_f()

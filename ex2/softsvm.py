@@ -205,7 +205,7 @@ def Q2():
                             exp2_calc["test_avg_values"], label="Test error")
 
             plt.legend(loc="best")
-            plt.show()
+            # plt.show()
             title = "_".join(title.split('\n'))
             plt.savefig(f"{title}.png")
 
@@ -221,7 +221,7 @@ def Q2():
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
-    # simple_test()
+    simple_test()
 
     # here you may add any code that uses the above functions to solve question 2
     Q2()
