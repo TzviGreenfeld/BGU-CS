@@ -47,7 +47,7 @@ def softsvmpoly(l: float, k: float, trainX: np.array, trainy: np.array):
 
     G = get_gram_matrix(trainX, k)
 
-    H = np.pad(float(2 * l) * G, [(0, m), (0, m)])
+    H = np.pad(float(2 * l) * np.identity(m) * G, [(0, m), (0, m)])
     H = fix_small_eigvals(H)
 
     A = np.block([[np.zeros((m, m)), np.identity(m)],
@@ -150,7 +150,7 @@ def Q4_b():
         a = split_data(folds)
         for fold in split_data(folds):
             for l, k in cartesian_product(lambdas, ks):
-                print(l, k)
+                # print(l, k)
                 alphas = softsvmpoly(
                     l, k, fold["train"], fold["train_labales"])
                 predicted = predict(alphas, k, fold["test"], fold["train"])
@@ -203,8 +203,7 @@ def Q4_e():
         x = np.arange(trainX[:, 0].min(), trainX[:, 0].max(), step_size)
         y = np.arange(trainX[:, 1].min(), trainX[:, 1].max(), step_size)
 
-        grid = [[predict_single_sample(alphas, k, np.array(
-            [xi, yi]), trainX) for xi in x] for yi in reversed(y)]
+        grid = [[predict_single_sample(alphas, k, np.array([xi, yi]), trainX) for xi in x] for yi in reversed(y)]
         ax.imshow(grid, cmap='coolwarm', extent=[-1, 1, 1, -1])
         ax.set_title(f"λ={int(l)} k={int(k)}")
 
