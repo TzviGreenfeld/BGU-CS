@@ -20,7 +20,7 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     m, d = trainX.shape
     u = np.hstack((np.full(d, 0), np.full(m, 1/m)))
 
-    H = np.pad(float(2) * l * np.identity(d), [(0, m), (0, m)])
+    H = np.pad(2.0 * l * np.identity(d), [(0, m), (0, m)])
     H = fix_small_eigvals(H)
 
     A = np.block([[np.zeros((m, d)), np.identity(m)],
