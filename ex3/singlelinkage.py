@@ -33,15 +33,21 @@ def singlelinkage(X, k):
     :return: a column vector of length m, where C(i) ∈ {1, . . . , k} is the identity of the cluster in which x_i has been assigned.
     """
     m, d = X.shape
-    clusters = np.arange(m).reshape(m, 1)
+    clusters = [np.array([i]) for i in range(m)]
     while len(clusters) > k:
-        print(len(clusters))
-        distances = np.array([[cluster_dist(clusters[i], clusters[j]) for j in range(m)] for i in range(m)])
-        
+        distances = np.array([[cluster_dist(clusters[i], clusters[j])
+                               for j in range(len(clusters))] for i in range(len(clusters))])
         np.fill_diagonal(distances, np.inf)
         min_i, min_j = np.unravel_index(np.argmin(distances), distances.shape)
         clusters[min_i] = np.concatenate((clusters[min_i], clusters[min_j]))
-        clusters = np.delete(clusters, min_j, 0)
+        clusters.pop(min_j)
+    res = np.zeros((m, 1))
+    for i, c in enumerate(clusters):
+        for x_index in c:
+            res[x_index] = i
+    return res
+                
+
 
 
 def simple_test():
