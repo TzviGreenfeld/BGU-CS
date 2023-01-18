@@ -45,7 +45,7 @@ def kmeans(X, k, t):
         clusters = assign_clusters(distances)
         centroids = compute_new_centroids(X, k, clusters)
 
-    return clusters.reshape((clusters.shape[0], 1))
+    return clusters.reshape((-1, 1))
 
 
 def simple_test():
