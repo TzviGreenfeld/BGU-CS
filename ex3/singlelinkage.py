@@ -3,6 +3,7 @@ import scipy.io as sio
 data = np.load('mnist_all.npz')
 
 
+
 def get_random_samples(digit, m):
     X = data[f'train{digit}']
     indices = np.arange(X.shape[0])
@@ -47,8 +48,6 @@ def singlelinkage(X, k):
             res[x_index] = i
     return res
                 
-
-
 
 def simple_test():
     # load sample data (this is just an example code, don't forget the other part)
