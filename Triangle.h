@@ -238,9 +238,6 @@ public:
 		GLubyte b;
 	};
 
-	float sign(float x1, float y1, float x2, float y2, float x3, float y3) {
-		return (x1 - x3) * (y2 - y3) - (x2 - x3) * (y1 - y3);
-	}
 
 
 

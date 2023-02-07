@@ -49,15 +49,9 @@ void handleInput()
 	if (keys[VK_DOWN])
 		scaleValue -= 0.001f;
 
-	// Mesh Refinement with spacebar
-	if (keys[VK_R]) {
-		delay(100);
-		weather->rain();
-	}
-
 	if (keys[VK_G]) {
 		delay(100);
-		weather->subtractFog();
+		weather->removeFog();
 	}
 
 	if (keys[VK_F]) {
@@ -201,7 +195,6 @@ void render()
 			lowResTriangles[i]->drawRedThickOutline();
 		}
 	}
-	weather->renderRain();
 
 	if (pickingMode)
 	{
@@ -216,9 +209,9 @@ void render()
 
 void initScene() {
 
-	//heightMap = imread("C:\\Users\\tzvig\\source\\repos\\main\\Islands_of_the_Sentinel.png", IMREAD_COLOR);
-	heightMap = imread("C:\\Users\\tzvig\\source\\repos\\main\\heightMap3.jpeg", IMREAD_COLOR);
-	//heightMap = imread("C:\\Users\\tzvig\\source\\repos\\main\\heightMap4.jpeg", IMREAD_COLOR);
+	//heightMap = imread("Islands_of_the_Sentinel.png", IMREAD_COLOR);
+	//heightMap = imread("heightMap3.jpeg", IMREAD_COLOR);
+	heightMap = imread("heightMap4.jpeg", IMREAD_COLOR);
 
 	MAP_WIDTH = heightMap.cols;
 	MAP_HEIGHT = heightMap.rows;
@@ -230,10 +223,9 @@ void initScene() {
 	resMapper = new ResMapper(triangles, lowResTriangles);
 
 	weather = new Weather;
-	weather->initRain();
 
 	//printf("map dimensions: %d, %d", heightMap.rows, heightMap.cols);
-	allowPrinting();
+	//allowPrinting();
 	printf("triangles.size=%d\n", triangles.size());
 	printf("lowResTriangles.size=%d\n", lowResTriangles.size());
 
@@ -251,12 +243,6 @@ int DrawGLScene(GLvoid) // Here's Where We Do All The Drawing
 		0.0, 1.0, 0.0); // up vector direction
 	glScalef(scaleValue, scaleValue * HEIGHT_RATIO, scaleValue);
 
-	/*
-	float val = 1.0 / (2.0 * STEP_SIZE);
-	gluLookAt(MAP_WIDTH * val, 80.0, MAP_HEIGHT * val,
-		MAP_WIDTH / 2.0, -10.0, MAP_HEIGHT / 2.0,
-		0.0, 1.0, 0.0);
-	*/
 
 
 	glTranslatef(MAP_WIDTH / 2, 0.0, MAP_HEIGHT / 2);

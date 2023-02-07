@@ -27,7 +27,6 @@ public:
 				graph[i][0] = i - 1;
 			}
 
-			// if i is odd, then i + (2 * cols) - 1  is the top neighbor
 			// if i is even, then i - (2 * cols) - 1 is the bottom neighbor
 			int colNeighbor;
 			colNeighbor = (i % 2 == 0) ? (i - (this->rows - 1)) : (i + (this->rows - 1));
