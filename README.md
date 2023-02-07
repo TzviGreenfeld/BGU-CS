@@ -59,7 +59,7 @@ When translating from low (large triangles) to high (small triangles)  we take t
 Translation from high to low is almost identical, except for looping  over large triangles instead of small.  
 
 ![](https://github.com/TzviGreenfeld/Topics-in-Graphics-and-Visual-Computing/blob/main/README/Aspose.Words.9c09640c-346e-4f29-9d3f-9c72cccbd834.005.png)
-<b>
+
 ***Environmental Simulation:*** 
 Weather: Controller object for an environmental simulations implementation of fog. 
 
