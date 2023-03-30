@@ -1,4 +1,4 @@
-
+## Task 2
 ### How much memory does the process use before and after the allocation?
 16384, 81920
 
@@ -6,7 +6,7 @@
 it's the same
 
 ### Try to explain the difference before and after release. What could cause this difference? (Hint: look at the implementation of malloc())
-malloc() updats the process pcb in the 'sz' field, but free doesnt.
+```malloc()``` updats the process pcb in the 'sz' field, but ```free()``` doesn't.
 
 ```c
 void*
@@ -61,4 +61,180 @@ free(void *ap)
     p->s.ptr = bp;
   freep = p;
 }
+```
+
+## Task 3
+### What happened as soon as we changed the signatures for exit() and wait()? Why?
+TODO: make sure this is what they meant
+we got a lot of errors, because every usage of wait and exit only send 1 argument. (exitcode for ```exit()``` and the child state for ```wait()```)
+### What happens if the exit message is longer than 32 characters? How do we make sure nothing bad happens?
+our msg is chopped to the first 32 chars. when running this code:
+``` c
+exit(0, "123456789111315171921232527293133");
+```
+the output is "1234567891113151719212325272931".
+I don't understand why its bad TODO:finish this question
+### What happens if the exit message is shorter than 32 characters? How do we make sure nothing bad happens?
+nothing bad happens, it null terminated so the output is what we printed
+// maybe they expected us to use write instead of pritnf? TODO
+### How many times is our exit message copied?
+
+### Where in sh.c does the shell receive the exit message? Explain briefly how this code works.
+### What happens if the shell modifies the exit message after it is received?
+
+## Task 4
+### Find the scheduling policy in the xv6 code. Where is it implemented?
+in kernel/proc.c we have:
+``` c
+void
+scheduler(void)
+{
+  struct proc *p;
+  struct cpu *c = mycpu();
+  
+  c->proc = 0;
+  for(;;){
+    // Avoid deadlock by ensuring that devices can interrupt.
+    intr_on();
+
+    for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) {
+        // Switch to chosen process.  It is the process's job
+        // to release its lock and then reacquire it
+        // before jumping back to us.
+        p->state = RUNNING;
+        c->proc = p;
+        swtch(&c->context, &p->context);
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&p->lock);
+    }
+  }
+}
+```
+### How does the policy choose which process to run?
+it just goes over all the processes and finds one that is RUNNABLE, then changing it to RUNNING and when the process is done running the scheduler sets is back to RUNNABLE. we get a simple **<u>Round Robin</u>** policy
+
+### What happens when a new process is created and when/how often does scheduling take place?
+when a new process is created in ```fork()```, a new 'struct proc' structure is allocated to represent the process, and a copy of the calling process's address space is created. The new process is initially in the RUNNABLE state, and it is added to the end of the 'ptable' process table.
+
+the scheduler runs **indefinitely**, so in that sense it is always taking place
+### What happens when a process calls a system call, for instance sleep()?
+1. The process invokes the ```sleep()``` system call by calling it from the user space which in turn calls the kernel-level ```sys_sleep()``:
+``` c
+// kernel/sysproc.c
+uint64
+sys_sleep(void)
+{
+  int n;
+  uint ticks0;
+
+  argint(0, &n);
+  acquire(&tickslock);
+  ticks0 = ticks;
+  while(ticks - ticks0 < n){
+    if(killed(myproc())){
+      release(&tickslock);
+      return -1;
+    }
+    sleep(&ticks, &tickslock);
+  }
+  release(&tickslock);
+  return 0;
+}
+```
+2. The scheduler then selects the next process to run on the CPU.
+3. When the timer interrupt occurs, the ```trap()``` function is called, which saves the current CPU state and switches to kernel mode.
+
+``` c
+// kernel/trap/c
+// interrupts and exceptions from kernel code go here via kernelvec,
+// on whatever the current kernel stack is.
+void 
+kerneltrap()
+{
+  int which_dev = 0;
+  uint64 sepc = r_sepc();
+  uint64 sstatus = r_sstatus();
+  uint64 scause = r_scause();
+  
+  if((sstatus & SSTATUS_SPP) == 0)
+    panic("kerneltrap: not from supervisor mode");
+  if(intr_get() != 0)
+    panic("kerneltrap: interrupts enabled");
+
+  if((which_dev = devintr()) == 0){ 
+    printf("scause %p\n", scause);
+    printf("sepc=%p stval=%p\n", r_sepc(), r_stval());
+    panic("kerneltrap");
+  }
+
+  // give up the CPU if this is a timer interrupt.
+  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
+    yield();
+
+  // the yield() may have caused some traps to occur,
+  // so restore trap registers for use by kernelvec.S's sepc instruction.
+  w_sepc(sepc);
+  w_sstatus(sstatus);
+}
+```
+the timer interrupt is handled by the ```devintr()``` function, which checks if the interrupt is a timer interrupt and sets the state of the currently running process to RUNNABLE if it was sleeping due to a call to sleep(). This allows the process to be scheduled for execution again by the scheduler.
+
+``` c
+// kernel/trap.c
+// check if it's an external interrupt or software interrupt,
+// and handle it.
+// returns 2 if timer interrupt,
+// 1 if other device,
+// 0 if not recognized.
+int
+devintr()
+{
+  uint64 scause = r_scause();
+
+  if((scause & 0x8000000000000000L) &&
+     (scause & 0xff) == 9){
+    // this is a supervisor external interrupt, via PLIC.
+
+    // irq indicates which device interrupted.
+    int irq = plic_claim();
+
+    if(irq == UART0_IRQ){
+      uartintr();
+    } else if(irq == VIRTIO0_IRQ){
+      virtio_disk_intr();
+    } else if(irq){
+      printf("unexpected interrupt irq=%d\n", irq);
+    }
+
+    // the PLIC allows each device to raise at most one
+    // interrupt at a time; tell the PLIC the device is
+    // now allowed to interrupt again.
+    if(irq)
+      plic_complete(irq);
+
+    return 1;
+  } else if(scause == 0x8000000000000001L){
+    // software interrupt from a machine-mode timer interrupt,
+    // forwarded by timervec in kernelvec.S.
+
+    if(cpuid() == 0){
+      clockintr();
+    }
+    
+    // acknowledge the software interrupt by clearing
+    // the SSIP bit in sip.
+    w_sip(r_sip() & ~2);
+
+    return 2;
+  } else {
+    return 0;
+  }
+}
+
 ```
