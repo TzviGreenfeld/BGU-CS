@@ -10,8 +10,10 @@ uint64
 sys_exit(void)
 {
   int n;
+  char exitMsg[32];
   argint(0, &n);
-  exit(n);
+  argstr(1, exitMsg, 32); // TASK 3
+  exit(n, exitMsg);
   return 0;  // not reached
 }
 
@@ -37,8 +39,10 @@ uint64
 sys_wait(void)
 {
   uint64 p;
+  uint64 exitmsgPtr;
   argaddr(0, &p);
-  return wait(p);
+  argaddr(1, &exitmsgPtr);
+  return wait(p, exitmsgPtr);
 }
 
 uint64
