@@ -1,12 +1,15 @@
 ## Task 2
-### How much memory does the process use before and after the allocation?
+> How much memory does the process use before and after the allocation?
+
 16384, 81920
 
-### What is the difference between the memory size before and afterthe release?
+> What is the difference between the memory size before and afterthe release?
+
 it's the same
 
-### Try to explain the difference before and after release. What could cause this difference? (Hint: look at the implementation of malloc())
-```malloc()``` updats the process pcb in the 'sz' field, but ```free()``` doesn't.
+> Try to explain the difference before and after release. What could cause this difference? (Hint: look at the implementation of malloc())
+
+`malloc()` updats the process pcb in the 'sz' field, but `free()` doesn't.
 
 ```c
 void*
@@ -62,28 +65,32 @@ free(void *ap)
   freep = p;
 }
 ```
-
+---
 ## Task 3
-### What happened as soon as we changed the signatures for exit() and wait()? Why?
+> What happened as soon as we changed the signatures for exit() and wait()? Why?
+
 TODO: make sure this is what they meant
-we got a lot of errors, because every usage of wait and exit only send 1 argument. (exitcode for ```exit()``` and the child state for ```wait()```)
-### What happens if the exit message is longer than 32 characters? How do we make sure nothing bad happens?
+we got a lot of errors, because every usage of wait and exit only send 1 argument. (exitcode for `exit()` and the child state for `wait()`)
+
+> What happens if the exit message is longer than 32 characters? How do we make sure nothing bad happens?
+
 our msg is chopped to the first 32 chars. when running this code:
 ``` c
 exit(0, "123456789111315171921232527293133");
 ```
 the output is "1234567891113151719212325272931".
 I don't understand why its bad TODO:finish this question
-### What happens if the exit message is shorter than 32 characters? How do we make sure nothing bad happens?
+> What happens if the exit message is shorter than 32 characters? How do we make sure nothing bad happens?
 nothing bad happens, it null terminated so the output is what we printed
 // maybe they expected us to use write instead of pritnf? TODO
-### How many times is our exit message copied?
+> How many times is our exit message copied?
 
-### Where in sh.c does the shell receive the exit message? Explain briefly how this code works.
-### What happens if the shell modifies the exit message after it is received?
-
+> Where in sh.c does the shell receive the exit message? Explain briefly how this code works.
+> What happens if the shell modifies the exit message after it is received?
+---
 ## Task 4
-### Find the scheduling policy in the xv6 code. Where is it implemented?
+> Find the scheduling policy in the xv6 code. Where is it implemented?
+
 in kernel/proc.c we have:
 ``` c
 void
@@ -116,15 +123,18 @@ scheduler(void)
   }
 }
 ```
-### How does the policy choose which process to run?
+> How does the policy choose which process to run?
+
 it just goes over all the processes and finds one that is RUNNABLE, then changing it to RUNNING and when the process is done running the scheduler sets is back to RUNNABLE. we get a simple **<u>Round Robin</u>** policy
 
-### What happens when a new process is created and when/how often does scheduling take place?
-when a new process is created in ```fork()```, a new 'struct proc' structure is allocated to represent the process, and a copy of the calling process's address space is created. The new process is initially in the RUNNABLE state, and it is added to the end of the 'ptable' process table.
+> What happens when a new process is created and when/how often does scheduling take place?
+
+when a new process is created in `fork()`, a new 'struct proc' structure is allocated to represent the process, and a copy of the calling process's address space is created. The new process is initially in the RUNNABLE state, and it is added to the end of the 'ptable' process table.
 
 the scheduler runs **indefinitely**, so in that sense it is always taking place
-### What happens when a process calls a system call, for instance sleep()?
-1. The process invokes the ```sleep()``` system call by calling it from the user space which in turn calls the kernel-level ```sys_sleep()``:
+> What happens when a process calls a system call, for instance sleep()?
+
+1. The process invokes the `sleep()` system call by calling it from the user space which in turn calls the kernel-level `sys_sleep():
 ``` c
 // kernel/sysproc.c
 uint64

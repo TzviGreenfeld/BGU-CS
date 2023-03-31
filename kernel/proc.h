@@ -104,5 +104,8 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  char exit_msg[32];               // Process name (debugging)
+  char exit_msg[32];
+  unsigned long long accumulator;
+  int ps_priority;
+
 };

@@ -4,6 +4,7 @@
         "riscv.h": "c",
         "defs.h": "c",
         "new": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "limits": "c"
     },
 }

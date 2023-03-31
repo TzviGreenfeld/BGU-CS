@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include <limits.h>
 
 struct cpu cpus[NCPU];
 
@@ -102,6 +103,26 @@ allocpid()
   return pid;
 }
 
+// TASK 5
+/**
+ * loops over all the RUNNING or RUNNABLE processes to find the
+ * the minimum accumulator value
+ * returns: minimum value found or 0 if there's no RUNNING or RUNNABLE process 
+*/
+unsigned long long getCurrMinAcc(){
+	unsigned long long currMin = ULLONG_MAX; // max unsigned long long
+	for(struct proc* p = proc; p < &proc[NPROC]; p++ ) {
+    if((p->state == RUNNABLE || p->state == RUNNING) && p->accumulator < currMin) {
+			currMin = p->accumulator;
+		}
+	}
+	if (currMin == ULLONG_MAX){
+    return 0;
+  } else {
+    return currMin;
+  }
+}
+
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
 // and return with p->lock held.
@@ -145,6 +166,10 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+
+  // TASK 5:
+  p->ps_priority = 5;
+  p->accumulator = getCurrMinAcc();
 
   return p;
 }
@@ -319,7 +344,9 @@ fork(void)
   release(&wait_lock);
 
   acquire(&np->lock);
-  np->state = RUNNABLE;
+  np->state = RUNNABLE; // now we have the new ready process
+
+
   release(&np->lock);
 
   return pid;
@@ -460,7 +487,9 @@ scheduler(void)
 
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      if(p->state == RUNNABLE) {
+      //TODO: check wahts going on here with the locks
+      if(p->state == RUNNABLE && p->accumulator == getCurrMinAcc()) {
+  			// p is the first process with minimum acculmulator value        
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
@@ -578,6 +607,7 @@ wakeup(void *chan)
     if(p != myproc()){
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
+        // p->accumulator = getCurrMinAcc(); TODO: do i need that?
         p->state = RUNNABLE;
       }
       release(&p->lock);
@@ -686,4 +716,14 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+
+void
+set_ps_priority(int priority)
+{
+  if(priority < 1 || priority > 10){
+    panic("invalid priority. must be in range [1,10]");
+  }
+	myproc()->ps_priority = priority;
 }
