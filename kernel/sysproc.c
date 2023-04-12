@@ -133,3 +133,12 @@ sys_get_cfs_stats(void)
   
 	return 0;
 }
+
+uint64
+sys_set_policy(void)
+{
+	int policy;
+
+	argint(0, &policy);
+	return set_policy(policy);
+}

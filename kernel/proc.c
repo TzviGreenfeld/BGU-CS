@@ -7,7 +7,7 @@
 #include "defs.h"
 #include <limits.h>
 
-int sched_policy; // TASK 7
+int sched_policy = 0; // TASK 7
 
 struct cpu cpus[NCPU];
 
@@ -572,11 +572,14 @@ void scheduler(void)
     {
       p = min_cfs_proc();
       // cfs schedualer
+      if (p != 0){
+
       p->state = RUNNING;
       c->proc = p;
       swtch(&c->context, &p->context);
       c->proc = 0;
       release(&p->lock);
+      }
     }
   }
 }
@@ -848,4 +851,14 @@ void get_cfs_stats(int pid, struct cfs_stats* stats)
     }
     release(&p->lock);
   }
+}
+
+int set_policy(int policy)
+{
+  if(policy < 0 || policy > 2){
+    return -1;
+  }
+
+  sched_policy = policy;
+  return 0;
 }
