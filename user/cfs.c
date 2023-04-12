@@ -3,8 +3,10 @@
 #include "user/user.h"
 #include "kernel/cfs_utils.h"
 
-#define _MIL 1000000
-#define _100K 100000
+// #define _MIL 1000000
+// #define _100K 100000
+#define _MIL 100000000
+#define _100K 10000000
 
 void test()
 {
@@ -28,10 +30,10 @@ void test()
 
             exit(0, "");
         }
-        // else
-        // { // parent
-        //     sleep(100);
-        // }
+        else
+        { // parent
+            sleep(100);
+        }
     }
     wait(0, 0);
     wait(0, 0);

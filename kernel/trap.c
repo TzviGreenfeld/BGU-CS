@@ -78,6 +78,7 @@ usertrap(void)
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2){
+    // cfs_tick_update(); // TASK 6
     p->accumulator += p->ps_priority; // TASK 5
     yield();
   }
@@ -156,6 +157,7 @@ kerneltrap()
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING){
+    // cfs_tick_update();// TASK6 idk which one i need
     myproc()->accumulator += myproc()->ps_priority; // TASK 5
     yield();
   }
@@ -171,7 +173,7 @@ clockintr()
 {
   acquire(&tickslock);
   ticks++;
-  cfs_tick_update();
+  cfs_tick_update(); // remove this?
   wakeup(&ticks);
   release(&tickslock);
 }
