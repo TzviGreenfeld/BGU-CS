@@ -524,6 +524,7 @@ struct proc *min_cfs_proc()
   return res;
 }
 
+// TODO: refactor. remove duplicate code
 void scheduler(void)
 {
   struct proc *p = 0;
@@ -563,7 +564,6 @@ void scheduler(void)
           c->proc = p;
           swtch(&c->context, &p->context);
           c->proc = 0;
-          release(&p->lock);
         }
         release(&p->lock);
       }

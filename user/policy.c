@@ -19,4 +19,4 @@ int main(int argc, char *argv[])
 
     printf("oh no panic at the disco\n");
     return 1;
-code }
+}
