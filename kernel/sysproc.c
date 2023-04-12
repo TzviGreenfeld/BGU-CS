@@ -109,3 +109,27 @@ sys_set_ps_priority(void)
   set_ps_priority(priority);
 	return 0;
 }
+
+uint64
+sys_set_cfs_priority(void)
+{
+	int priority;
+
+	argint(0, &priority);
+  set_cfs_priority(priority);
+	return 0;
+}
+
+uint64
+sys_get_cfs_stats(void)
+{
+	int pid;
+	uint64 cfs_stats_addr;
+
+	argint(0, &pid);
+
+	argaddr(1, &cfs_stats_addr);
+  get_cfs_stats(pid, (struct cfs_stats*)cfs_stats_addr);
+  
+	return 0;
+}

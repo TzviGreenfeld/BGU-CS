@@ -1,4 +1,5 @@
 // Saved registers for kernel context switches.
+#include "cfs_utils.h"
 struct context {
   uint64 ra;
   uint64 sp;
@@ -79,6 +80,8 @@ struct trapframe {
   /* 280 */ uint64 t6;
 };
 
+void cfs_tick_update(void); // TASK 6
+
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
@@ -107,5 +110,6 @@ struct proc {
   char exit_msg[32];
   unsigned long long accumulator;
   int ps_priority;
+  struct cfs_stats cfs_stats; // TASK 6
 
 };

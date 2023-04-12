@@ -341,6 +341,7 @@ fork(void)
 
   acquire(&wait_lock);
   np->parent = p;
+  np->cfs_stats = p->cfs_stats; // TASK 6
   release(&wait_lock);
 
   acquire(&np->lock);
@@ -467,13 +468,60 @@ wait(uint64 addr, uint64 exitMsgAddr)
   }
 }
 
-// Per-CPU process scheduler.
-// Each CPU calls scheduler() after setting itself up.
-// Scheduler never returns.  It loops, doing:
-//  - choose a process to run.
-//  - swtch to start running that process.
-//  - eventually that process transfers control
-//    via swtch back to the scheduler.
+// TASK 6
+int calc_decay_factor(struct proc *p)
+{
+  if (p->cfs_stats.cfs_priority == 0)
+  {
+    return 75;
+  }
+
+  else if (p->cfs_stats.cfs_priority == 1)
+  {
+    return 100;
+  }
+
+  else
+  {
+    return 125;
+  }
+}
+
+int calc_vruntime(struct proc* p){
+  int numerator = calc_decay_factor(p) * p->cfs_stats.rtime;
+  int denominator = p->cfs_stats.rtime + p->cfs_stats.stime + p->cfs_stats.retime;
+  return numerator / denominator;
+}
+
+struct proc *min_cfs_proc()
+{
+  struct proc *res = 0;
+  int min_vruntime = -1;
+  int curr_vruntime = 0;
+
+  for (struct proc *p = proc; p < &proc[NPROC]; p++)
+  {
+    acquire(&p->lock);
+    curr_vruntime = calc_vruntime(p);
+    if ((p->state == RUNNABLE) &&
+        (res == 0 || curr_vruntime < min_vruntime))
+    {
+      if (res != 0)
+      {
+        release(&res->lock); // new king, release old
+      }
+      res = p;
+      min_vruntime = curr_vruntime;
+    }
+    else
+    {
+      release(&p->lock);
+    }
+  }
+
+  return res;
+}
+
 void
 scheduler(void)
 {
@@ -482,29 +530,19 @@ scheduler(void)
   
   c->proc = 0;
   for(;;){
-    // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-    for(p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      //TODO: check wahts going on here with the locks
-      if(p->state == RUNNABLE && p->accumulator == getCurrMinAcc()) {
-  			// p is the first process with minimum acculmulator value        
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-      }
-      release(&p->lock);
+		if ((p = min_cfs_proc()))
+		{
+    	p->state = RUNNING;
+    	c->proc = p;
+    	swtch(&c->context, &p->context);
+    	c->proc = 0;
+    	release(&p->lock);
     }
   }
 }
+
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
@@ -718,12 +756,59 @@ procdump(void)
   }
 }
 
-
-void
-set_ps_priority(int priority)
+void set_ps_priority(int priority)
 {
-  if(priority < 1 || priority > 10){
+  if (priority < 1 || priority > 10)
+  {
     panic("invalid priority. must be in range [1,10]");
   }
-	myproc()->ps_priority = priority;
+  myproc()->ps_priority = priority;
+}
+
+// TASK 6
+void cfs_tick_update(void)
+{
+  for (struct proc *p = proc; p < &proc[NPROC]; p++)
+  {
+    acquire(&p->lock);
+    if (p->state == RUNNING)
+    {
+      p->cfs_stats.rtime += 1;
+    }
+    else if (p->state == SLEEPING)
+    {
+      p->cfs_stats.stime += 1;
+    }
+    else if (p->state == RUNNABLE)
+    {
+      p->cfs_stats.retime += 1;
+    }
+    release(&p->lock);
+  }
+}
+
+int set_cfs_priority(int priority)
+{
+  if (priority < 0 || priority > 2)
+  {
+    return -1;
+  }
+
+  myproc()->cfs_stats.cfs_priority = priority;
+  return 0;
+}
+
+void get_cfs_stats(int pid, struct cfs_stats* stats)
+{
+  for (struct proc *p = proc; p < &proc[NPROC]; p++)
+  {
+    acquire(&p->lock);
+    if (p->pid == pid)
+    {
+      copyout(p->pagetable, (uint64)stats, (char *)&p->cfs_stats, sizeof(struct cfs_stats));
+      release(&p->lock);
+      return;
+    }
+    release(&p->lock);
+  }
 }
