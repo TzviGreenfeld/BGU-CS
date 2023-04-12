@@ -8,6 +8,7 @@
         "limits": "c",
         "user.h": "c",
         "cfs_utils.h": "c",
-        "fcntl.h": "c"
+        "fcntl.h": "c",
+        "spinlock.h": "c"
     },
 }

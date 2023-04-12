@@ -7,6 +7,8 @@
 #include "defs.h"
 #include <limits.h>
 
+int sched_policy; // TASK 7
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -522,27 +524,62 @@ struct proc *min_cfs_proc()
   return res;
 }
 
-void
-scheduler(void)
+void scheduler(void)
 {
-  struct proc *p;
+  struct proc *p = 0;
   struct cpu *c = mycpu();
-  
+
   c->proc = 0;
-  for(;;){
+  for (;;)
+  {
+    // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-		if ((p = min_cfs_proc()))
-		{
-    	p->state = RUNNING;
-    	c->proc = p;
-    	swtch(&c->context, &p->context);
-    	c->proc = 0;
-    	release(&p->lock);
+    if (sched_policy == 0)
+    {
+      // default schedualer (Round Robin)
+      for (p = proc; sched_policy == 0 && p < &proc[NPROC]; p++)
+      {
+        acquire(&p->lock);
+        if (p->state == RUNNABLE)
+        {
+          p->state = RUNNING;
+          c->proc = p;
+          swtch(&c->context, &p->context);
+          c->proc = 0;
+        }
+        release(&p->lock);
+      }
+    }
+    else if (sched_policy == 1)
+    {
+      // ps schedualer
+      for (p = proc; p < &proc[NPROC]; p++)
+      {
+        acquire(&p->lock);
+        if (p->state == RUNNABLE && p->accumulator == getCurrMinAcc())
+        {
+          p->state = RUNNING;
+          c->proc = p;
+          swtch(&c->context, &p->context);
+          c->proc = 0;
+          release(&p->lock);
+        }
+        release(&p->lock);
+      }
+    }
+    else if (sched_policy == 2)
+    {
+      p = min_cfs_proc();
+      // cfs schedualer
+      p->state = RUNNING;
+      c->proc = p;
+      swtch(&c->context, &p->context);
+      c->proc = 0;
+      release(&p->lock);
     }
   }
 }
-
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores

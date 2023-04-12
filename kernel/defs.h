@@ -111,6 +111,7 @@ void            procdump(void);
 void            set_ps_priority(int);  // TASK 5
 int             set_cfs_priority(int); // TASK 6
 void            get_cfs_stats(int, struct cfs_stats*); // TASK 6
+int             set_policy(int); // TASK 7
 
 // swtch.S
 void            swtch(struct context*, struct context*);
