@@ -1,5 +1,5 @@
 struct stat;
-
+struct cfs_stats;
 // system calls
 int fork(void);
 int exit(int, char*) __attribute__((noreturn));
@@ -24,6 +24,8 @@ int sleep(int);
 int uptime(void);
 int memsize(void);
 void set_ps_priority(int);
+int set_cfs_priority(int);
+void get_cfs_stats(int, struct cfs_stats*);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -41,3 +43,4 @@ void free(void*);
 int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
+int set_policy(int);
