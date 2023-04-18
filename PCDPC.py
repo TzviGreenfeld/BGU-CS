@@ -1,20 +1,6 @@
 import numpy as np
 from sklearn.datasets import make_blobs
-
-
-def generateData(n_samples=1000, k=3, n_features=2):
-    X, Y = make_blobs(n_samples=n_samples, centers=k, n_features=n_features)
-    return X, Y
-
-
-def plotData(X, Y, title='Data', xLabel='X', yLabel='Y'):
-    import matplotlib.pyplot as plt
-    plt.scatter(X[:, 0], X[:, 1], c=Y)
-    plt.title(title)
-    plt.xlabel(xLabel)
-    plt.ylabel(yLabel)
-    plt.show()
-
+from dataHandler import generateData, plotData
 
 def DC_DP(X, l):
     k = 0
@@ -33,12 +19,12 @@ def DC_DP(X, l):
         if np.array_equal(clusters, new_clusters):
             break
         clusters = new_clusters
-    return clusters
+    return clusters, centroids
             
 
 if __name__ == '__main__':
     X, Y = generateData(k=6)
     # plotData(X, Y)
     for l in reversed([0.1, 0.5, 1, 2, 5, 7]):
-        clusters = DC_DP(X, l)
+        clusters, centroids = DC_DP(X, l)
         plotData(X, clusters, title=f"lambda = {l}, k = {len(np.unique(clusters))}")

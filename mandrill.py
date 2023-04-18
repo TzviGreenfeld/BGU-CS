@@ -1,9 +1,37 @@
-from PIL import Image
 import numpy as np
-import 'parametricKmeans' as pk
+import matplotlib.pyplot as plt
+from matplotlib.image import imread
+from parametricKmeans import kmeans
+from PCDPC import DC_DP
 
 
 def load_image(img_path):
+    data = imread(img_path)
+    original_shape = data.shape
+    data = data.reshape(-1, 3)
+    return original_shape, data
+
+
+def show_image(data, path=None):
+    data = data.astype(float)
+    plt.imshow(data)
+    plt.axis('off')
+    if path is not None:
+        plt.savefig(path, bbox_inches='tight')
+    else:
+        plt.show()
+
+
+def paint_image(data, og_shape, k):
+    clusters, centroids = DC_DP(data, 100)
+    new_pixels = centroids[clusters]
+    new_image = new_pixels.reshape(og_shape)
+    return new_image
+
+
+if __name__ == '__main__':
     img_path = "data\mandrill3.jpg"
-    data = np.array(Image.open(img_path))
-    return data
+    original_shape, data = load_image(img_path)
+    print(original_shape)
+    painted_image = paint_image(data, original_shape, 500)
+    show_image(painted_image)
