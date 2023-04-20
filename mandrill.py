@@ -13,7 +13,6 @@ def load_image(img_path):
 
 
 def show_image(data, path=None):
-    data = data.astype(float)
     plt.imshow(data)
     plt.axis('off')
     if path is not None:
@@ -22,8 +21,16 @@ def show_image(data, path=None):
         plt.show()
 
 
-def paint_image(data, og_shape, k):
-    clusters, centroids = DC_DP(data, 100)
+def paint_image_with_kmeans(data, og_shape, k):
+    clusters, centroids = kmeans(data, k)
+    new_pixels = centroids[clusters].astype(np.uint8)
+    new_image = new_pixels.reshape(og_shape)
+    return new_image
+
+
+def paint_image_with_DCDP(data, og_shape, l):
+    # l is lambda
+    clusters, centroids = DC_DP(data, l)
     new_pixels = centroids[clusters]
     new_image = new_pixels.reshape(og_shape)
     return new_image
@@ -32,6 +39,5 @@ def paint_image(data, og_shape, k):
 if __name__ == '__main__':
     img_path = "data\mandrill3.jpg"
     original_shape, data = load_image(img_path)
-    print(original_shape)
-    painted_image = paint_image(data, original_shape, 500)
+    painted_image = paint_image_with_kmeans(data, original_shape, 10)
     show_image(painted_image)
