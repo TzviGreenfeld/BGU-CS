@@ -31,7 +31,7 @@ def paint_image_with_kmeans(data, og_shape, k):
 def paint_image_with_DCDP(data, og_shape, l):
     # l is lambda
     clusters, centroids = DC_DP(data, l)
-    new_pixels = centroids[clusters]
+    new_pixels = centroids[clusters].astype(np.uint8)
     new_image = new_pixels.reshape(og_shape)
     return new_image
 
@@ -39,5 +39,6 @@ def paint_image_with_DCDP(data, og_shape, l):
 if __name__ == '__main__':
     img_path = "data\mandrill3.jpg"
     original_shape, data = load_image(img_path)
-    painted_image = paint_image_with_kmeans(data, original_shape, 10)
+    # painted_image = paint_image_with_kmeans(data, original_shape, 20)
+    painted_image = paint_image_with_DCDP(data, original_shape, 10)
     show_image(painted_image)
