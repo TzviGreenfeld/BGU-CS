@@ -6,8 +6,8 @@ function getNposts(n: number, start : number) {
   let counter = start;
   while (counter < start + n) {
     posts.push({
-      title: `test post number ${counter++}`,
-      content: "nice post",
+      title: `Test post #${counter++}`,
+      content: "Nice post mate 🦘 ",
       published: true,
     });
   }

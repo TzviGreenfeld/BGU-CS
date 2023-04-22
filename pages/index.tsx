@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import type { GetServerSideProps } from "next";
 import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
-import prisma from '../lib/prisma'
+import prisma from "../lib/prisma";
+import PaginationBar from "../components/Pagination";
 
 export const getServerSideProps: GetServerSideProps = async () => {
   const feed = await prisma.post.findMany({
+    // skip: 0,
+    // take: 10,
     where: {
       published: true,
     },
@@ -26,18 +29,71 @@ type Props = {
   feed: PostProps[];
 };
 
+// const getPosts = async (pageNum: number): GetServerSideProps => {
+//   const feed = await prisma.post.findMany({
+//     skip: (pageNum - 1) * 10,
+//     take: 10,
+//     where: {
+//       published: true,
+//     },
+//     include: {
+//       author: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//     },
+//   });
+//   return {
+//     props: { feed },
+//   }
+// };
+
 const Blog: React.FC<Props> = (props) => {
+  const [currPageNum, setCurrPageNum] = useState(1);
+  const [feed, setFeed] = useState(props.feed.slice(0, 10));
+
+  const setCurrPageNumWithPosts = async (pageNum: number) => {
+    setCurrPageNum(pageNum);
+    // const posts = await getPosts(pageNum);
+    const firstPost = (pageNum - 1) * 10;
+    const posts = props.feed.slice(firstPost, firstPost + 10);
+    setFeed(posts);
+  };
+
+  const handleNextPageClick = () => {
+    // setCurrPageNum((c) => c + 1); //TODO: set last page variable
+    setCurrPageNumWithPosts(currPageNum + 1);
+  };
+  const handlePrevPageClick = () => {
+    // setCurrPageNum(currPageNum <= 1 ? 1 : (c) => c - 1);
+    setCurrPageNumWithPosts(currPageNum <= 1 ? 1 : currPageNum - 1);
+  };
+  const handlePaginationClick = (pageNum: number) => {
+    // setCurrPageNum(pageNum);
+    setCurrPageNumWithPosts(pageNum);
+  };
+
   return (
     <Layout>
       <div className="page">
         <h1>Public Feed</h1>
         <main>
-          {props.feed.map((post) => (
+          {feed.map((post) => (
             <div key={post.id} className="post">
               <Post post={post} />
             </div>
           ))}
         </main>
+
+        <PaginationBar
+          currPageNum={currPageNum}
+          pagesToShow={5}
+          lastPage={100}
+          onNextPageClick={handleNextPageClick}
+          onPrevPageClick={handlePrevPageClick}
+          onPaginationClick={handlePaginationClick}
+        />
       </div>
       <style jsx>{`
         .post {

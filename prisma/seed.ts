@@ -51,7 +51,7 @@ const userData: Prisma.UserCreateInput[] = [
 
 async function main() {
   console.log(`Start seeding ...`);
-  let totalPosts = 0;
+  let totalPosts = 1;
   const postsBatch = 100;
   for (const u of userData) {
     const user = await prisma.user.create({

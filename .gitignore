@@ -1,3 +1,2 @@
 node_modules/
-prisma/seed.ts
 prisma/dev.db
