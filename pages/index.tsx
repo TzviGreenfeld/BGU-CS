@@ -4,11 +4,12 @@ import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
 import prisma from "../lib/prisma";
 import PaginationBar from "../components/Pagination";
+import Link from "next/link";
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const feed = await prisma.post.findMany({
-    // skip: 0,
-    // take: 10,
+    skip: 0,
+    take: 10,
     where: {
       published: true,
     },
@@ -26,52 +27,21 @@ export const getServerSideProps: GetServerSideProps = async () => {
 };
 
 type Props = {
-  feed: PostProps[];
+  feed: PostProps[], 
+  currpage?: number,
 };
 
-// const getPosts = async (pageNum: number): GetServerSideProps => {
-//   const feed = await prisma.post.findMany({
-//     skip: (pageNum - 1) * 10,
-//     take: 10,
-//     where: {
-//       published: true,
-//     },
-//     include: {
-//       author: {
-//         select: {
-//           name: true,
-//         },
-//       },
-//     },
-//   });
-//   return {
-//     props: { feed },
-//   }
-// };
-
 const Blog: React.FC<Props> = (props) => {
-  const [currPageNum, setCurrPageNum] = useState(1);
-  const [feed, setFeed] = useState(props.feed.slice(0, 10));
-
-  const setCurrPageNumWithPosts = async (pageNum: number) => {
-    setCurrPageNum(pageNum);
-    // const posts = await getPosts(pageNum);
-    const firstPost = (pageNum - 1) * 10;
-    const posts = props.feed.slice(firstPost, firstPost + 10);
-    setFeed(posts);
-  };
+  const [currPageNum, setCurrPageNum] = useState(props.currpage ? props.currpage : 1);
 
   const handleNextPageClick = () => {
-    // setCurrPageNum((c) => c + 1); //TODO: set last page variable
-    setCurrPageNumWithPosts(currPageNum + 1);
+    setCurrPageNum((c) => c + 1); //TODO: set last page variable
   };
   const handlePrevPageClick = () => {
-    // setCurrPageNum(currPageNum <= 1 ? 1 : (c) => c - 1);
-    setCurrPageNumWithPosts(currPageNum <= 1 ? 1 : currPageNum - 1);
+    setCurrPageNum(currPageNum <= 1 ? 1 : (c) => c - 1);
   };
   const handlePaginationClick = (pageNum: number) => {
-    // setCurrPageNum(pageNum);
-    setCurrPageNumWithPosts(pageNum);
+    setCurrPageNum(pageNum);
   };
 
   return (
@@ -79,13 +49,12 @@ const Blog: React.FC<Props> = (props) => {
       <div className="page">
         <h1>Public Feed</h1>
         <main>
-          {feed.map((post) => (
+          {props.feed.map((post) => (
             <div key={post.id} className="post">
               <Post post={post} />
             </div>
           ))}
         </main>
-
         <PaginationBar
           currPageNum={currPageNum}
           pagesToShow={5}

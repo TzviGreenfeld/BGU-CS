@@ -13,9 +13,12 @@ const PaginationButton: React.FC<PaginationButtonProps> = ({
 }) => {
   return (
     <span>
-      <button className="pagination-button" onClick={onClick}>
-        {pageNum}
-        <style jsx>{`
+      <a href={`/${pageNum}`}>
+        <button onClick={onClick} className="pagination-button">
+          {pageNum}
+        </button>
+      </a>
+      <style jsx>{`
           .pagination-button {
             width: 70px;
             text-align: center;
@@ -29,7 +32,6 @@ const PaginationButton: React.FC<PaginationButtonProps> = ({
             background: ${isCurrentPage ? "#a9ffa1;" : "#eee;"}
           }
         `}</style>
-      </button>
     </span>
   );
 };
@@ -54,14 +56,7 @@ const PaginationBar: React.FC<PaginationBarProps> = ({
   const pages = [];
 
   // back button
-  pages.push(
-    <PaginationButton
-      key="back"
-      pageNum="<"
-      onClick={() => onPrevPageClick()}
-      isCurrentPage={false}
-    />
-  );
+ 
 
   const firstPageNum = Math.max(currPageNum - Math.floor(pagesToShow / 2), 1);
   for (let i = firstPageNum; i < firstPageNum + pagesToShow; i++) {
@@ -70,20 +65,13 @@ const PaginationBar: React.FC<PaginationBarProps> = ({
         key={i}
         pageNum={i}
         onClick={() => onPaginationClick(i)}
-        isCurrentPage={i === currPageNum}
+        isCurrentPage={i - currPageNum === 0} /// ive used this condition to make sure its using number type
       />
     );
   }
 
   // forward button
-  pages.push(
-    <PaginationButton
-      key="forward"
-      pageNum=">"
-      onClick={() => onNextPageClick()}
-      isCurrentPage={false}
-    />
-  );
+
   return (
     <section className="pagination">
       {pages}
