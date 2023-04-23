@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.image import imread
-from parametricKmeans import kmeans
-from PCDPC import DC_DP
+from k_means import kmeans
+from PDC_DP_means import PDC_DP
 
 
 def load_image(img_path):
@@ -37,8 +37,13 @@ def paint_image_with_DCDP(data, og_shape, l):
 
 
 if __name__ == '__main__':
-    img_path = "data\mandrill3.jpg"
-    original_shape, data = load_image(img_path)
-    # painted_image = paint_image_with_kmeans(data, original_shape, 20)
-    painted_image = paint_image_with_DCDP(data, original_shape, 10)
-    show_image(painted_image)
+    imgs = [f"data\mandrill{i}.jpg" for i in range(3)]
+    for i, img_path in enumerate(imgs):
+        original_shape, data = load_image(img_path)
+        for l in reversed([0.1, 1.0, 10.0, 100, 0, 1000.0]):
+            PDC_DP_painted_image = paint_image_with_DCDP(data, original_shape, l)
+            show_image(PDC_DP_painted_image, path=f'output\mandrrill\PDC_DP_{i}_{l}.png')
+        for k in range(10, 41, 10):
+            kmeans_painted_image = paint_image_with_kmeans(data, original_shape, 20)
+            show_image(kmeans_painted_image,path=f'output\mandrrill\kmeans_{i}_k.png')
+        
