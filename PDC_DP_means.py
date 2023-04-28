@@ -28,17 +28,19 @@ def PDC_DP(X, l):
             centroids = np.concatenate((centroids, np.array([X[j_max]])))
             new_clusters[j_max] = k
 
-        if np.allclose(clusters, new_clusters):
+        # if np.allclose(clusters, new_clusters):
+        #     break
+        if np.allclose(clusters, new_clusters, atol=0.1):
             break
         clusters = new_clusters
 
-    return clusters, centroids
+    return clusters.astype(np.uint64), centroids
 
 
 if __name__ == '__main__':
     X, Y = generateData(k=6)
     plot_data(X, Y, title=f'Synthetic data from 6 isotropic Gaussians', path='output\PDCDP\Synthetic data from 6 isotropic Gaussians.png')
-    for l in reversed([0.01, 0.1, 1.0, 10.0, 100,0, 1000.0]):
+    for l in reversed([0.01, 0.1, 1.0, 10.0, 100.0]):
         clusters, centroids = PDC_DP(X, l)
         plot_data(
             X, clusters, title=f"λ={l}, k={len(np.unique(clusters))}", path=f'output\PDCDP\PDC_DP_means_{l}.png')
