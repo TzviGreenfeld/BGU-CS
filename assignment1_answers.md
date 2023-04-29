@@ -69,8 +69,7 @@ free(void *ap)
 ## Task 3
 > What happened as soon as we changed the signatures for exit() and wait()? Why?
 
-TODO: make sure this is what they meant
-we got a lot of errors, because every usage of wait and exit only send 1 argument. (exitcode for `exit()` and the child state for `wait()`)
+We got a lot of errors, because every usage of wait and exit only send 1 argument. (exitcode for `exit()` and the child state for `wait()`)
 
 > What happens if the exit message is longer than 32 characters? How do we make sure nothing bad happens?
 
@@ -79,13 +78,14 @@ our msg is chopped to the first 32 chars. when running this code:
 exit(0, "123456789111315171921232527293133");
 ```
 the output is "1234567891113151719212325272931".
-I don't understand why its bad TODO:finish this question
+
 > What happens if the exit message is shorter than 32 characters? How do we make sure nothing bad happens?
-nothing bad happens, it null terminated so the output is what we printed
-// maybe they expected us to use write instead of pritnf? TODO
+Nothing bad happens, it null terminated so the output is what we printed
+
 > How many times is our exit message copied?
 
 > Where in sh.c does the shell receive the exit message? Explain briefly how this code works.
+
 > What happens if the shell modifies the exit message after it is received?
 ---
 ## Task 4
@@ -125,14 +125,15 @@ scheduler(void)
 ```
 > How does the policy choose which process to run?
 
-it just goes over all the processes and finds one that is RUNNABLE, then changing it to RUNNING and when the process is done running the scheduler sets is back to RUNNABLE. we get a simple **<u>Round Robin</u>** policy
+loops over all the processes and finds one that is `RUNNABLE`, then changing it to `RUNNING` and when the process is done running the scheduler sets is back to `RUNNABLE`. we get a simple **<u>Round Robin</u>** policy
 
 > What happens when a new process is created and when/how often does scheduling take place?
 
-when a new process is created in `fork()`, a new 'struct proc' structure is allocated to represent the process, and a copy of the calling process's address space is created. The new process is initially in the RUNNABLE state, and it is added to the end of the 'ptable' process table.
+when a new process is created in `fork()`, a new 'struct proc' structure is allocated to represent the process, and a copy of the calling process's address space is created. The new process is initially in the `RUNNABLE` state, and it is added to the end of the 'ptable' process table.
 
 the scheduler runs **indefinitely**, so in that sense it is always taking place
 > What happens when a process calls a system call, for instance sleep()?
+If it's called from the user space it been first trap at trap.c->usertrap and then it is calling the appropriate system call which is  define in the kernal space
 
 1. The process invokes the `sleep()` system call by calling it from the user space which in turn calls the kernel-level `sys_sleep():
 ``` c
@@ -248,3 +249,4 @@ devintr()
 }
 
 ```
+
