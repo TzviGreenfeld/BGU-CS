@@ -304,14 +304,18 @@ We updated it there since the scheduler is using timer interrupts to decide who 
 
 ## Task 6
 > Is run time and sleep time of a process the same thing? If not, what is the difference between them?
+
 No, run time is when process actually run, sleep time is when a process is sleeping which means the process is Blocked (could be waiting for something)
 
 > Is the run time and runnable time of a process the same thing? If not, what is the difference between them?
+
 No, runnable is when a process is ready to run but waiting for CPU time
 
 > Run the test a few times. Did you notice any difference in the run times, sleep times, and runnable times of the three child processes? Explain your results.
+
 ?
 > Do the three priority levels actually matter for which process gets more CPU time? Does it make sense to give a higher priority to a process that we want to run more often?
+
 yes, because that's how the scheduler decides which process to run.
 
 > Does this policy make sense for a real-life operating system? Explain your answer.
