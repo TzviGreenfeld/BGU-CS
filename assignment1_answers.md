@@ -84,9 +84,49 @@ Nothing bad happens, it null terminated so the output is what we printed
 
 > How many times is our exit message copied?
 
-> Where in sh.c does the shell receive the exit message? Explain briefly how this code works.
+3 times:
+1. from user-space to kernel-space (in sys-exit)
+2. in kernel space (kernel/proc.c: exit()) to the PCB:
+```c
+safestrcpy(p->exit_msg, exitMsg, sizeof(p->exit_msg));
+```
+3. from kernel space to user space (kernel/proc.c: wait()):
+```c
+copyout(p->pagetable, exitMsgAddr, (char *)pp->exit_msg, sizeof(pp->exit_msg));
+```
 
+> Where in sh.c does the shell receive the exit message? Explain briefly how this code works.
+```c
+  // Read and run input commands.
+  while(getcmd(buf, sizeof(buf)) >= 0){
+    if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
+      // Chdir must be called by the parent, not the child.
+      buf[strlen(buf)-1] = 0;  // chop \n
+      if(chdir(buf+3) < 0)
+        fprintf(2, "cannot cd %s\n", buf+3);
+      continue;
+    }
+    if(fork1() == 0)
+      runcmd(parsecmd(buf));
+    char childExitMsg[32]; // TASK 3
+    wait(0,childExitMsg);
+    printf("%s\n", childExi
+ ```
+After we fork to execute a command, we wait for the child process to die and then we get the exit message.
+```c
+  case LIST:
+    lcmd = (struct listcmd*)cmd;
+    if(fork1() == 0)
+      runcmd(lcmd->left);
+
+    char childExitMsg[32]; // here
+    wait(0,childExitMsg);
+    printf("%s\n", childExitMsg);
+ ```
+ 
 > What happens if the shell modifies the exit message after it is received?
+TODO: make sure
+The shell is the one responsible to print the exit message, therefore the modified message will be printed.
 ---
 ## Task 4
 > Find the scheduling policy in the xv6 code. Where is it implemented?
