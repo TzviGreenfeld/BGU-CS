@@ -290,3 +290,15 @@ devintr()
 
 ```
 
+> When are we updating the runitme counters and why? (run time, sleep time, runnable time)
+
+In kernel/trap.c: usertrap, kerneltrap we have 
+```c
+  if (which_dev == 2)
+  {
+    cfs_tick_update();
+  }
+```
+`Which_dev == 2` means timer interrupt.
+We updated it there since the scheduler is using timer interrupts to decide who runs next.TODO
+  
