@@ -4,7 +4,8 @@ import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
 import prisma from "../lib/prisma";
 import PaginationBar from "../components/Pagination";
-import Link from "next/link";
+import { useRouter } from "next/router";
+
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const feed = await prisma.post.findMany({
@@ -32,16 +33,18 @@ type Props = {
 };
 
 const Blog: React.FC<Props> = (props) => {
+  const router = useRouter();
   const [currPageNum, setCurrPageNum] = useState(props.currpage ? props.currpage : 1);
 
+
   const handleNextPageClick = () => {
-    setCurrPageNum((c) => c + 1); //TODO: set last page variable
+    setCurrPageNum(c => {router.push(`/${ Number(c)+1}`); return Number(c) + 1}); //TODO: set last page variable
   };
   const handlePrevPageClick = () => {
-    setCurrPageNum(currPageNum <= 1 ? 1 : (c) => c - 1);
+    setCurrPageNum(currPageNum <= 1 ? 1 : c => {router.push(`/${c-1}`); return c - 1});
   };
   const handlePaginationClick = (pageNum: number) => {
-    setCurrPageNum(pageNum);
+    setCurrPageNum(c => {router.push(`/${pageNum}`); return pageNum});
   };
 
   return (

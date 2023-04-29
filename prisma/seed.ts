@@ -31,6 +31,40 @@ const userData: Prisma.UserCreateInput[] = [
     },
   },
   {
+    name: "testUser",
+    email: "mail@mail.com",
+    posts: {
+      create: [
+        {
+          title: "Ask a question about Prisma on GitHub",
+          content: "https://www.github.com/prisma/prisma/discussions",
+          published: true,
+        },
+        {
+          title: "Prisma on YouTube",
+          content: "https://pris.ly/youtube",
+        },
+      ],
+    },
+  },
+  {
+    name: "hamud habibi hamud",
+    email: "mahmoud@habibi.com",
+    posts: {
+      create: [
+        {
+          title: "Ask a question about Prisma on GitHub",
+          content: "https://www.github.com/prisma/prisma/discussions",
+          published: true,
+        },
+        {
+          title: "Prisma on YouTube",
+          content: "https://pris.ly/youtube",
+        },
+      ],
+    },
+  },
+  {
     name: "Mahmoud",
     email: "mahmoud@prisma.io",
     posts: {
@@ -52,19 +86,19 @@ const userData: Prisma.UserCreateInput[] = [
 async function main() {
   console.log(`Start seeding ...`);
   let totalPosts = 1;
-  const postsBatch = 100;
-  for (const u of userData) {
-    const user = await prisma.user.create({
-      data: {
-        ...u,
-        posts: {
-          create:getNposts(postsBatch, totalPosts), // add posts for pagination test
+  const postsBatch = 200000;
+    for (const u of userData) {
+      const user = await prisma.user.create({
+        data: {
+          ...u,
+          posts: {
+            create:getNposts(postsBatch, totalPosts), // add posts for pagination test
+          },
         },
-      },
-    });
-    totalPosts += postsBatch;
-    console.log(`Created user with id: ${user.id}`);
-  }
+      });
+      totalPosts += postsBatch;
+      console.log(`Created user with id: ${user.id}`);
+    }
   console.log(`Seeding finished.`);
 }
 

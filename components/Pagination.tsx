@@ -1,4 +1,3 @@
-import { useState } from "react";
 
 export type PaginationButtonProps = {
   pageNum: number | string;
@@ -13,11 +12,9 @@ const PaginationButton: React.FC<PaginationButtonProps> = ({
 }) => {
   return (
     <span>
-      <a href={`/${pageNum}`}>
         <button onClick={onClick} className="pagination-button">
           {pageNum}
         </button>
-      </a>
       <style jsx>{`
           .pagination-button {
             width: 70px;
@@ -56,6 +53,14 @@ const PaginationBar: React.FC<PaginationBarProps> = ({
   const pages = [];
 
   // back button
+  pages.push(
+    <PaginationButton
+      key={"prev"}
+      pageNum={"<"}
+      onClick={() => onPrevPageClick()}
+      isCurrentPage={false}
+      />
+  );
  
 
   const firstPageNum = Math.max(currPageNum - Math.floor(pagesToShow / 2), 1);
@@ -71,19 +76,29 @@ const PaginationBar: React.FC<PaginationBarProps> = ({
   }
 
   // forward button
+  pages.push(
+    <PaginationButton
+      key={"next"}
+      pageNum={">"}
+      onClick={() => onNextPageClick()}
+      isCurrentPage={false}
+      />
+  );
 
   return (
-    <section className="pagination">
+    <div className="pagination">
       {pages}
       <style jsx>{`
         .pagination {
+          border-radios: 35px;
           padding: 5px 0 10px 0;
+          margin-top: 5px;
           display: flex;
           justify-content: center;
-          margin-top: 5px;
+          align-items: center;
         }
       `}</style>
-    </section>
+    </div>
   );
 };
 
