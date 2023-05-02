@@ -6,7 +6,6 @@ import prisma from "../lib/prisma";
 import PaginationBar from "../components/Pagination";
 import { useRouter } from "next/router";
 
-
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const postCount = await prisma.post.count();
   const feed = await prisma.post.findMany({
@@ -25,32 +24,35 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   });
   return {
     props: {
-      feed:feed,
-      postCount: postCount, },
+      feed: feed,
+      postCount: postCount,
+    },
   };
 };
 
 type Props = {
-  feed: PostProps[], 
+  feed: PostProps[];
   postCount: number;
-  currpage?: number,
+  currpage?: number;
 };
 
 const Blog: React.FC<Props> = (props) => {
   const router = useRouter();
-  const [currPageNum, setCurrPageNum] = useState(props.currpage ? props.currpage : 1);
-  
+  const [currPageNum, setCurrPageNum] = useState(
+    props.currpage ? props.currpage : 1
+  );
+
   useEffect(() => {
-    router.push(`/${currPageNum}`)
+    router.push(`/${currPageNum}`);
   }, [currPageNum]);
 
   const lastPage = Math.ceil(props.postCount / 10);
-  
+
   const handleNextPageClick = () => {
-    setCurrPageNum(currPageNum >= lastPage ? lastPage : c => c + 1);
+    setCurrPageNum(currPageNum >= lastPage ? lastPage : (c) => c + 1);
   };
   const handlePrevPageClick = () => {
-    setCurrPageNum(currPageNum <= 1 ? 1 : c =>  c - 1);
+    setCurrPageNum(currPageNum <= 1 ? 1 : (c) => c - 1);
   };
   const handlePaginationClick = (pageNum: number) => {
     setCurrPageNum(pageNum);
