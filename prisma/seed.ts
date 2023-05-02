@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import getNposts from "./PostsGenerator";
+import generatePost from "./PostsGenerator";
 
 const prisma = new PrismaClient();
 
@@ -31,40 +31,6 @@ const userData: Prisma.UserCreateInput[] = [
     },
   },
   {
-    name: "testUser",
-    email: "mail@mail.com",
-    posts: {
-      create: [
-        {
-          title: "Ask a question about Prisma on GitHub",
-          content: "https://www.github.com/prisma/prisma/discussions",
-          published: true,
-        },
-        {
-          title: "Prisma on YouTube",
-          content: "https://pris.ly/youtube",
-        },
-      ],
-    },
-  },
-  {
-    name: "hamud habibi hamud",
-    email: "mahmoud@habibi.com",
-    posts: {
-      create: [
-        {
-          title: "Ask a question about Prisma on GitHub",
-          content: "https://www.github.com/prisma/prisma/discussions",
-          published: true,
-        },
-        {
-          title: "Prisma on YouTube",
-          content: "https://pris.ly/youtube",
-        },
-      ],
-    },
-  },
-  {
     name: "Mahmoud",
     email: "mahmoud@prisma.io",
     posts: {
@@ -81,25 +47,86 @@ const userData: Prisma.UserCreateInput[] = [
       ],
     },
   },
+  {
+    name: "testUser4",
+    email: "testUser4@prisma.io",
+    posts: {
+      create: [
+      
+      ],
+    },
+  },
+  {
+    name: "testUser5",
+    email: "testUser5@prisma.io",
+    posts: {
+      create: [
+      
+      ],
+    },
+  },
+  {
+    name: "testUser6",
+    email: "testUser6@prisma.io",
+    posts: {
+      create: [
+      
+      ],
+    },
+  },
+  {
+    name: "testUser7",
+    email: "testUser7@prisma.io",
+    posts: {
+      create: [
+      
+      ],
+    },
+  },
+  {
+    name: "testUser8",
+    email: "testUser8@prisma.io",
+    posts: {
+      create: [
+      
+      ],
+    },
+  },
+  {
+    name: "testUser9",
+    email: "testUser9@prisma.io",
+    posts: {
+      create: [
+      
+      ],
+    },
+  },
+  {
+    name: "testUser10",
+    email: "testUser10@prisma.io",
+    posts: {
+      create: [
+      
+      ],
+    },
+  },
 ];
 
 async function main() {
+  const posts = generatePost(1000000); // 1M posts
   console.log(`Start seeding ...`);
-  let totalPosts = 1;
-  const postsBatch = 200000;
-    for (const u of userData) {
-      const user = await prisma.user.create({
-        data: {
-          ...u,
-          posts: {
-            create:getNposts(postsBatch, totalPosts), // add posts for pagination test
-          },
-        },
-      });
-      totalPosts += postsBatch;
-      console.log(`Created user with id: ${user.id}`);
-    }
-  console.log(`Seeding finished.`);
+  for (const u of userData) {
+    const userPosts = posts.next();
+    const user = await prisma.user.create({
+      data:{
+        ...u,
+        posts:{
+          create: userPosts.value, /// 100K posts
+        }
+      }
+    });
+    console.log(`Created user with id: ${user.id}`);
+  }
 }
 
 main()

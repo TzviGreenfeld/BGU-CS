@@ -1,17 +1,20 @@
-import { PrismaClient, Prisma, User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-const prisma = new PrismaClient();
-function getNposts(n: number, start : number) {
-  const posts = [];
-  let counter = start;
-  while (counter < start + n) {
-    posts.push({
-      title: `Test post #${counter++}`,
-      content: "Nice post mate 🦘 ",
+function* generatePost(n: number): Generator<Prisma.PostCreateInput[]> {
+  let i = 0;
+  while (i < n) {
+    const posts = []
+    for(let j = i; j < i + 100000; j++) {
+      posts.push({
+      title: `Test Post #${j}`,
+      content: `Content of post ${j}`,
       published: true,
-    });
+      })
+    }
+    
+    i += 100000;
+    yield posts;
   }
-  return posts;
 }
 
-export default getNposts;
+export default generatePost;

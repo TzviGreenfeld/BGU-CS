@@ -63,14 +63,15 @@ const PaginationBar: React.FC<PaginationBarProps> = ({
   );
  
 
-  const firstPageNum = Math.max(currPageNum - Math.floor(pagesToShow / 2), 1);
-  for (let i = firstPageNum; i < firstPageNum + pagesToShow; i++) {
+  const firstPageNum = Math.min(Math.max(currPageNum - Math.floor(pagesToShow / 2), 1), lastPage - pagesToShow + 1);
+  const lastPageNum = Math.min(firstPageNum + pagesToShow, lastPage + 1);
+  for (let i = firstPageNum; i < lastPageNum; i++) {
     pages.push(
       <PaginationButton
         key={i}
         pageNum={i}
         onClick={() => onPaginationClick(i)}
-        isCurrentPage={i - currPageNum === 0} /// ive used this condition to make sure its using number type
+        isCurrentPage={i - currPageNum === 0} /// make sure it's using number type
       />
     );
   }

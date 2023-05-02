@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+  const postCount = await prisma.post.count();
   const feed = await prisma.post.findMany({
     skip: 0,
     take: 10,
@@ -23,22 +24,25 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     },
   });
   return {
-    props: { feed },
+    props: {
+      feed:feed,
+      postCount: postCount, },
   };
 };
 
 type Props = {
   feed: PostProps[], 
+  postCount: number;
   currpage?: number,
 };
 
 const Blog: React.FC<Props> = (props) => {
   const router = useRouter();
   const [currPageNum, setCurrPageNum] = useState(props.currpage ? props.currpage : 1);
-
+  const lastPage = Math.ceil(props.postCount / 10);
 
   const handleNextPageClick = () => {
-    setCurrPageNum(c => {router.push(`/${ Number(c)+1}`); return Number(c) + 1}); //TODO: set last page variable
+    setCurrPageNum(currPageNum >= lastPage ? lastPage : c => {router.push(`/${c+1}`); return c + 1});
   };
   const handlePrevPageClick = () => {
     setCurrPageNum(currPageNum <= 1 ? 1 : c => {router.push(`/${c-1}`); return c - 1});
@@ -61,7 +65,7 @@ const Blog: React.FC<Props> = (props) => {
         <PaginationBar
           currPageNum={currPageNum}
           pagesToShow={5}
-          lastPage={100}
+          lastPage={lastPage}
           onNextPageClick={handleNextPageClick}
           onPrevPageClick={handlePrevPageClick}
           onPaginationClick={handlePaginationClick}

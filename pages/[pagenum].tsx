@@ -3,8 +3,10 @@ import type { GetServerSideProps } from "next";
 import Blog from "./index"
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+  const postCount = await prisma.post.count();
+  const pagenum = params?.pagenum;
   const feed = await prisma.post.findMany({
-    skip: params?.pagenum ? (Number(params?.pagenum) - 1) * 10 : 0,
+    skip: isNaN(Number(pagenum)) ? 0 : (Number(pagenum) - 1) * 10,
     take: 10,
     where: {
       published: true,
@@ -18,7 +20,11 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     },
   });
   return {
-    props: { feed, currpage: params?.pagenum },
+    props: {
+      feed:feed,
+      postCount: postCount,
+      currpage: pagenum ? Number(pagenum) : 1,
+     },
   };
 };
 
