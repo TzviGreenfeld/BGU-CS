@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { GetServerSideProps } from "next";
 import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
@@ -39,16 +39,21 @@ type Props = {
 const Blog: React.FC<Props> = (props) => {
   const router = useRouter();
   const [currPageNum, setCurrPageNum] = useState(props.currpage ? props.currpage : 1);
-  const lastPage = Math.ceil(props.postCount / 10);
+  
+  useEffect(() => {
+    router.push(`/${currPageNum}`)
+  }, [currPageNum]);
 
+  const lastPage = Math.ceil(props.postCount / 10);
+  
   const handleNextPageClick = () => {
-    setCurrPageNum(currPageNum >= lastPage ? lastPage : c => {router.push(`/${c+1}`); return c + 1});
+    setCurrPageNum(currPageNum >= lastPage ? lastPage : c => c + 1);
   };
   const handlePrevPageClick = () => {
-    setCurrPageNum(currPageNum <= 1 ? 1 : c => {router.push(`/${c-1}`); return c - 1});
+    setCurrPageNum(currPageNum <= 1 ? 1 : c =>  c - 1);
   };
   const handlePaginationClick = (pageNum: number) => {
-    setCurrPageNum(c => {router.push(`/${pageNum}`); return pageNum});
+    setCurrPageNum(pageNum);
   };
 
   return (
