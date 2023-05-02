@@ -42,6 +42,7 @@ const Blog: React.FC<Props> = (props) => {
     props.currpage ? props.currpage : 1
   );
 
+  // using this Effect will make the home page route to /1
   useEffect(() => {
     router.push(`/${currPageNum}`);
   }, [currPageNum]);

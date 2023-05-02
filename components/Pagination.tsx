@@ -1,4 +1,3 @@
-
 export type PaginationButtonProps = {
   pageNum: number | string;
   onClick: () => void;
@@ -12,9 +11,9 @@ const PaginationButton: React.FC<PaginationButtonProps> = ({
 }) => {
   return (
     <span>
-        <button onClick={onClick} className="pagination-button">
-          {pageNum}
-        </button>
+      <button onClick={onClick} className="pagination-button">
+        {pageNum}
+      </button>
       <style jsx>{`
           .pagination-button {
             width: 70px;
@@ -59,11 +58,16 @@ const PaginationBar: React.FC<PaginationBarProps> = ({
       pageNum={"<"}
       onClick={() => onPrevPageClick()}
       isCurrentPage={false}
-      />
+    />
   );
- 
 
-  const firstPageNum = Math.min(Math.max(currPageNum - Math.floor(pagesToShow / 2), 1), lastPage - pagesToShow + 1);
+  // this calculation is to make sure the current page is always in the middle
+  // AND when reaching first or last page, the pagination bar will have empty space
+  const firstPageNum = Math.min(
+    Math.max(currPageNum - Math.floor(pagesToShow / 2), 1),
+    lastPage - pagesToShow + 1
+  );
+
   const lastPageNum = Math.min(firstPageNum + pagesToShow, lastPage + 1);
   for (let i = firstPageNum; i < lastPageNum; i++) {
     pages.push(
@@ -83,7 +87,7 @@ const PaginationBar: React.FC<PaginationBarProps> = ({
       pageNum={">"}
       onClick={() => onNextPageClick()}
       isCurrentPage={false}
-      />
+    />
   );
 
   return (
