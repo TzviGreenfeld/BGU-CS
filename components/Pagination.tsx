@@ -62,7 +62,7 @@ const PaginationBar: React.FC<PaginationBarProps> = ({
   );
 
   // this calculation is to make sure the current page is always in the middle
-  // AND when reaching first or last page, the pagination bar will have empty space
+  // AND when reaching first or last page, the pagination bar will not have empty space
   const firstPageNum = Math.min(
     Math.max(currPageNum - Math.floor(pagesToShow / 2), 1),
     lastPage - pagesToShow + 1
