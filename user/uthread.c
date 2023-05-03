@@ -4,15 +4,15 @@
 
 static struct uthread threads[MAX_UTHREADS];
 
-static struct uthread *pCurrThread = 0;
+static struct uthread *my_user_thread = 0;
 
 //Returns the index in the array where the current running thread is located.
-int get_pCurrThread_index(){
+int get_my_user_thread_index(){
     struct uthread *t;
     int curr_thread_index = -1;
     for(t = threads; t < &threads[MAX_UTHREADS]; t++) {
         curr_thread_index += 1;
-        if(t == pCurrThread){
+        if(t == my_user_thread){
             break;
         }      
     }
@@ -26,7 +26,7 @@ struct uthread* get_next_runnable_thread() {
     enum sched_priority max_priority = LOW;
     int first = 1;
 
-    if(pCurrThread == 0){    //Main thread running
+    if(my_user_thread == 0){    //Main thread running
         for(th = threads; th < &threads[MAX_UTHREADS]; th++){
             if(th->state == RUNNABLE && first){   //First thread
                 maxPrThread = th;
@@ -40,13 +40,13 @@ struct uthread* get_next_runnable_thread() {
         return maxPrThread;
 
     } else {
-        int curr_thread_index = get_pCurrThread_index();
+        int curr_thread_index = get_my_user_thread_index();
         //Looks for the next thread in a round-robin manner, starting from the index of the running thread.
         for(int i = 1; i <= MAX_UTHREADS; i++) {
 
             th = &threads[(curr_thread_index+i) % MAX_UTHREADS];
 
-            if(th == pCurrThread){    //We completed a full round-robin traversal of the array.
+            if(th == my_user_thread){    //We completed a full round-robin traversal of the array.
                 break;
             } else if(th->state == RUNNABLE && first){   //First thread
                 maxPrThread = th;
@@ -66,11 +66,11 @@ struct uthread* get_next_runnable_thread() {
 void uthread_yield() {
     struct uthread *next = get_next_runnable_thread();
     //Determines whether there is another thread that can be executed, using the priority scheduling policy.
-    if(next != 0 && next->priority >= pCurrThread-> priority){
-        struct uthread *prev = pCurrThread;
+    if(next != 0 && next->priority >= my_user_thread-> priority){
+        struct uthread *prev = my_user_thread;
         prev->state = RUNNABLE;
         next->state = RUNNING;
-        pCurrThread = next;
+        my_user_thread = next;
         uswtch(&prev->context,&next->context);
     }
 }
@@ -80,13 +80,13 @@ void uthread_exit() {
     struct uthread *next = get_next_runnable_thread();
     //Determines whether there is another thread that can be executed.
     if(next != 0){
-        struct uthread *prev = pCurrThread;
+        struct uthread *prev = my_user_thread;
         prev->state = FREE;
-        pCurrThread = next;
+        my_user_thread = next;
         next->state = RUNNING;
         uswtch(&prev->context,&next->context);
     } else {
-        pCurrThread->state = FREE;
+        my_user_thread->state = FREE;
         exit(0);
     } 
 }
@@ -108,14 +108,14 @@ int uthread_create(void (*start_func)(), enum sched_priority priority) {
 
 
 enum sched_priority uthread_set_priority(enum sched_priority priority) {
-    enum sched_priority prevPriority = uthread_self()->priority;
-    uthread_self()->priority = priority;
+    enum sched_priority prevPriority = my_uthread()->priority;
+    my_uthread()->priority = priority;
     return prevPriority;
 }
 
 
-enum sched_priority uthread_get_priority() {
-    return uthread_self()->priority;
+enum sched_priority get_u_priority() {
+    return my_uthread()->priority;
 }
 
 
@@ -124,16 +124,18 @@ int uthread_start_all() {
 
     if(first) {
         struct context context;
-        pCurrThread = get_next_runnable_thread();
-        pCurrThread->state = RUNNING; 
+
+        my_user_thread = get_next_runnable_thread();
+        my_user_thread->state = RUNNING; 
         first = 0;
-        uswtch(&context, &pCurrThread->context);
+        
+        uswtch(&context, &my_user_thread->context);
     }
     return -1;
 }
 
 
-struct uthread* uthread_self() {
-    return pCurrThread;
+struct uthread* my_uthread() {
+    return my_user_thread;
 }
 
