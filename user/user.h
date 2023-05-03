@@ -1,3 +1,5 @@
+#define STACKSIZE    4000  // size of kernel thread stack - task 2.3
+
 struct stat;
 
 // system calls
@@ -22,6 +24,11 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int kthread_create(void*, uint64, uint);
+int kthread_id(void);
+int kthread_kill(int);
+void kthread_exit(int);
+int kthread_join(int, int*);
 
 // ulib.c
 int stat(const char*, struct stat*);

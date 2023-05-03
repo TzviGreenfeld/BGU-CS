@@ -8,6 +8,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct kthread;
 
 // bio.c
 void            binit(void);
@@ -106,6 +107,19 @@ void            yield(void);
 int             either_copyout(int user_dst, uint64 dst, void *src, uint64 len);
 int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
+
+// kthread.c
+void                kthreadinit(struct proc*);
+struct kthread*     mykthread();
+struct trapframe*   get_kthread_trapframe(struct proc*, struct kthread*);
+int                 alloctid(struct proc*);
+struct kthread*     allocthread(struct proc*);
+void                freethread(struct kthread*);
+int                 kthread_create(void *(*)(), void *, uint);
+int                 kthread_kill(int);
+void                kthread_exit(int);
+int                 kthread_join(int, int*);
+int                 kthread_killed(struct kthread*);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

@@ -33,20 +33,20 @@ fetchstr(uint64 addr, char *buf, int max)
 static uint64
 argraw(int n)
 {
-  struct proc *p = myproc();
+  struct kthread* kt = mykthread();
   switch (n) {
   case 0:
-    return p->trapframe->a0;
+    return kt->trapframe->a0;
   case 1:
-    return p->trapframe->a1;
+    return kt->trapframe->a1;
   case 2:
-    return p->trapframe->a2;
+    return kt->trapframe->a2;
   case 3:
-    return p->trapframe->a3;
+    return kt->trapframe->a3;
   case 4:
-    return p->trapframe->a4;
+    return kt->trapframe->a4;
   case 5:
-    return p->trapframe->a5;
+    return kt->trapframe->a5;
   }
   panic("argraw");
   return -1;
@@ -101,6 +101,11 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
+extern uint64 sys_kthread_create(void);
+extern uint64 sys_kthread_id(void);
+extern uint64 sys_kthread_kill(void);
+extern uint64 sys_kthread_exit(void);
+extern uint64 sys_kthread_join(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -126,6 +131,11 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_kthread_create]   sys_kthread_create,
+[SYS_kthread_id]   sys_kthread_id,
+[SYS_kthread_kill]   sys_kthread_kill,
+[SYS_kthread_exit]   sys_kthread_exit,
+[SYS_kthread_join]   sys_kthread_join,
 };
 
 void
@@ -133,15 +143,16 @@ syscall(void)
 {
   int num;
   struct proc *p = myproc();
+  struct kthread *kt = mykthread();
 
-  num = p->trapframe->a7;
+  num = kt->trapframe->a7;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
-    p->trapframe->a0 = syscalls[num]();
+    kt->trapframe->a0 = syscalls[num]();
   } else {
     printf("%d %s: unknown sys call %d\n",
             p->pid, p->name, num);
-    p->trapframe->a0 = -1;
+    kt->trapframe->a0 = -1;
   }
 }
