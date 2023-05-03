@@ -14,6 +14,6 @@
 
 
 - [ ] user
-    - [ ] user.h
+    - [x] user.h
     - [ ] uthread.c
     - [ ] uthread.h
