@@ -115,7 +115,7 @@ int exec(char *path, char **argv)
   // TASK 2.3
   struct kthread *_kt;
   for (_kt = p->kthread; _kt < &p->kthread[NKT]; _kt++)
-    if (_kt != mykthread() && _kt->state != TUNUSED)
+    if (_kt != mykthread() && _kt->state != KT_UNUSED)
       freethread(kt); // TODO: it is working but should have been _kt, check it out
 
   // arguments to user main(argc, argv)

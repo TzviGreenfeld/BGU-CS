@@ -265,7 +265,7 @@ userinit(void)
   p->cwd = namei("/");
 
   // threads
-  firstThread->state = TRUNNABLE;
+  firstThread->state = KT_RUNNABLE;
   release(&firstThread->lock);
 
   release(&p->lock);
@@ -345,7 +345,7 @@ fork(void)
 
   // make sure next thread is ready only after finished initializing its process
   acquire(&nkt->lock);
-  nkt->state = TRUNNABLE;
+  nkt->state = KT_RUNNABLE;
   release(&nkt->lock);
 
   return pid;
@@ -381,7 +381,7 @@ exit(int status)
   for(kt = p->kthread; kt < &p->kthread[NKT]; kt++) {
     if(kt != mykthread()) {
       acquire(&kt->lock);
-      if(kt->state != TUNUSED && kt->state != TZOMBIE) {
+      if(kt->state != KT_UNUSED && kt->state != KT_ZOMBIE) {
         kt->killed = 1;
         release(&kt->lock);
         kthread_join(kt->tid, 0);
@@ -413,7 +413,7 @@ exit(int status)
   wakeup(p->parent);
 
   acquire(&mykthread()->lock);
-  mykthread()->state = TZOMBIE;
+  mykthread()->state = KT_ZOMBIE;
   release(&mykthread()->lock);
 
   acquire(&p->lock);
@@ -502,11 +502,11 @@ scheduler(void)
       if(p->state == USED) {
         for(kt = p->kthread; kt < &p->kthread[NKT]; kt++) {
           acquire(&kt->lock);
-          if(kt->state == TRUNNABLE) {
+          if(kt->state == KT_RUNNABLE) {
             // Switch to chosen thread.  It is the thread's job
             // to release its lock and then reacquire it
             // before jumping back to us.
-            kt->state = TRUNNING;
+            kt->state = KT_RUNNING;
             c->thread = kt;
             swtch(&c->context, &kt->context);
             // Process is done running for now.
@@ -537,7 +537,7 @@ sched(void)
     panic("sched kt-lock");
   if(mycpu()->noff != 1)
     panic("sched locks");
-  if(kt->state == TRUNNING)
+  if(kt->state == KT_RUNNING)
     panic("sched running");
   if(intr_get())
     panic("sched interruptible");
@@ -553,7 +553,7 @@ yield(void)
 {
   struct kthread *kt = mykthread();
   acquire(&kt->lock);
-  kt->state = TRUNNABLE;
+  kt->state = KT_RUNNABLE;
   sched();
   release(&kt->lock);
 }
@@ -598,7 +598,7 @@ sleep(void *chan, struct spinlock *lk)
 
   // Go to sleep.
   kt->chan = chan;
-  kt->state = TSLEEPING;
+  kt->state = KT_SLEEPING;
 
   sched();
 
@@ -622,8 +622,8 @@ wakeup(void *chan)
       for(kt = p->kthread; kt < &p->kthread[NKT]; kt++) {     //find threads sleeping on chan
         if(kt != mykthread()) {
           acquire(&kt->lock);
-          if (kt->state == TSLEEPING && kt->chan == chan) {  
-            kt->state = TRUNNABLE;
+          if (kt->state == KT_SLEEPING && kt->chan == chan) {  
+            kt->state = KT_RUNNABLE;
           }
           release(&kt->lock);
         }
@@ -648,8 +648,8 @@ kill(int pid)
       for(struct kthread* kt = p->kthread; kt < &p->kthread[NKT]; kt++) {   // wake up sleeping threads
         acquire(&kt->lock);
         kt->killed = 1;
-        if(kt->state == TSLEEPING) {
-          kt->state = TRUNNABLE;
+        if(kt->state == KT_SLEEPING) {
+          kt->state = KT_RUNNABLE;
         }
         release(&kt->lock);
       }

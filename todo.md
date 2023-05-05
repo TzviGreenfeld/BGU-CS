@@ -3,11 +3,11 @@
 - [ ] kernel:
     - [x] defs.h
     - [x] exec.c
-    - [ ] kthread.c
+    - [x] kthread.c
     - [ ] kthread.h
     - [x] param.h
     - [ ] proc.c
-    - [ ] proch
+    - [ ] proc.h
     - [x] syscall.c
     - [x] sysproc.c
     - [x] trap.c

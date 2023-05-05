@@ -19,7 +19,7 @@ void kthreadinit(struct proc *p)
   {
     initlock(&kt->lock, "kthread");
     acquire(&kt->lock);
-    kt->state = TUNUSED;
+    kt->state = KT_UNUSED;
     kt->process = p;
     release(&kt->lock);
     // WARNING: Don't change this line!
@@ -63,7 +63,7 @@ struct kthread* allocthread(struct proc* p)
   struct kthread *kt;
   for (kt = p->kthread; kt < &p->kthread[NKT]; kt++) {
     acquire(&kt->lock);
-    if(kt->state == TUNUSED) {
+    if(kt->state == KT_UNUSED) {
       goto found;
     }
     else {
@@ -74,7 +74,7 @@ struct kthread* allocthread(struct proc* p)
 
 found:
   kt->tid = alloctid(p);
-  kt->state = TUSED;
+  kt->state = KT_USED;
   kt->trapframe = get_kthread_trapframe(p, kt);
   memset(&kt->context, 0, sizeof(kt->context));
   kt->context.ra = (uint64)forkret;
@@ -95,7 +95,7 @@ freethread(struct kthread* kt)
   kt->killed = 0;
   kt->xstate = 0;
   kt->trapframe = 0;
-  kt->state = TUNUSED;
+  kt->state = KT_UNUSED;
 }
 
 int 
@@ -105,7 +105,7 @@ kthread_create(void *(*start_func)(), void *stack, uint stack_size){
     return -1;
   }
   
-  kt->state = TRUNNABLE;
+  kt->state = KT_RUNNABLE;
   // kt->kstack = (uint64) stack; 
   kt->trapframe->epc = (uint64) start_func;
   kt->trapframe->sp = (uint64) (stack + stack_size); 
@@ -139,8 +139,8 @@ kthread_kill(int ktid){
   }
   acquire(&kt->lock);
   kt->killed = 1;
-  if(kt->state == TSLEEPING) {
-    kt->state = TRUNNABLE;
+  if(kt->state == KT_SLEEPING) {
+    kt->state = KT_RUNNABLE;
   }
   release(&kt->lock); 
   return 0;
@@ -153,7 +153,7 @@ last_process_kthread(struct kthread *kt){
   for(t = p->kthread; t < &p->kthread[NKT]; t++){
     if(t != kt){
       acquire(&t->lock);
-      if(t->state != TUNUSED && t->state != TZOMBIE){
+      if(t->state != KT_UNUSED && t->state != KT_ZOMBIE){
         release(&t->lock);
         return 0;
       }
@@ -174,7 +174,7 @@ kthread_exit(int status){
   
   acquire(&kt->lock);
   kt->xstate = status;
-  kt->state = TZOMBIE;
+  kt->state = KT_ZOMBIE;
   release(&kt->lock);
   
   acquire(&p->lock); 
@@ -197,7 +197,7 @@ kthread_join(int ktid, int *status){
 
   acquire(&p->lock);
   for(;;){
-    if(kt->state == TZOMBIE){
+    if(kt->state == KT_ZOMBIE){
       acquire(&kt->lock);
       if(status != 0 && copyout(kt->process->pagetable, (uint64) status, (char *)&kt->xstate,
                                           sizeof(kt->xstate)) < 0) {
