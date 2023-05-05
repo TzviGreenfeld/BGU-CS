@@ -8,7 +8,7 @@
     - [x] param.h
     - [ ] proc.c
     - [ ] proch
-    - [ ] syscall.c
+    - [x] syscall.c
     - [x] sysproc.c
     - [x] trap.c
 
