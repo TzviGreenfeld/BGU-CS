@@ -10,7 +10,7 @@
     - [ ] proch
     - [ ] syscall.c
     - [ ] sysproc.c
-    - [ ] trap.c
+    - [x] trap.c
 
 
 - [ ] user
