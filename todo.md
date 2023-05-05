@@ -3,7 +3,7 @@
 - [ ] kernel:
     - [x] defs.h
     - [x] exec.c
-    - [ ] kthread.c
+    - [x] kthread.c
     - [x] kthread.h
     - [x] param.h
     - [ ] proc.c

@@ -28,67 +28,58 @@ void kthreadinit(struct proc *p)
   }
 }
 
-
 struct kthread *mykthread()
 {
   push_off();
   struct cpu *c = mycpu();
-  struct kthread *t = c->thread;
+  struct kthread *kt = c->thread;
   pop_off();
-  return t;
+  return kt;
 }
-
 
 struct trapframe *get_kthread_trapframe(struct proc *p, struct kthread *kt)
 {
   return p->base_trapframes + ((int)(kt - p->kthread));
 }
 
-
-int alloctid(struct proc* p)
+int alloctid(struct proc *p)
 {
+  int tid;
+
   acquire(&p->threadsId_lock);
-  int tid = p->threadsId;
+
+  tid = p->threadsId;
   p->threadsId++;
+
   release(&p->threadsId_lock);
   return tid;
 }
 
-/**
- * allocates a thread
- * @post: returned thread's lock is acquired
-*/
-struct kthread* allocthread(struct proc* p)
+struct kthread *allocthread(struct proc *p)
 {
   struct kthread *kt;
-  for (kt = p->kthread; kt < &p->kthread[NKT]; kt++) {
+  for (kt = p->kthread; kt < &p->kthread[NKT]; kt++)
+  {
     acquire(&kt->lock);
-    if(kt->state == KT_UNUSED) {
-      goto found;
+    if (kt->state == KT_UNUSED)
+    {
+      kt->tid = alloctid(p);
+      kt->state = KT_USED;
+      kt->trapframe = get_kthread_trapframe(p, kt);
+      memset(&kt->context, 0, sizeof(kt->context));
+      kt->context.ra = (uint64)forkret;
+      kt->context.sp = kt->kstack + PGSIZE;
+      return kt;
     }
-    else {
+    else
+    {
       release(&kt->lock);
     }
   }
   return 0;
-
-found:
-  kt->tid = alloctid(p);
-  kt->state = KT_USED;
-  kt->trapframe = get_kthread_trapframe(p, kt);
-  memset(&kt->context, 0, sizeof(kt->context));
-  kt->context.ra = (uint64)forkret;
-  kt->context.sp = kt->kstack + PGSIZE; 
-  return kt;
 }
 
-/**
- * resets thread fields
- * @pre: kt lock must be held
- * @post: kt lock remains held
-*/
-void
-freethread(struct kthread* kt)
+void freethread(struct kthread *kt)
 {
   kt->tid = 0;
   kt->chan = 0;
@@ -98,109 +89,123 @@ freethread(struct kthread* kt)
   kt->state = KT_UNUSED;
 }
 
-int 
-kthread_create(void *(*start_func)(), void *stack, uint stack_size){
+int kthread_create(void *(*start_func)(), void *stack, uint stack_size)
+{
   struct kthread *kt;
-  if((kt = allocthread(myproc())) == 0){
-    return -1;
-  }
-  
-  kt->state = KT_RUNNABLE;
-  // kt->kstack = (uint64) stack; 
-  kt->trapframe->epc = (uint64) start_func;
-  kt->trapframe->sp = (uint64) (stack + stack_size); 
-  release(&kt->lock);
-  return kt->tid;
-}
+  if ((kt = allocthread(myproc())) != 0)
+  {
 
-//Find the kernel thread with the same tid.
-struct kthread*
-find_kthread_by_tid(int ktid){
-  struct kthread *kt;
-  struct proc *p = myproc();
-  for(kt = p->kthread; kt < &p->kthread[NKT]; kt++) {
-    acquire(&kt->lock);
-    if(kt->tid == ktid){
-      release(&kt->lock);
-      return kt;
-    }
-    else{
-      release(&kt->lock);
-    }
-  }
-  return 0;
-}
-
-int
-kthread_kill(int ktid){
-  struct kthread *kt;
-  if((kt = find_kthread_by_tid(ktid)) == 0){
-    return -1;
-  }
-  acquire(&kt->lock);
-  kt->killed = 1;
-  if(kt->state == KT_SLEEPING) {
     kt->state = KT_RUNNABLE;
+    // kt->kstack = (uint64) stack;
+    kt->trapframe->epc = (uint64)start_func;
+    kt->trapframe->sp = (uint64)(stack + stack_size);
+    release(&kt->lock);
+    return kt->tid;
   }
-  release(&kt->lock); 
-  return 0;
+  return -1;
 }
 
-int
-last_process_kthread(struct kthread *kt){
-  struct kthread* t;
+int kthread_kill(int ktid)
+{
+  struct kthread *kt;
   struct proc *p = myproc();
-  for(t = p->kthread; t < &p->kthread[NKT]; t++){
-    if(t != kt){
+  for (kt = p->kthread; kt < &p->kthread[NKT]; kt++)
+  {
+    acquire(&kt->lock);
+    if (kt->tid == ktid)
+    {
+      kt->killed = 1;
+      if (kt->state == KT_SLEEPING)
+      {
+        kt->state = KT_RUNNABLE;
+      }
+      release(&kt->lock);
+      return 0;
+    }
+    else
+    {
+      release(&kt->lock);
+    }
+  }
+  return -1;
+}
+
+void kthread_exit(int status)
+{
+  struct kthread *kt = mykthread();
+  struct proc *p = myproc();
+
+  // determine if this is the last active thread in the process
+  int last_kthread = 1;
+  for (struct kthread *t = p->kthread; t < &p->kthread[NKT]; t++)
+  {
+    if (t != kt)
+    {
       acquire(&t->lock);
-      if(t->state != KT_UNUSED && t->state != KT_ZOMBIE){
-        release(&t->lock);
-        return 0;
+      if (t->state != KT_UNUSED && t->state != KT_ZOMBIE)
+      {
+        last_kthread = 0;
       }
       release(&t->lock);
     }
   }
-  return 1;
-}
 
-void
-kthread_exit(int status){
-  struct kthread *kt = mykthread();
-  struct proc *p = myproc();
-
-  if(last_process_kthread(kt)){
+  if (last_kthread)
+  {
+    // if this is the last active thread, call exit instead of becoming a zombie
     exit(status);
   }
-  
+
+  // set thread state to KT_ZOMBIE and wake up any waiting threads
   acquire(&kt->lock);
   kt->xstate = status;
   kt->state = KT_ZOMBIE;
   release(&kt->lock);
-  
-  acquire(&p->lock); 
+
+  acquire(&p->lock);
   wakeup(kt);
   release(&p->lock);
-  
+
+  // switch to a new thread or process, and panic if none are available
   acquire(&kt->lock);
   sched();
   panic("zombie exit");
 }
 
-int 
-kthread_join(int ktid, int *status){
+int kthread_join(int ktid, int *status)
+{
   struct kthread *kt;
   struct proc *p = myproc();
 
-  if((kt = find_kthread_by_tid(ktid)) == 0){
-      return -1;
+  int found = 0;
+  for (kt = p->kthread; kt < &p->kthread[NKT] && !found; kt++)
+  {
+    acquire(&kt->lock);
+    if (kt->tid == ktid)
+    {
+      release(&kt->lock);
+      found = 1;
+      break;
+    }
+    else
+    {
+      release(&kt->lock);
+    }
+  }
+  if (!found)
+  {
+    return -1;
   }
 
   acquire(&p->lock);
-  for(;;){
-    if(kt->state == KT_ZOMBIE){
+  for (;;)
+  {
+    if (kt->state == KT_ZOMBIE)
+    {
       acquire(&kt->lock);
-      if(status != 0 && copyout(kt->process->pagetable, (uint64) status, (char *)&kt->xstate,
-                                          sizeof(kt->xstate)) < 0) {
+      if (status != 0 && copyout(kt->process->pagetable, (uint64)status, (char *)&kt->xstate,
+                                 sizeof(kt->xstate)) < 0)
+      {
         release(&kt->lock);
         release(&p->lock);
         return -1;
