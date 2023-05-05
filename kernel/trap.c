@@ -53,9 +53,17 @@ void usertrap(void)
     // system call
 
     if (killed(p))
+    {
       exit(-1);
+    }
 
-    if (kthread_killed(kt))
+    acquire(&kt->lock);
+
+    int isKilled = kt->killed;
+
+    release(&kt->lock);
+
+    if (isKilled)
     {
       kthread_exit(-1);
     }
@@ -82,9 +90,16 @@ void usertrap(void)
   }
 
   if (killed(p))
+  {
     exit(-1);
+  }
+  acquire(&kt->lock);
 
-  if (kthread_killed(kt))
+  int isKilled = kt->killed;
+
+  release(&kt->lock);
+
+  if (isKilled)
   {
     kthread_exit(-1);
   }

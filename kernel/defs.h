@@ -115,7 +115,6 @@ struct kthread*     allocthread(struct proc*);
 int                 alloctid(struct proc*);
 int                 kthread_create(void *(*)(), void *, uint);
 int                 kthread_kill(int);
-int                 kthread_killed(struct kthread*); // TODO: change this
 int                 kthread_join(int, int*);
 void                kthread_exit(int);
 void                kthreadinit(struct proc*);

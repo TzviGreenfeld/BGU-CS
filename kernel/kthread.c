@@ -215,13 +215,3 @@ kthread_join(int ktid, int *status){
     sleep(kt, &p->lock);
   }
 }
-
-int
-kthread_killed(struct kthread *kt)
-{
-  int k;
-  acquire(&kt->lock);
-  k = kt->killed;
-  release(&kt->lock);
-  return k;
-}
