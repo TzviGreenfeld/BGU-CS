@@ -9,7 +9,7 @@
     - [ ] proc.c
     - [ ] proch
     - [ ] syscall.c
-    - [ ] sysproc.c
+    - [x] sysproc.c
     - [x] trap.c
 
 

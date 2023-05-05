@@ -77,8 +77,7 @@ sys_kill(void)
   return kill(pid);
 }
 
-// return how many clock tick interrupts have occurred
-// since start.
+
 uint64
 sys_uptime(void)
 {
@@ -90,17 +89,6 @@ sys_uptime(void)
   return xticks;
 }
 
-uint64
-sys_kthread_create(void)
-{
-  uint64 start_func;
-  argaddr(0, &start_func);
-  uint64 stack;
-  argaddr(1, &stack);
-  int stack_size;
-  argint(2, &stack_size);
-  return kthread_create((void*(*)()) start_func, (void *) stack, (uint) stack_size);
-}
 
 uint64
 sys_kthread_id(void)
@@ -112,23 +100,43 @@ uint64
 sys_kthread_kill(void)
 {
   int ktid;
+
   argint(0, &ktid);
+
   return kthread_kill(ktid);
 }
 
 uint64
 sys_kthread_exit(void){
   int status;
+
   argint(0, &status);
   kthread_exit(status);
+
   return 0;
 }
 
 uint64
 sys_kthread_join(void){
   int ktid;
-  argint(0, &ktid);
   uint64 status;
+
+  argint(0, &ktid);
   argaddr(1, &status);
+
   return kthread_join(ktid, (int*) status);
+}
+
+uint64
+sys_kthread_create(void)
+{
+  uint64 start_func;
+  uint64 stack;
+  int stack_size;
+
+  argaddr(0, &start_func);
+  argaddr(1, &stack);
+  argint(2, &stack_size);
+
+  return kthread_create((void*(*)()) start_func, (void *) stack, (uint) stack_size);
 }
