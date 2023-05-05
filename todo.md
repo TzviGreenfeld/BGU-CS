@@ -2,7 +2,7 @@
 
 - [ ] kernel:
     - [x] defs.h
-    - [ ] exec.c
+    - [x] exec.c
     - [ ] kthread.c
     - [ ] kthread.h
     - [ ] param.h
