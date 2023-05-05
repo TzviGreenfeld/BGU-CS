@@ -5,7 +5,7 @@
     - [x] exec.c
     - [ ] kthread.c
     - [ ] kthread.h
-    - [ ] param.h
+    - [x] param.h
     - [ ] proc.c
     - [ ] proch
     - [ ] syscall.c
