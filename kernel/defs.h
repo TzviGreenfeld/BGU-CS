@@ -109,17 +109,17 @@ int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 
 // kthread.c
-void                kthreadinit(struct proc*);
 struct kthread*     mykthread();
 struct trapframe*   get_kthread_trapframe(struct proc*, struct kthread*);
-int                 alloctid(struct proc*);
 struct kthread*     allocthread(struct proc*);
-void                freethread(struct kthread*);
+int                 alloctid(struct proc*);
 int                 kthread_create(void *(*)(), void *, uint);
 int                 kthread_kill(int);
-void                kthread_exit(int);
+int                 kthread_killed(struct kthread*); // TODO: change this
 int                 kthread_join(int, int*);
-int                 kthread_killed(struct kthread*);
+void                kthread_exit(int);
+void                kthreadinit(struct proc*);
+void                freethread(struct kthread*);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

@@ -1,7 +1,7 @@
 ### files to refactor:
 
 - [ ] kernel:
-    - [ ] defs.h
+    - [x] defs.h
     - [ ] exec.c
     - [ ] kthread.c
     - [ ] kthread.h
