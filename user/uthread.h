@@ -42,6 +42,6 @@ void uthread_exit();
 
 int uthread_start_all();
 enum sched_priority uthread_set_priority(enum sched_priority priority);
-enum sched_priority get_u_priority();
+enum sched_priority get_uthread_self_priority();
 
-struct uthread* my_uthread();
+struct uthread* uthread_self();
