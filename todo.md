@@ -1,12 +1,12 @@
 ### files to refactor:
 
-- [ ] kernel:
+- [x] kernel:
     - [x] defs.h
     - [x] exec.c
     - [x] kthread.c
     - [x] kthread.h
     - [x] param.h
-    - [ ] proc.c
+    - [x] proc.c
     - [x] proc.h
     - [x] syscall.c
     - [x] sysproc.c

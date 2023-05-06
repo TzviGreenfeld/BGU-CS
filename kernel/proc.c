@@ -343,17 +343,14 @@ int fork(void)
   release(&np->lock);
   acquire(&wait_lock);
 
-
   np->parent = p;
 
   release(&wait_lock);
   acquire(&np->lock);
   acquire(&np->kthread[0].lock);
 
-
   np->state = USED;
   np->kthread[0].state = KT_RUNNABLE;
-
 
   release(&np->kthread[0].lock);
   release(&np->lock);
@@ -379,27 +376,79 @@ void reparent(struct proc *p)
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait().
+// void exit(int status)
+// {
+//   struct proc *p = myproc();
+//   struct kthread *kt;
+
+//   if (p == initproc)
+//   {
+//     panic("init exiting");
+//   }
+
+//   for (kt = p->kthread; kt < &p->kthread[NKT]; kt++)
+//   {
+//     if (kt != mykthread())
+//     {
+//       acquire(&kt->lock);
+//       if (kt->state != KT_UNUSED && kt->state != KT_ZOMBIE)
+//       {
+//         kt->killed = 1;
+//         release(&kt->lock);
+//         kthread_join(kt->tid, 0);
+//       }
+//       release(&kt->lock);
+//     }
+//   }
+
+//   // Close all open files.
+//   for (int fd = 0; fd < NOFILE; fd++)
+//   {
+//     if (p->ofile[fd])
+//     {
+//       struct file *f = p->ofile[fd];
+//       fileclose(f);
+//       p->ofile[fd] = 0;
+//     }
+//   }
+
+//   begin_op();
+//   iput(p->cwd);
+//   end_op();
+//   p->cwd = 0;
+
+//   acquire(&wait_lock);
+
+//   // Give any children to init.
+//   reparent(p);
+
+//   // Parent might be sleeping in wait().
+//   wakeup(p->parent);
+
+//   acquire(&mykthread()->lock);
+//   mykthread()->state = KT_ZOMBIE;
+//   release(&mykthread()->lock);
+
+//   acquire(&p->lock);
+//   p->xstate = status;
+//   p->state = ZOMBIE;
+//   release(&p->lock);
+//   release(&wait_lock);
+
+//   // Jump into the scheduler, never to return.
+//   acquire(&mykthread()->lock);
+
+//   sched();
+//   panic("zombie exit");
+// }
+
 void exit(int status)
 {
   struct proc *p = myproc();
 
   if (p == initproc)
-    panic("init exiting");
-
-  struct kthread *kt;
-  for (kt = p->kthread; kt < &p->kthread[NKT]; kt++)
   {
-    if (kt != mykthread())
-    {
-      acquire(&kt->lock);
-      if (kt->state != KT_UNUSED && kt->state != KT_ZOMBIE)
-      {
-        kt->killed = 1;
-        release(&kt->lock);
-        kthread_join(kt->tid, 0);
-      }
-      release(&kt->lock);
-    }
+    panic("init exiting");
   }
 
   // Close all open files.
@@ -419,26 +468,29 @@ void exit(int status)
   p->cwd = 0;
 
   acquire(&wait_lock);
-
   // Give any children to init.
   reparent(p);
-
   // Parent might be sleeping in wait().
   wakeup(p->parent);
-
-  acquire(&mykthread()->lock);
-  mykthread()->state = KT_ZOMBIE;
-  release(&mykthread()->lock);
-
   acquire(&p->lock);
+
   p->xstate = status;
   p->state = ZOMBIE;
+
+  for (struct kthread *kt = p->kthread; kt < &p->kthread[NKT]; kt++)
+  {
+    acquire(&kt->lock);
+
+    kt->state = KT_ZOMBIE;
+
+    release(&kt->lock);
+  }
   release(&p->lock);
+  acquire(&mykthread()->lock);
+
   release(&wait_lock);
 
   // Jump into the scheduler, never to return.
-  acquire(&mykthread()->lock);
-
   sched();
   panic("zombie exit");
 }
@@ -472,7 +524,7 @@ int wait(uint64 addr)
           if (addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
                                    sizeof(pp->xstate)) < 0)
           {
-            freeproc(pp);
+
             release(&pp->lock);
             release(&wait_lock);
             return -1;
@@ -524,18 +576,15 @@ void scheduler(void)
         for (kt = p->kthread; kt < &p->kthread[NKT]; kt++)
         {
           acquire(&kt->lock);
+
           if (kt->state == KT_RUNNABLE)
           {
-            // Switch to chosen thread.  It is the thread's job
-            // to release its lock and then reacquire it
-            // before jumping back to us.
             kt->state = KT_RUNNING;
             c->thread = kt;
             swtch(&c->context, &kt->context);
-            // Process is done running for now.
-            // It should have changed its p->state before coming back.
             c->thread = 0;
           }
+
           release(&kt->lock);
         }
       }
@@ -559,8 +608,6 @@ void sched(void)
     panic("sched kt-lock");
   if (mycpu()->noff != 1)
     panic("sched locks");
-  if (kt->state == KT_RUNNING)
-    panic("sched running");
   if (intr_get())
     panic("sched interruptible");
 
@@ -577,27 +624,6 @@ void yield(void)
   kt->state = KT_RUNNABLE;
   sched();
   release(&kt->lock);
-}
-
-// A fork child's very first scheduling by scheduler()
-// will swtch to forkret.
-void forkret(void)
-{
-  static int first = 1;
-
-  // Still holding kt->lock from scheduler.
-  release(&mykthread()->lock);
-
-  if (first)
-  {
-    // File system initialization must be run in the context of a
-    // regular process (e.g., because it calls sleep), and thus cannot
-    // be run from main().
-    first = 0;
-    fsinit(ROOTDEV);
-  }
-
-  usertrapret();
 }
 
 // Atomically release lock and sleep on chan.
@@ -641,7 +667,7 @@ void wakeup(void *chan)
     if (p->state == USED)
     {
       for (kt = p->kthread; kt < &p->kthread[NKT]; kt++)
-      { // find threads sleeping on chan
+      {
         if (kt != mykthread())
         {
           acquire(&kt->lock);
@@ -665,13 +691,15 @@ int kill(int pid)
 
   for (p = proc; p < &proc[NPROC]; p++)
   {
+
     acquire(&p->lock);
+
     if (p->pid == pid)
     {
       p->killed = 1;
 
       for (struct kthread *kt = p->kthread; kt < &p->kthread[NKT]; kt++)
-      { // wake up sleeping threads
+      {
         acquire(&kt->lock);
         kt->killed = 1;
         if (kt->state == KT_SLEEPING)
@@ -770,4 +798,22 @@ void procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+// A fork child's very first scheduling by scheduler()
+// will swtch to forkret.
+void forkret(void)
+{
+  static int first = 1;
+
+  release(&mykthread()->lock);
+
+  if (first)
+  {
+
+    first = 0;
+    fsinit(ROOTDEV);
+  }
+
+  usertrapret();
 }
