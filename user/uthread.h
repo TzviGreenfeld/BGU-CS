@@ -1,13 +1,24 @@
-#define STACK_SIZE  4000
-#define MAX_UTHREADS  4
+#define STACK_SIZE 4000
+#define MAX_UTHREADS 4
 
-enum sched_priority { LOW, MEDIUM, HIGH };
+enum sched_priority
+{
+    LOW,
+    MEDIUM,
+    HIGH
+};
 
 /* Possible states of a thread: */
-enum tstate { FREE, RUNNING, RUNNABLE };
+enum tstate
+{
+    FREE,
+    RUNNING,
+    RUNNABLE
+};
 
 // Saved registers for context switches.
-struct context {
+struct context
+{
     uint64 ra;
     uint64 sp;
 
@@ -26,22 +37,17 @@ struct context {
     uint64 s11;
 };
 
-struct uthread {
-    char                ustack[STACK_SIZE];  // the thread's stack
-    enum tstate         state;          // FREE, RUNNING, RUNNABLE
-    struct context      context;        // uswtch() here to run process
-    enum sched_priority priority;       // scheduling priority
+struct uthread
+{
+    char ustack[STACK_SIZE];      // the thread's stack
+    enum tstate state;            // FREE, RUNNING, RUNNABLE
+    struct context context;       // uswtch() here to run process
+    enum sched_priority priority; // scheduling priority
 };
 
-extern void uswtch(struct context*, struct context*);
-
+extern void uswtch(struct context *, struct context *);
 int uthread_create(void (*start_func)(), enum sched_priority priority);
-
 void uthread_yield();
 void uthread_exit();
-
 int uthread_start_all();
-enum sched_priority uthread_set_priority(enum sched_priority priority);
-enum sched_priority get_uthread_self_priority();
-
-struct uthread* uthread_self();
+struct uthread *uthread_self();

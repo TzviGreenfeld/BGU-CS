@@ -4,160 +4,139 @@
 
 static struct uthread threads[MAX_UTHREADS];
 
-static struct uthread *my_user_thread = 0;
-
-int get_my_user_thread_index()
-{
-    struct uthread *ut;
-    int curr = -1;
-    for (ut = threads; ut < &threads[MAX_UTHREADS]; ut++)
-    {
-        curr += 1;
-        if (ut == my_user_thread)
-        {
-            break;
-        }
-    }
-    return curr;
+static struct uthread *currThread = 0;
+struct uthread *uthread_self()
+{ // TASK 1
+    return currThread;
 }
 
-struct uthread *get_next_runnable_thread()
+// return the next runnable
+struct uthread *next_thread()
 {
-    struct uthread *ut;
-    struct uthread *top_priority_thread = 0;
-    enum sched_priority max_priority = LOW;
+    int i;
     int first = 1;
+    struct uthread *ut;
+    enum sched_priority next_thread_priotiy = LOW;
+    struct uthread *next_thread = 0;
 
-    if (my_user_thread == 0)
-    { 
+    if (currThread == 0)
+    {
         for (ut = threads; ut < &threads[MAX_UTHREADS]; ut++)
         {
             if (ut->state == RUNNABLE && first)
-            { 
-                
-                top_priority_thread = ut;
-                max_priority = ut->priority;
+            {
+
+                next_thread = ut;
+                next_thread_priotiy = ut->priority;
                 first = 0;
             }
-            else if (ut->state == RUNNABLE && ut->priority > max_priority)
-            { 
-                top_priority_thread = ut;
-                max_priority = ut->priority;
+            else if (ut->state == RUNNABLE && ut->priority > next_thread_priotiy)
+            {
+                next_thread = ut;
+                next_thread_priotiy = ut->priority;
             }
         }
-        return top_priority_thread;
+        return next_thread;
     }
     else
     {
-        int curr_thread_index = get_my_user_thread_index();
-        
-        for (int i = 1; i <= MAX_UTHREADS; i++)
+        int idx = -1;
+        for (ut = threads; ut < &threads[MAX_UTHREADS]; ut++)
         {
-
-            ut = &threads[(curr_thread_index + i) % MAX_UTHREADS];
-
-            if (ut == my_user_thread)
-            { 
+            idx += 1;
+            if (ut == currThread)
+            {
                 break;
-            }
-            else if (ut->state == RUNNABLE && first)
-            { 
-                top_priority_thread = ut;
-                max_priority = ut->priority;
-                first = 0;
-            }
-            else if (ut->state == RUNNABLE && ut->priority > max_priority)
-            { 
-                top_priority_thread = ut;
-                max_priority = ut->priority;
             }
         }
 
-        return top_priority_thread;
+        for (i = 1; i <= MAX_UTHREADS; i++)
+        {
+
+            ut = &threads[(idx + i) % MAX_UTHREADS];
+
+            if (ut == currThread)
+            {
+                break;
+            }
+            else if (ut->state == RUNNABLE && first)
+            {
+                next_thread = ut;
+                next_thread_priotiy = ut->priority;
+                first = 0;
+            }
+            else if (ut->state == RUNNABLE && ut->priority > next_thread_priotiy)
+            {
+                next_thread = ut;
+                next_thread_priotiy = ut->priority;
+            }
+        }
+
+        return next_thread;
     }
-}
-
-enum sched_priority uthread_set_priority(enum sched_priority priority)
-{
-    enum sched_priority prev = uthread_self()->priority;
-    uthread_self()->priority = priority;
-    return prev;
-}
-
-enum sched_priority get_uthread_self_priority()
-{
-    return uthread_self()->priority;
 }
 
 void uthread_yield()
 { // TASK 1
-    struct uthread *next = get_next_runnable_thread();
-    // Determines whether there is another thread that can be executed, using the priority scheduling policy.
-    if (next != 0 && next->priority >= my_user_thread->priority)
+    struct uthread *next = next_thread();
+    if (next != 0 && next->priority >= currThread->priority)
     {
-        struct uthread *prev = my_user_thread;
+        struct uthread *prev = currThread;
         prev->state = RUNNABLE;
         next->state = RUNNING;
-        my_user_thread = next;
+        currThread = next;
         uswtch(&prev->context, &next->context);
     }
+}
+
+int uthread_create(void (*start_func)(), enum sched_priority priority)
+{ // TASK 1
+    struct uthread *ut;
+    for (ut = threads; ut < &threads[MAX_UTHREADS]; ut++)
+    {
+        if (ut->state == FREE)
+        {
+            ut->context.ra = (uint64)start_func;
+            ut->context.sp = (uint64)&ut->ustack[STACK_SIZE - 1];
+            ut->priority = priority;
+            ut->state = RUNNABLE;
+            return 0;
+        }
+    }
+    return -1;
 }
 
 void uthread_exit()
 { // TASK 1
-    struct uthread *next = get_next_runnable_thread();
-    // Determines whether there is another thread that can be executed.
-    if (next != 0)
+    struct uthread *prev = currThread;
+    struct uthread *next = next_thread();
+
+    if (next == 0)
     {
-        struct uthread *prev = my_user_thread;
-        prev->state = FREE;
-        my_user_thread = next;
-        next->state = RUNNING;
-        uswtch(&prev->context, &next->context);
-    }
-    else
-    {
-        my_user_thread->state = FREE;
+        currThread->state = FREE;
         exit(0);
     }
-}
 
-// Create and initialize new threads within our threads array.
-int uthread_create(void (*start_func)(), enum sched_priority priority)
-{ // TASK 1
-    struct uthread *t;
-    for (t = threads; t < &threads[MAX_UTHREADS]; t++)
-    { // Search for unused thread.
-        if (t->state == FREE)
-        {
-            t->context.ra = (uint64)start_func;
-            t->context.sp = (uint64)&t->ustack[STACK_SIZE - 1];
-            t->priority = priority;
-            t->state = RUNNABLE;
-            return 0;
-        }
-    }
-    return -1; // not found
+    prev->state = FREE;
+    currThread = next;
+    next->state = RUNNING;
+    uswtch(&prev->context, &next->context);
 }
 
 int uthread_start_all()
 { // TASK 1
     static int first = 1;
 
-    if (first)
+    if (!first)
     {
-        struct context context;
-
-        my_user_thread = get_next_runnable_thread();
-        my_user_thread->state = RUNNING;
-        first = 0;
-
-        uswtch(&context, &my_user_thread->context);
+        return -1;
     }
-    return -1;
-}
+    struct context context;
 
-struct uthread *uthread_self()
-{ // TASK 1
-    return my_user_thread;
+    currThread = next_thread();
+    currThread->state = RUNNING;
+    first = 0;
+
+    uswtch(&context, &currThread->context);
+    return 0;
 }

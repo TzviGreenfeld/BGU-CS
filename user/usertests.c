@@ -2583,7 +2583,7 @@ void uthread_a_start_func(void){
     printf("sched policy failed\n");
     exit(1);
   }
-  if(get_uthread_self_priority() != LOW){
+  if(uthread_self()->priority != LOW){
     printf("get_u_priority failed\n");
     exit(1);
   }
@@ -2599,7 +2599,7 @@ void uthread_b_start_func(void){
   for(int i=0; i<10; i++){
     sleep(10); // simulate work
   }
-  x = get_uthread_self_priority();
+  x = uthread_self()->priority;
   uthread_exit();
   printf("uthread_exit failed\n");
   exit(1);
