@@ -7,7 +7,7 @@
     - [x] kthread.h
     - [x] param.h
     - [ ] proc.c
-    - [ ] proc.h
+    - [x] proc.h
     - [x] syscall.c
     - [x] sysproc.c
     - [x] trap.c

@@ -13,7 +13,7 @@ extern void forkret(void);
 void kthreadinit(struct proc *p)
 {
 
-  initlock(&p->threadsId_lock, "proc");
+  initlock(&p->counter_lock, "proc");
 
   for (struct kthread *kt = p->kthread; kt < &p->kthread[NKT]; kt++)
   {
@@ -46,12 +46,12 @@ int alloctid(struct proc *p)
 {
   int tid;
 
-  acquire(&p->threadsId_lock);
+  acquire(&p->counter_lock);
 
-  tid = p->threadsId;
-  p->threadsId++;
+  tid = p->counter;
+  p->counter++;
 
-  release(&p->threadsId_lock);
+  release(&p->counter_lock);
   return tid;
 }
 
