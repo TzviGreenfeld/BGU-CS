@@ -10,7 +10,7 @@ struct uthread *uthread_self()
     return currThread;
 }
 
-// return the next runnable
+/// return the next runnable
 struct uthread *next_thread()
 {
     int i;
@@ -139,4 +139,18 @@ int uthread_start_all()
 
     uswtch(&context, &currThread->context);
     return 0;
+}
+
+enum sched_priority uthread_set_priority(enum sched_priority priority)
+{
+    enum sched_priority prev = uthread_self()->priority;
+
+    uthread_self()->priority = priority;
+
+    return prev;
+}
+
+enum sched_priority uthread_get_priority()
+{
+    return uthread_self()->priority;
 }

@@ -12,7 +12,7 @@
 //
 // Tests xv6 system calls.  usertests without arguments runs them all
 // and usertests <name> runs <name> test. The test runner creates for
-// each test a process and based on the exit status of the proce ss,
+// each test a process and based on the exit status of the process,
 // the test runner reports "OK" or "FAILED".  Some tests result in
 // kernel printing usertrap messages, which can be ignored if test
 // prints "OK".
@@ -2583,8 +2583,8 @@ void uthread_a_start_func(void){
     printf("sched policy failed\n");
     exit(1);
   }
-  if(uthread_self()->priority != LOW){
-    printf("get_u_priority failed\n");
+  if(uthread_get_priority() != LOW){
+    printf("uthread_get_priority failed\n");
     exit(1);
   }
   for(int i=0; i<10; i++){
@@ -2599,7 +2599,7 @@ void uthread_b_start_func(void){
   for(int i=0; i<10; i++){
     sleep(10); // simulate work
   }
-  x = uthread_self()->priority;
+  x = uthread_get_priority();
   uthread_exit();
   printf("uthread_exit failed\n");
   exit(1);

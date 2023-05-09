@@ -373,74 +373,6 @@ void reparent(struct proc *p)
   }
 }
 
-// Exit the current process.  Does not return.
-// An exited process remains in the zombie state
-// until its parent calls wait().
-// void exit(int status)
-// {
-//   struct proc *p = myproc();
-//   struct kthread *kt;
-
-//   if (p == initproc)
-//   {
-//     panic("init exiting");
-//   }
-
-//   for (kt = p->kthread; kt < &p->kthread[NKT]; kt++)
-//   {
-//     if (kt != mykthread())
-//     {
-//       acquire(&kt->lock);
-//       if (kt->state != KT_UNUSED && kt->state != KT_ZOMBIE)
-//       {
-//         kt->killed = 1;
-//         release(&kt->lock);
-//         kthread_join(kt->tid, 0);
-//       }
-//       release(&kt->lock);
-//     }
-//   }
-
-//   // Close all open files.
-//   for (int fd = 0; fd < NOFILE; fd++)
-//   {
-//     if (p->ofile[fd])
-//     {
-//       struct file *f = p->ofile[fd];
-//       fileclose(f);
-//       p->ofile[fd] = 0;
-//     }
-//   }
-
-//   begin_op();
-//   iput(p->cwd);
-//   end_op();
-//   p->cwd = 0;
-
-//   acquire(&wait_lock);
-
-//   // Give any children to init.
-//   reparent(p);
-
-//   // Parent might be sleeping in wait().
-//   wakeup(p->parent);
-
-//   acquire(&mykthread()->lock);
-//   mykthread()->state = KT_ZOMBIE;
-//   release(&mykthread()->lock);
-
-//   acquire(&p->lock);
-//   p->xstate = status;
-//   p->state = ZOMBIE;
-//   release(&p->lock);
-//   release(&wait_lock);
-
-//   // Jump into the scheduler, never to return.
-//   acquire(&mykthread()->lock);
-
-//   sched();
-//   panic("zombie exit");
-// }
 
 void exit(int status)
 {
@@ -486,7 +418,7 @@ void exit(int status)
     release(&kt->lock);
   }
   release(&p->lock);
-  acquire(&mykthread()->lock);
+  acquire(&mykthread()->lock);// TODO: where realease
 
   release(&wait_lock);
 

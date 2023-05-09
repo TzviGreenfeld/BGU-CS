@@ -37,10 +37,6 @@ struct kthread *mykthread()
   return kt;
 }
 
-struct trapframe *get_kthread_trapframe(struct proc *p, struct kthread *kt)
-{
-  return p->base_trapframes + ((int)(kt - p->kthread));
-}
 
 int alloctid(struct proc *p)
 {
@@ -65,7 +61,7 @@ struct kthread *allocthread(struct proc *p)
     {
       kt->tid = alloctid(p);
       kt->state = KT_USED;
-      kt->trapframe = get_kthread_trapframe(p, kt);
+      kt->trapframe = p->base_trapframes + ((int)(kt - p->kthread));
       memset(&kt->context, 0, sizeof(kt->context));
       kt->context.ra = (uint64)forkret;
       kt->context.sp = kt->kstack + PGSIZE;
