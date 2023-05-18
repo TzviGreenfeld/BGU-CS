@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 
-const ThemeContext = createContext(null);
+const ThemeContext = createContext("light");
 
 const switchToDarkSVG = (
   <svg
@@ -52,15 +52,24 @@ const ThemeButton: React.FC = () => {
 
   const toggleTheme = (
     <ThemeContext.Provider value={theme}>
-    <button
-      type="button"
-      aria-label="toggle Light Mode"
-      onClick={(e) => {
-        setTheme(theme === "light" ? "dark" : "light");
-      }}
-    >
-      {theme === "light" ? switchToDarkSVG : switchToLightSVG}
-    </button>
+      <button
+        type="button"
+        className="themeButton"
+        onClick={(e) => {
+          setTheme((th) => (th === "light" ? "dark" : "light"));
+        }}
+      >
+        {theme === "light" ? switchToDarkSVG : switchToLightSVG}
+      </button>
+      <style jsx>{`
+        .themeButton {
+          border: 0px;
+          width: 16px;
+          height: 16px;
+          padding-left: 10px;
+          transform: translateY(-8px);
+        }
+      `}</style>
     </ThemeContext.Provider>
   );
 

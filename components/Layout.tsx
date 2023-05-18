@@ -28,6 +28,7 @@ const Layout: React.FC<Props> = (props) => (
           Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
           "Segoe UI Symbol";
         background: rgba(0, 0, 0, 0.05);
+
       }
 
       input,
