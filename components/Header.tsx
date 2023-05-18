@@ -1,13 +1,14 @@
-import React from "react";
+import React, { createContext, useContext, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/react";
+import ThemeButton from "./ThemeButton";
 
 const Header: React.FC = () => {
   const router = useRouter();
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
-
+  
   const {data: session, status} = useSession();
 
   let left = (
@@ -196,6 +197,7 @@ const Header: React.FC = () => {
   return (
     <nav>
       {left}
+      <ThemeButton/>
       {right}
       <style jsx>{`
         nav {
