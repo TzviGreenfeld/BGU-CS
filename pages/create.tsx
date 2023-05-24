@@ -1,22 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/Layout";
 import Router from "next/router";
 import { useSession } from "next-auth/react";
+import UploadFile from "../components/UploadFile";
 
 const Draft: React.FC = () => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    ref.current.focus();
+  }, []);
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const { data: session, status } = useSession();  
+  const { data: session, status } = useSession();
+  const [videoId, setVideoId] = useState({id:"", link:""});
+  
+
   let email = session?.user?.email;
+  let name = session?.user?.name;
+
   const submitData = async (e: React.SyntheticEvent) => {
     e.preventDefault();
+
     try {
-      const body = { title, content, session, email };
+      const {id, link} = videoId;
+      const body = { title, content, session, email, id, link };
+
       await fetch(`/api/post`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+
       await Router.push("/drafts");
     } catch (error) {
       console.error(error);
@@ -30,6 +46,7 @@ const Draft: React.FC = () => {
           <h1>New Draft</h1>
           <input
             autoFocus
+            ref={ref}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
             type="text"
@@ -46,6 +63,7 @@ const Draft: React.FC = () => {
           <a className="back" href="#" onClick={() => Router.push("/")}>
             or Cancel
           </a>
+          <UploadFile onVideoSave={setVideoId} />
         </form>
       </div>
       <style jsx>{`

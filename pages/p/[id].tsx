@@ -6,6 +6,7 @@ import Router from "next/router";
 import { PostProps } from "../../components/Post";
 import prisma from '../../lib/prisma'
 import { useSession } from "next-auth/react";
+import Video from "../../components/Video";
 
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
@@ -49,11 +50,11 @@ const Post: React.FC<PostProps> = (props) => {
   if (!props.published) {
     title = `${title} (Draft)`;
   }
-
+  const hasVideo = props.videoId.length > 0;
   return (
     <Layout>
       <div>
-        <h2>{title}</h2>
+        <h2>{hasVideo ? "🎥" : ""} {title}</h2>
         <p>By {props?.author?.name || "Unknown author"}</p>
         <ReactMarkdown children={props.content} />
         {!props.published && userHasValidSession && postBelongsToUser && (
@@ -62,6 +63,7 @@ const Post: React.FC<PostProps> = (props) => {
         {userHasValidSession && postBelongsToUser && (
           <button onClick={() => deletePost(props.id)}>Delete</button>
         )}
+        <Video videoLink={props.videoLink} />
       </div>
       <style jsx>{`
         .page {
