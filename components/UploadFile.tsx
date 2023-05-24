@@ -28,7 +28,7 @@ const UploadFile = ({onVideoSave}) => {
     if (file) {
       try {
         // cloudinary request
-        const response = await fetch("/api/upload", {
+        const response = await fetch("/api/video/upload", {
           method: "POST",
           body: formData,
         });

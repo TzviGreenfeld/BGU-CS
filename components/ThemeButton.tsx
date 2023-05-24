@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 
-const ThemeContext = createContext("light");
+export const ThemeContext = createContext("light");
 
 const switchToDarkSVG = (
   <svg
