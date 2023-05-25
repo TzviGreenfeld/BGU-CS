@@ -1,10 +1,11 @@
-import React, { useState, useEffect,} from "react";
+import React, { useState, useEffect, useContext,} from "react";
 import type { GetServerSideProps } from "next";
 import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
 import prisma from "../lib/prisma";
 import PaginationBar from "../components/Pagination";
 import { useRouter } from "next/router";
+import ThemeContext from "../components/ThemeContextProvider";
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const postCount = await prisma.post.count();
@@ -37,6 +38,7 @@ type Props = {
 };
 
 const Blog: React.FC<Props> = (props) => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const router = useRouter();
   const [currPageNum, setCurrPageNum] = useState(
     props.currpage ? props.currpage : 1
@@ -83,6 +85,8 @@ const Blog: React.FC<Props> = (props) => {
         .post {
           background: white;
           transition: box-shadow 0.1s ease-in;
+          ${theme === "dark" ? "background: hsl(223, 14%, 10%);\
+                                 color: white;" : ""}
         }
 
         .post:hover {
@@ -92,6 +96,7 @@ const Blog: React.FC<Props> = (props) => {
         .post + .post {
           margin-top: 2rem;
         }
+
       `}</style>
     </Layout>
   );

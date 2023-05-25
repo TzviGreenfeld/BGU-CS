@@ -1,3 +1,6 @@
+import { useContext } from "react";
+import ThemeContext from "./ThemeContextProvider";
+
 export type PaginationButtonProps = {
   pageNum: number | string;
   onClick: () => void;
@@ -9,6 +12,8 @@ const PaginationButton: React.FC<PaginationButtonProps> = ({
   onClick,
   isCurrentPage,
 }) => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+
   return (
     <span>
       <button onClick={onClick} className="pagination-button">
@@ -21,11 +26,21 @@ const PaginationButton: React.FC<PaginationButtonProps> = ({
             font-size: 17px;
             padding: 7px 5px 7px 5px;
             background: ${isCurrentPage ? "#a9ffa1;" : "#fff;"}
-            border: 1px solid #ddd;
+            ${
+              theme === "dark"
+                ? `background-color: ${
+                    isCurrentPage ? "hsl(223, 14%, 1%);" : "hsl(223, 14%, 25%);"
+                  };
+            color: #fff;`
+                : ""
+            }
+            
+            border: 1px solid rgba(221, 221, 221, ${ theme === "dark" ? "0.1" : "1"});
             border-radius: 5px;
           }
           .pagination-button:hover {
-            background: ${isCurrentPage ? "#a9ffa1;" : "#eee;"}
+            background: ${isCurrentPage ? "hsl(223, 14%, 90%);" : "#eee;"}
+            color: ${theme === "dark" ? "black;" : "white;"}
           }
         `}</style>
     </span>

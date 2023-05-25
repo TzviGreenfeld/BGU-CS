@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { GetServerSideProps } from "next";
 import ReactMarkdown from "react-markdown";
 import Layout from "../../components/Layout";
@@ -7,6 +7,7 @@ import { PostProps } from "../../components/Post";
 import prisma from '../../lib/prisma'
 import { useSession } from "next-auth/react";
 import Video from "../../components/Video";
+import ThemeContext from "../../components/ThemeContextProvider";
 
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
@@ -40,6 +41,7 @@ async function deletePost(id: number): Promise<void> {
 }
 
 const Post: React.FC<PostProps> = (props) => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const { data: session, status } = useSession();
   if (status === 'loading') {
     return <div>Authenticating ...</div>;
@@ -69,6 +71,8 @@ const Post: React.FC<PostProps> = (props) => {
         .page {
           background: white;
           padding: 2rem;
+          ${theme === "dark" ? "background: hsl(220, 15%, 16%);\
+          color: white;" : ""}
         }
 
         .actions {

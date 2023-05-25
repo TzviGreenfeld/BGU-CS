@@ -1,10 +1,13 @@
 import { SessionProvider } from "next-auth/react";
 import { AppProps } from "next/app";
+import { ThemeContextProvider } from "../components/ThemeContextProvider";
 
 const App = ({ Component, pageProps }: AppProps) => {
   return (
     <SessionProvider session={pageProps.session}>
-      <Component {...pageProps} />
+      <ThemeContextProvider>
+        <Component {...pageProps} />
+      </ThemeContextProvider>
     </SessionProvider>
   );
 };

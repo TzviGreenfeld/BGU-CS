@@ -3,8 +3,11 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/react";
 import ThemeButton from "./ThemeButton";
+import ThemeContext from "./ThemeContextProvider";
 
 const Header: React.FC = () => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+
   const router = useRouter();
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
@@ -27,6 +30,8 @@ const Header: React.FC = () => {
           text-decoration: none;
           color: #000;
           display: inline-block;
+          ${theme === "dark" ? "color: white;" : ""}
+
         }
 
         .left a[data-active="true"] {
@@ -53,12 +58,14 @@ const Header: React.FC = () => {
         <style jsx>{`
           .bold {
             font-weight: bold;
+            ${theme === "dark" ? "color: white;" : ""}
           }
 
           a {
             text-decoration: none;
             color: #000;
             display: inline-block;
+            ${theme === "dark" ? "color: white;" : ""}
           }
 
           .left a[data-active="true"] {
@@ -94,6 +101,8 @@ const Header: React.FC = () => {
             text-decoration: none;
             color: #000;
             display: inline-block;
+            ${theme === "dark" ? "color: white;" : ""}
+
           }
 
           a + a {
@@ -134,10 +143,14 @@ const Header: React.FC = () => {
             text-decoration: none;
             color: #000;
             display: inline-block;
+            ${theme === "dark" ? "color: white;" : ""}
+
           }
 
           .left a[data-active="true"] {
             color: gray;
+            ${theme === "dark" ? "color: white;" : ""}
+
           }
 
           a + a {
@@ -164,6 +177,8 @@ const Header: React.FC = () => {
             text-decoration: none;
             color: #000;
             display: inline-block;
+            ${theme === "dark" ? "color: white;" : ""}
+
           }
 
           p {
@@ -188,6 +203,7 @@ const Header: React.FC = () => {
 
           button {
             border: none;
+            background: none;
           }
         `}</style>
       </div>

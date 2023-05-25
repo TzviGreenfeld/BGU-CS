@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
 import { GetServerSideProps } from "next";
 import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
 import { useSession, getSession } from "next-auth/react";
 import prisma from '../lib/prisma'
+import ThemeContext from "../components/ThemeContextProvider";
 
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
@@ -34,6 +35,7 @@ type Props = {
 };
 
 const Drafts: React.FC<Props> = (props) => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const {data: session}= useSession();
 
   if (!session) {
@@ -61,6 +63,8 @@ const Drafts: React.FC<Props> = (props) => {
         .post {
           background: white;
           transition: box-shadow 0.1s ease-in;
+          ${theme === "dark" ? "background: hsl(220, 15%, 16%);\
+          color: white;" : ""}
         }
 
         .post:hover {

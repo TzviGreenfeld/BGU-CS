@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import Layout from "../components/Layout";
 import Router from "next/router";
 import { useSession } from "next-auth/react";
 import UploadFile from "../components/UploadFile";
+import ThemeContext from "../components/ThemeContextProvider";
 
 const Draft: React.FC = () => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+
   const ref = useRef(null);
 
   useEffect(() => {
@@ -73,6 +76,8 @@ const Draft: React.FC = () => {
           display: flex;
           justify-content: center;
           align-items: center;
+          ${theme === "dark" ? "background: hsl(220, 15%, 16%);\
+          color: white;" : ""}
         }
 
         input[type="text"],
