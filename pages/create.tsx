@@ -3,7 +3,7 @@ import Layout from "../components/Layout";
 import Router from "next/router";
 import { useSession } from "next-auth/react";
 import UploadFile from "../components/UploadFile";
-import ThemeContext from "../components/ThemeContextProvider";
+import ThemeContext from "../context/ThemeContextProvider";
 
 const Draft: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -17,8 +17,7 @@ const Draft: React.FC = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const { data: session, status } = useSession();
-  const [videoId, setVideoId] = useState({id:"", link:""});
-  
+  const [videoId, setVideoId] = useState({ id: "", link: "" });
 
   let email = session?.user?.email;
   let name = session?.user?.name;
@@ -27,7 +26,7 @@ const Draft: React.FC = () => {
     e.preventDefault();
 
     try {
-      const {id, link} = videoId;
+      const { id, link } = videoId;
       const body = { title, content, session, email, id, link };
 
       await fetch(`/api/post`, {
@@ -76,8 +75,10 @@ const Draft: React.FC = () => {
           display: flex;
           justify-content: center;
           align-items: center;
-          ${theme === "dark" ? "background: hsl(220, 15%, 16%);\
-          color: white;" : ""}
+          ${theme === "dark"
+            ? "background: hsl(220, 15%, 16%);\
+          color: white;"
+            : ""}
         }
 
         input[type="text"],
@@ -87,10 +88,16 @@ const Draft: React.FC = () => {
           margin: 0.5rem 0;
           border-radius: 0.25rem;
           border: 0.125rem solid rgba(0, 0, 0, 0.2);
+          ${theme === "dark"
+            ? "background: hsl(223, 14%, 10%);\
+          color: white;"
+            : ""}
         }
 
         input[type="submit"] {
           background: #ececec;
+          ${theme === "dark" ? "background: hsl(223, 14%, 10%);\
+          color: white;" : ""}
           border: 0;
           padding: 1rem 2rem;
         }

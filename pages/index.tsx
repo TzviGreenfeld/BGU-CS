@@ -5,7 +5,7 @@ import Post, { PostProps } from "../components/Post";
 import prisma from "../lib/prisma";
 import PaginationBar from "../components/Pagination";
 import { useRouter } from "next/router";
-import ThemeContext from "../components/ThemeContextProvider";
+import ThemeContext from "../context/ThemeContextProvider";
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const postCount = await prisma.post.count();

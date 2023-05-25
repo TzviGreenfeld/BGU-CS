@@ -4,7 +4,7 @@ import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
 import { useSession, getSession } from "next-auth/react";
 import prisma from '../lib/prisma'
-import ThemeContext from "../components/ThemeContextProvider";
+import ThemeContext from "../context/ThemeContextProvider";
 
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {

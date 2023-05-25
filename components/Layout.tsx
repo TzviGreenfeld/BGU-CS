@@ -1,6 +1,6 @@
 import React, { ReactNode, useContext } from "react";
 import Header from "./Header";
-import ThemeContext from "./ThemeContextProvider";
+import ThemeContext from "../context/ThemeContextProvider";
 
 type Props = {
   children: ReactNode;

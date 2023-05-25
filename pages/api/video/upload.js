@@ -32,7 +32,7 @@ export default async (req, res) => {
       resource_type: "video",
       public_id: data?.public_id,
     });
-    console.log("cloudinary res", response);
+    // console.log("cloudinary res", response);
     return res.json(response);
   } catch (error) {
     console.log("Error", error);

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import ThemeContext from "./ThemeContextProvider";
+import ThemeContext from "../context/ThemeContextProvider";
 
 const switchToDarkSVG = (
   <svg

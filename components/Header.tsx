@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { Suspense, createContext, useContext, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/react";
 import ThemeButton from "./ThemeButton";
-import ThemeContext from "./ThemeContextProvider";
+import ThemeContext from "../context/ThemeContextProvider";
+import OnlineIndicator from "./OnlineIndicator";
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -11,8 +12,8 @@ const Header: React.FC = () => {
   const router = useRouter();
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
-  
-  const {data: session, status} = useSession();
+
+  const { data: session, status } = useSession();
 
   let left = (
     <div className="left">
@@ -31,7 +32,6 @@ const Header: React.FC = () => {
           color: #000;
           display: inline-block;
           ${theme === "dark" ? "color: white;" : ""}
-
         }
 
         .left a[data-active="true"] {
@@ -47,7 +47,7 @@ const Header: React.FC = () => {
 
   let right = null;
 
-  if (status === 'loading') {
+  if (status === "loading") {
     left = (
       <div className="left">
         <Link href="/" legacyBehavior>
@@ -102,7 +102,6 @@ const Header: React.FC = () => {
             color: #000;
             display: inline-block;
             ${theme === "dark" ? "color: white;" : ""}
-
           }
 
           a + a {
@@ -144,13 +143,11 @@ const Header: React.FC = () => {
             color: #000;
             display: inline-block;
             ${theme === "dark" ? "color: white;" : ""}
-
           }
 
           .left a[data-active="true"] {
             color: gray;
             ${theme === "dark" ? "color: white;" : ""}
-
           }
 
           a + a {
@@ -178,7 +175,6 @@ const Header: React.FC = () => {
             color: #000;
             display: inline-block;
             ${theme === "dark" ? "color: white;" : ""}
-
           }
 
           p {
@@ -213,7 +209,10 @@ const Header: React.FC = () => {
   return (
     <nav>
       {left}
-      <ThemeButton/>
+      <ThemeButton />
+      {/* <Suspense fallback={<p>hi</p>}>
+      <OnlineIndicator />
+      </Suspense> */}
       {right}
       <style jsx>{`
         nav {

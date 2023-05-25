@@ -7,7 +7,7 @@ import { PostProps } from "../../components/Post";
 import prisma from '../../lib/prisma'
 import { useSession } from "next-auth/react";
 import Video from "../../components/Video";
-import ThemeContext from "../../components/ThemeContextProvider";
+import ThemeContext from "../../context/ThemeContextProvider";
 
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {

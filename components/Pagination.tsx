@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import ThemeContext from "./ThemeContextProvider";
+import ThemeContext from "../context/ThemeContextProvider";
 
 export type PaginationButtonProps = {
   pageNum: number | string;
