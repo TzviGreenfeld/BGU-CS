@@ -1,9 +1,15 @@
-import React, { Suspense, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 
 const OnlineIndicator: React.FC = () => {
-  if (typeof window === "undefined") {
-    return null;
+  const [isBrowser, setIsBrowser] = useState(false);
+
+  useEffect(() => {
+    setIsBrowser(true);
+  }, []);
+
+  if (!isBrowser) {
+    return null; // Render nothing on the server
   }
   const online = useOnlineStatus();
   return <h1>{online ? "✅ Online" : "❌ Disconnected"}</h1>;

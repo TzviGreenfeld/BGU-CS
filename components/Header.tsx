@@ -210,9 +210,8 @@ const Header: React.FC = () => {
     <nav>
       {left}
       <ThemeButton />
-      {/* <Suspense fallback={<p>hi</p>}>
-      <OnlineIndicator />
-      </Suspense> */}
+      {/* <hr />
+      <OnlineIndicator /> */}
       {right}
       <style jsx>{`
         nav {
