@@ -3,12 +3,7 @@
 #include "kernel/riscv.h"
 #include "user.h"
 
-typedef struct header
-{
-    uint len;
-    uint dealloc_page;
-    struct header *prev;
-} Header;
+
 
 Header *head = 0; // inital
 
@@ -45,19 +40,21 @@ void *ustack_malloc(uint len)
     void *ERROR = (void *)-1;
 
     // is valid len
-    if (!(0 < len && len < 512))
+    if (!(0 < len && len <= 512))
     {
+        printf("\n ustack_malloc ERROR:\t invalid len\n");
         return ERROR;
     }
 
-    int hasEnoughSpace = (PGSIZE - head->len) > (len + sizeof(int));
+    int hasEnoughSpace = (PGSIZE - head->len) < (len + sizeof(int));
     if (!head || !hasEnoughSpace)
     {
-        /* new or ran out of sapce,
+        /* used or ran out of sapce,
             need to allocate new page */
         int newPageSuccess = new_page_malloc();
         if (!newPageSuccess)
         {
+            printf("\n ustack_malloc ERROR:\t cant allocate new page\n");
             return ERROR;
         }
     }
