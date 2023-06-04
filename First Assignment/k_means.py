@@ -22,12 +22,4 @@ def kmeans(X, k):
 
 
 if __name__ == '__main__':
-    for i in range(3):
-        k = 5
-        X, Y = generateData(k=k)
-        plot_data(X, Y, title=f'Synthetic data from {k} isotropic Gaussians',
-                    path=f'output\Kmeans\Synthetic data from {k} isotropic Gaussians_{i}.png')
-        for _k in [1, k-1, k, k+1, 1000]:
-            clusters, centroids = kmeans(X, _k)
-            plot_data(
-                X, clusters, title=f'{k} isotropic Gaussians, Kmeans k={_k}', path=f'output\Kmeans\Kmeans_{k}_{_k}_{i}.png')
+    pass

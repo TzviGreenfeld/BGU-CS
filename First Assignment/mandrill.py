@@ -5,7 +5,6 @@ from k_means import kmeans
 from PDC_DP_means import PDC_DP
 
 
-
 def load_image(img_path):
     data = imread(img_path)
     original_shape = data.shape
@@ -42,12 +41,14 @@ if __name__ == '__main__':
     imgs = [f"data\mandrill{i}.jpg" for i in range(1)]
     for i, img_path in enumerate(imgs):
         original_shape, data = load_image(img_path)
-        # for l in reversed([10.0 ,100.0, 500.0]):
-        # for l in reversed([180.0]):
-        #     PDC_DP_painted_image = paint_image_with_PDCDP(data, original_shape, l)
-        #     output_k = len(np.unique(PDC_DP_painted_image))
-        #     show_image(PDC_DP_painted_image, path=f'output\mandrill\PDC_DP_{i}_{l}_{output_k}.png')
-        for k in range(5, 6, 10):
-            kmeans_painted_image = paint_image_with_kmeans(data, original_shape, k)
-            show_image(kmeans_painted_image,path=f'output\mandrill\kmeans_{i}_{k}.png')
-        
+        for l in reversed([100.0, 180.0, 250.0, 500.0]):
+            PDC_DP_painted_image = paint_image_with_PDCDP(
+                data, original_shape, l)
+            output_k = len(np.unique(PDC_DP_painted_image))
+            show_image(PDC_DP_painted_image,
+                       path=f'output\mandrill\PDC_DP_{i}_{l}_{output_k}.png')
+        for k in [5, 10, 20, 30]:
+            kmeans_painted_image = paint_image_with_kmeans(
+                data, original_shape, k)
+            show_image(kmeans_painted_image,
+                       path=f'output\mandrill\kmeans_{i}_{k}.png')
