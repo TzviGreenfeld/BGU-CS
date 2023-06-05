@@ -9,10 +9,43 @@
 #include "spinlock.h"
 #include "proc.h"
 
+/* globals */
 static char swapFileBuffer[PGSIZE];
-
 struct spinlock lock;
 int next = 1;
+/* */
+
+/* algorithms utils */
+uint64 bitwise_and(uint64 a, uint64 b)
+{
+  return (a & b);
+}
+
+uint64 bitwise_or(uint64 a, uint64 b)
+{
+  return (a | b);
+}
+
+uint64 bitwise_shift_right(uint64 n, uint64 shifts)
+{
+  return n >>= shifts;
+}
+
+uint64 bitwise_not(uint64 n)
+{
+  return ~n;
+}
+
+int count_set(uint n)
+{
+  int counter = 0;
+  while (n)
+  {
+    counter += bitwise_and(n, 1);
+    n = bitwise_shift_right(n, 1);
+  }
+  return counter;
+}
 
 int generate_unique_time()
 {
@@ -35,7 +68,7 @@ int generate_unique_time()
 
 int next_swappable_page()
 {
-  printf("\nchoosing algorithm\n");
+  printf("\nchoosing algorithm\n"); // DEBUG
 
 #if NFUA
   return alg_NFUA();
@@ -51,21 +84,96 @@ int next_swappable_page()
 
   panic("please provide valid algorithm (use make clean qemu SWAP_ALGO=SCFIFO/LAPG/NFUA)");
 }
+/* */
 
+/* algorithms */
+int alg_NFUA()
+{
+  printf("\nalg_NFUA\n"); // DEBUG
+  int minIdx = 0;
+  int min = myproc()->memory[0].accsesses;
+  for (int i = 0; i < MAX_PSYC_PAGES; i++)
+  {
+    if (myproc()->memory[i].accsesses < min)
+    {
+      min = myproc()->memory[i].accsesses;
+      minIdx = i;
+    }
+  }
+  return minIdx;
+}
+
+int alg_LAPG()
+{
+  printf("\nalg_LAPG\n"); // DEBUG
+  uint min = count_set(myproc()->memory[0].accsesses);
+  int minIdx = 0;
+
+  for (int i = 0; i < MAX_PSYC_PAGES; i++)
+  {
+    if (count_set(myproc()->memory[0].accsesses) < min)
+    {
+      min = count_set(myproc()->memory[0].accsesses);
+      minIdx = i;
+    }
+  }
+  return minIdx;
+}
+
+int alg_SCFIFO()
+{
+  printf("\nalg_SCFIFO\n"); // DEBUG
+  pte_t *pte;
+  int pageIndex;
+  uint ctime;
+
+recheck:
+  pageIndex = -1;
+  ctime = myproc()->memory[0].initDate;
+
+  // find the page index with the oldest initialization date among the used pages
+  for (int i = 0; i < MAX_PSYC_PAGES; i++)
+  {
+    if (myproc()->memory[i].state == USED && myproc()->memory[i].initDate <= ctime)
+    {
+      pageIndex = i;
+      ctime = myproc()->memory[i].initDate;
+    }
+  }
+
+  // retrieve the page table entry for the page
+  pte = walk(myproc()->pagetable, myproc()->memory[pageIndex].virtualAddr, 0);
+
+  // if PTE_A flag is set, clear it and recheck
+
+  if (bitwise_and(*pte, PTE_A))
+  {
+    *pte = bitwise_and(*pte, bitwise_not(PTE_A)); // turn ff PTE_A
+    goto recheck;
+  }
+
+  // return the page index with the oldest initialization date
+  return pageIndex;
+}
+/* */
+
+/* helper functions */
 int move_to_swapfile(struct proc *p, int pageIndexInSwapFile)
 {
-  printf("\nmoving page %d from proc %d to disk\n", pageIndexInSwapFile, p->pid);
+  printf("\nmoving page %d from proc %d to disk\n", pageIndexInSwapFile, p->pid); // DEBUG
   // find the next swappable page in physical memory and
   // get the physical address of the page in the process's page tablet
   int pageIndexInRam = next_swappable_page(p);
-  uint64 pa = walkaddr(p->pagetable, p->memory[pageIndexInRam].virtualAddr);
+  uint64 physicalAddr = walkaddr(p->pagetable, p->memory[pageIndexInRam].virtualAddr);
 
   // write the page's contents to the swap file
-  if (writeToSwapFile(p, (void *)pa, PGSIZE * pageIndexInSwapFile, PGSIZE) == -1)
+  if (writeToSwapFile(p, (void *)physicalAddr, PGSIZE * pageIndexInSwapFile, PGSIZE) == -1)
   {
     panic("writeToSwapFile failed");
   }
 
+  p->swappedToDisk[pageIndexInRam].virtualAddr = UNUSED;
+  p->swappedToDisk[pageIndexInRam].state = UNUSED;
   // update metadata of the corresponding entry in the swappedToDisk array
   p->swappedToDisk[pageIndexInSwapFile].state = USED;
   p->swappedToDisk[pageIndexInSwapFile].virtualAddr = p->memory[pageIndexInRam].virtualAddr;
@@ -73,17 +181,18 @@ int move_to_swapfile(struct proc *p, int pageIndexInSwapFile)
 
   // modify the page table entry to indicate the page is now on disk
   pte_t *pte = walk(p->pagetable, p->memory[pageIndexInRam].virtualAddr, 0);
-  *pte = (*pte | PTE_PG) & ~PTE_V;
+  *pte = bitwise_and(bitwise_or(*pte, PTE_PG), bitwise_not(PTE_V));
+
   // free the physical memory occupied by the page
   // andreturn the index of the freed page in physical memory
-  kfree((void *)pa);
+  kfree((void *)physicalAddr);
 
   return pageIndexInRam;
 }
 
-void move_to_ram(uint64 v_addr, pte_t *pte, char *phys_addr, struct proc *proc, int ramPageIdx)
+int move_to_ram(uint64 v_addr, pte_t *pte, char *phys_addr, struct proc *proc, int ramPageIdx)
 {
-  printf("\nmoving page %d from proc %d to RAM\n", ramPageIdx, proc->pid);
+  printf("\nmoving page %d from proc %d to RAM\n", ramPageIdx, proc->pid); // DEBUG
 
   int swapPageIdx = 0;
   while (swapPageIdx < MAX_PSYC_PAGES && proc->swappedToDisk[swapPageIdx].virtualAddr != v_addr)
@@ -99,16 +208,19 @@ void move_to_ram(uint64 v_addr, pte_t *pte, char *phys_addr, struct proc *proc, 
   proc->memory[ramPageIdx].state = USED;
   proc->memory[ramPageIdx].initDate = generate_unique_time();
 
-#if LAPA
-  proc->memory[ramPageIdx].accsesses = 0xFFFFFFFF;
-#elif NFUA
+#if NFUA
   proc->memory[ramPageIdx].accsesses = 0;
+#elif LAPA
+  proc->memory[ramPageIdx].accsesses = 0xFFFFFFFF;
 #endif
 
-  if (readFromSwapFile(proc, swapFileBuffer, swapPageIdx * PGSIZE, PGSIZE) == -1)
+  int isValid = readFromSwapFile(proc, swapFileBuffer, swapPageIdx * PGSIZE, PGSIZE) != -1;
+
+  if (!isValid)
   {
     panic("readFromSwapFile failed");
   }
+  return 1; // Maybe uncessary if so delete later.
 }
 
 int get_first_ram_unused(struct proc *p)
@@ -143,154 +255,66 @@ int get_first_swapped_unused(struct proc *p)
 
 void page_fault(uint64 va, pte_t *pte)
 {
+  char *physicalAddrPtr = kalloc();
+  int allPermissions = PTE_W | PTE_X | PTE_R | PTE_U;
   struct proc *p = myproc();
-  char *pa = kalloc();
   int pageIndexInRam = get_first_ram_unused(p);
-  // no empty room on memory
-  if (pageIndexInRam == -1)
+  if (pageIndexInRam != -1)
   {
-
-    pageIndexInRam = next_swappable_page(p);
-    uint ramVirtualAddr = p->memory[pageIndexInRam].virtualAddr;
-    uint64 ramPhysicalAddr = walkaddr(p->pagetable, ramVirtualAddr);
-
-    move_to_ram(va, pte, pa, p, pageIndexInRam);
-    int pageIndexInSwapFile = get_first_swapped_unused(p);
-
-    if (writeToSwapFile(p, (void *)ramPhysicalAddr, PGSIZE * pageIndexInSwapFile, PGSIZE) == -1)
-    {
-      panic("writeToSwapFile failed");
-    }
-    kfree((void *)ramPhysicalAddr);
-
-    p->swappedToDisk[pageIndexInSwapFile].state = USED;
-    p->swappedToDisk[pageIndexInSwapFile].virtualAddr = ramVirtualAddr;
-
-    pte_t *swapPte = walk(p->pagetable, ramVirtualAddr, 0);
-    *swapPte = *swapPte | PTE_PG;
-    *swapPte = *swapPte & ~PTE_V;
-  }
-  else
-  {
-    move_to_ram(va, pte, pa, p, pageIndexInRam);
+    move_to_ram(va, pte, physicalAddrPtr, p, pageIndexInRam);
+    mappages_single_page(p->pagetable, va, p->sz, (uint64)physicalAddrPtr, allPermissions);
+    memmove((void *)physicalAddrPtr, swapFileBuffer, PGSIZE);
+    *pte = bitwise_and(*pte, bitwise_not(PTE_PG));
+    return;
   }
 
-  mappages_single_page(p->pagetable, va, p->sz, (uint64)pa, PTE_W | PTE_X | PTE_R | PTE_U);
-  memmove((void *)pa, swapFileBuffer, PGSIZE);
-  *pte = *pte & ~PTE_PG;
-}
+  pageIndexInRam = next_swappable_page(p);
+  uint ramVirtualAddr = p->memory[pageIndexInRam].virtualAddr;
+  uint64 ramPhysicalAddr = walkaddr(p->pagetable, ramVirtualAddr);
 
-int alg_NFUA()
-{
-  printf("\n\nalg_NFUA\n\n");
-  int minIdx = 0;
-  int min = myproc()->memory[0].accsesses;
-  for (int i = 0; i < MAX_PSYC_PAGES; i++)
+  move_to_ram(va, pte, physicalAddrPtr, p, pageIndexInRam);
+  int pageIndexInSwapFile = get_first_swapped_unused(p);
+
+  if (writeToSwapFile(p, (void *)ramPhysicalAddr, PGSIZE * pageIndexInSwapFile, PGSIZE) != -1)
   {
-    if (myproc()->memory[i].accsesses < min)
-    {
-      min = myproc()->memory[i].accsesses;
-      minIdx = i;
-    }
+  kfree((void *)ramPhysicalAddr);
+
+  p->swappedToDisk[pageIndexInSwapFile].state = USED;
+  p->swappedToDisk[pageIndexInSwapFile].virtualAddr = ramVirtualAddr;
+
+  //mark the page as swapped to disk and invalidate it in physical memory
+  pte_t *pageTableEntryTemp = walk(p->pagetable, ramVirtualAddr, 0);
+  *pageTableEntryTemp = bitwise_or(*pageTableEntryTemp, PTE_PG);
+  *pageTableEntryTemp = bitwise_and(*pageTableEntryTemp, bitwise_not(PTE_V));
+
+  mappages_single_page(p->pagetable, va, p->sz, (uint64)physicalAddrPtr, allPermissions);
+  memmove((void *)physicalAddrPtr, swapFileBuffer, PGSIZE);
+  *pte = bitwise_and(*pte, bitwise_not(PTE_PG));
+  return;
   }
-  return minIdx;
-}
-
-int bitwise_and(int a, int b){
-  return (a & b);
-}
-
-int bitwise_shift_right(int n, int shifts){
-  return n >>= shifts;
-}
-
-int count_set(uint n)
-{
-  int counter = 0;
-  while (n)
-  {
-    counter += bitwise_and(n, 1);
-    n = bitwise_shift_right(n, 1);
-  }
-  return counter;
-}
-
-
-
-int alg_LAPG()
-{
-  printf("\n\nalg_LAPG\n\n");
-  uint min = count_set(myproc()->memory[0].accsesses);
-  int minIdx = 0;
-
-  for (int i = 0; i < MAX_PSYC_PAGES; i++)
-  {
-    if (count_set(myproc()->memory[0].accsesses) < min)
-    {
-      min = count_set(myproc()->memory[0].accsesses);
-      minIdx = i;
-    }
-  }
-  return minIdx;
-}
-
-int bitwise_not(int n){
-  return  ~n;
-}
-
-int alg_SCFIFO()
-{
-  printf("\n\nalg_SCFIFO\n\n");
-  pte_t *pte;
-  int pageIndex;
-  uint ctime;
-
-recheck:
-  pageIndex = -1;
-  ctime = myproc()->memory[0].initDate;
-
-  // find the page index with the oldest initialization date among the used pages
-  for (int i = 0; i < MAX_PSYC_PAGES; i++)
-  {
-    if (myproc()->memory[i].state == USED && myproc()->memory[i].initDate <= ctime)
-    {
-      pageIndex = i;
-      ctime = myproc()->memory[i].initDate;
-    }
-  }
-
-  // retrieve the page table entry for the page
-  pte = walk(myproc()->pagetable, myproc()->memory[pageIndex].virtualAddr, 0);
-
-  // if PTE_A flag is set, clear it and recheck
-  if (*pte & PTE_A)
-  {
-    *pte &= ~PTE_A; // turn off PTE_A flag
-    goto recheck;
-  }
-
-  // return the page index with the oldest initialization date
-  return pageIndex;
+  panic("writeToSwapFile failed");
 }
 
 void update_access_counters_for_active_pages(struct proc *p)
 {
   pte_t *pte;
-  int i;
-  for (i = 0; i < MAX_PSYC_PAGES; i++)
+  int i = 0;
+  while (i < MAX_PSYC_PAGES)
   {
     if (p->memory[i].state == USED)
     {
       pte = walk(p->pagetable, p->memory[i].virtualAddr, 0);
-      if (*pte & PTE_A)
-      {                 // check if page accessed
-        *pte &= ~PTE_A; // turn off PTE_A flag
+      if (bitwise_and(*pte, PTE_A)) 
+      {
+        *pte = bitwise_and(*pte, bitwise_not(PTE_A));
         p->memory[i].accsesses = p->memory[i].accsesses >> 1;
         p->memory[i].accsesses = p->memory[i].accsesses | (1 << 31);
       }
     }
+    i++;
   }
 }
+/* */
 
 /*
  * the kernel's page table.
@@ -611,18 +635,17 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
       return 0;
     }
 #ifndef NONE
-    // printf("uvmalloc: #ifndef NONE\n");
     struct proc *p = myproc();
     if (not_shell_or_init(p->pid) && p->pagetable == pagetable)
     {
       int pageIndexInRam = get_first_ram_unused(p);
       int pageIndexInSwapFile = -1;
-      printf("\n\n\npageIndexInRam: %d\n", pageIndexInRam);
+      printf("\npageIndexInRam: %d\n", pageIndexInRam); // DEBUG
       if (pageIndexInRam == -1)
       {
         // movet to disk if ram is full
         pageIndexInSwapFile = get_first_swapped_unused(p);
-        printf("\n\n\npageIndexInSwapFile: %d\n", pageIndexInSwapFile);
+        printf("\npageIndexInSwapFile: %d\n", pageIndexInSwapFile); // DEBUG
         if (pageIndexInSwapFile != -1)
         {
           pageIndexInRam = move_to_swapfile(p, pageIndexInSwapFile);

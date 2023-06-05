@@ -3,35 +3,7 @@
 #include "kernel/riscv.h"
 #include "user.h"
 
-
-
 Header *head = 0; // inital
-
-int new_page_malloc(void)
-{
-    char *newPageAddr;
-    Header *newPageHeader;
-
-    // allocate a new memory page using the sbrk system call
-    newPageAddr = sbrk(PGSIZE);
-
-    if (newPageAddr == (char *)-1)
-    {
-        // sbrk fail
-        return -1;
-    }
-
-    /* cast the starting address of the new page to a Header pointer
-        and init fields */
-    newPageHeader = (Header *)newPageAddr;
-    newPageHeader->prev = head;
-    newPageHeader->len = sizeof(Header);
-
-    // update global
-    head = newPageHeader;
-
-    return 1;
-}
 
 void *ustack_malloc(uint len)
 {
@@ -42,19 +14,16 @@ void *ustack_malloc(uint len)
     // is valid len
     if (!(0 < len && len <= 512))
     {
-        printf("\n ustack_malloc ERROR:\t invalid len\n");
         return ERROR;
     }
-
-    int hasEnoughSpace = (PGSIZE - head->len) < (len + sizeof(int));
-    if (!head || !hasEnoughSpace)
+    int needNewPage = (!head || (PGSIZE - head->len) < (len + sizeof(int)));
+    if (needNewPage)
     {
         /* used or ran out of sapce,
             need to allocate new page */
         int newPageSuccess = new_page_malloc();
         if (!newPageSuccess)
         {
-            printf("\n ustack_malloc ERROR:\t cant allocate new page\n");
             return ERROR;
         }
     }
@@ -81,29 +50,54 @@ int ustack_free(void)
     Header *prevPage;
 
     // is there any memory allocated on the stack
-    if (!head)
+    if (head)
     {
-        return -1;
+        // get the address of the memory block being freed
+        void *freedAddr = (void *)head + head->len - sizeof(int);
+        freedLen = *((int *)freedAddr);
+
+        /* update the allocated memory size, account for
+            the freed length and the size of an integer */
+        head->len -= (freedLen + sizeof(int));
+
+        // is the entire page has been freed
+        if (head->len == sizeof(Header))
+        {
+            prevPage = head->prev;
+
+            // deallocate the current page
+            sbrk(-PGSIZE);
+
+            head = prevPage;
+        }
+
+        return freedLen;
     }
+    return -1;
+}
 
-    // get the address of the memory block being freed
-    void* freedAddr = (void*)head + head->len - sizeof(int);
-    freedLen = *((int*)freedAddr);
+int new_page_malloc(void)
+{
+    char *newPageAddr;
+    Header *newPageHeader;
 
-    /* update the allocated memory size, account for
-        the freed length and the size of an integer */
-    head->len -= (freedLen + sizeof(int));
-    
-    // is the entire page has been freed
-    if (head->len == sizeof(Header))
+    // allocate a new memory page using the sbrk system call
+    newPageAddr = sbrk(PGSIZE);
+
+    if (newPageAddr != (char *)-1)
     {
-        prevPage = head->prev; 
 
-        // deallocate the current page
-        sbrk(-PGSIZE);
+        /* cast the starting address of the new page to a Header pointer
+            and init fields */
+        newPageHeader = (Header *)newPageAddr;
+        newPageHeader->prev = head;
+        newPageHeader->len = sizeof(Header);
 
-        head = prevPage;
+        // update global
+        head = newPageHeader;
+
+        return 1;
     }
-
-    return freedLen;
+    // sbrk fail
+    return -1;
 }
