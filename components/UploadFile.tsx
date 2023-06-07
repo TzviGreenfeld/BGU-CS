@@ -1,4 +1,4 @@
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import React, { useContext, useState } from "react";
 import Spinner from "./Spinner";
 import { set } from "mongoose";
@@ -10,7 +10,7 @@ const UploadFile = ({ onVideoSave }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFile, setUploadeddFile] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
-  const { data: session, status } = useSession();
+  // const { data: session, status } = useSession();
 
   const onChange = (e) => {
     e.preventDefault();

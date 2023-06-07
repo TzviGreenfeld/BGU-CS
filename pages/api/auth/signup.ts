@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma, User } from "@prisma/client";
-import { error } from "console";
 import { NextApiRequest, NextApiResponse } from "next";
+const bcrypt = require("bcrypt");
+
 
 const prisma = new PrismaClient();
 
@@ -11,12 +12,14 @@ export default async function handle(
   console.log("got req.body:", req.body)
   const { userName, name, email, password } = req.body;
   if (req.method === "POST") {
+    const saltRounds = 10
+    const passwordHash = await bcrypt.hash(password, saltRounds)
     const newUser: Prisma.UserCreateInput = 
       {
         userName: userName,
         name: name,
         email: email,
-        password: password,
+        password: passwordHash,
       }
     
       try {
@@ -25,7 +28,7 @@ export default async function handle(
         });
         res.json(resultUser);
 
-      } catch (e) {
+      } catch (e:any) {
         res.status(500).json({ error: e.message });
       }
 
