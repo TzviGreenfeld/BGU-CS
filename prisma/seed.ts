@@ -113,8 +113,8 @@ const userData: Prisma.UserCreateInput[] = [
 ];
 
 async function main() {
-  const posts = generatePost(1000000); // 1M posts
-  // const posts = generatePost(100000); // 100K posts
+  // const posts = generatePost(1000000); // 1M posts
+  const posts = generatePost(100000); // 100K posts
   console.log(`Start seeding ...`);
   for (const u of userData) {
     const userPosts = posts.next();
