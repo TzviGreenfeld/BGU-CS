@@ -76,7 +76,8 @@ const Draft: React.FC = () => {
           justify-content: center;
           align-items: center;
           ${theme === "dark"
-            ? "background: hsl(220, 15%, 16%);\
+            ? "background: hs
+            l(220, 15%, 16%);\
           color: white;"
             : ""}
         }
