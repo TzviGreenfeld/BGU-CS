@@ -30,9 +30,9 @@
     - [ ] create a profile page for authenticated users. link: on the main page of the app. (havent added link yet)
     - [ ] Submit at least 10 backend tests.
   - [ ] Bonus:
-    - [ ] Let the user add a profile picture. Save it to Cloudinary.
+    - [x] Let the user add a profile picture. Save it to Cloudinary.
     - [ ] Make the photo editable with a click, at the profile page.
-    - [ ] Wherever there's a post shown, add the profile picture of the author.
+    - [x] Wherever there's a post shown, add the profile picture of the author.
         
 
 

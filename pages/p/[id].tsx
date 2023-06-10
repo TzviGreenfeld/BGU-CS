@@ -8,7 +8,7 @@ import prisma from '../../lib/prisma'
 import { useSession } from "next-auth/react";
 import Video from "../../components/Video";
 import ThemeContext from "../../context/ThemeContextProvider";
-
+import Image from "next/image";
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const post = await prisma.post.findUnique({
@@ -17,7 +17,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     },
     include: {
       author: {
-        select: { name: true, email: true },
+        select: { name: true, email: true, image:true, },
       },
     },
   });
@@ -57,7 +57,12 @@ const Post: React.FC<PostProps> = (props) => {
     <Layout>
       <div>
         <h2>{hasVideo ? "🎥" : ""} {title}</h2>
-        <p>By {props?.author?.name || "Unknown author"}</p>
+        <p> <Image className="authorImage"
+      src={props.author?.image || ""}
+      width={20}
+      height={20}
+      alt="Picture of the author"
+    /> By {props?.author?.name || "Unknown author"}</p>
         <ReactMarkdown children={props.content} />
         {!props.published && userHasValidSession && postBelongsToUser && (
           <button onClick={() => publishPost(props.id)}>Publish</button>

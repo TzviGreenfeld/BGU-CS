@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import Layout from "../components/Layout";
 import ThemeContext from "../context/ThemeContextProvider";
 import Spinner from "../components/Spinner";
+import UploadImage from "../components/UploadImage"
 
 const Signup = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -10,6 +11,7 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showSpinner, setShowSpinner] = useState(false);
+  const [imageLink, setImageLink] = useState("");
 
   const onFieldChange = (e, setState) => {
     setState(e.target.value);
@@ -26,6 +28,7 @@ const Signup = () => {
       email: email,
       password: password,
       name: name,
+      image: imageLink,
     };
 
     console.log("sending userData:", userData);
@@ -85,6 +88,8 @@ const Signup = () => {
                 value={name}
               />
             </label>
+            <br />
+            <UploadImage setImageLink={setImageLink} />
           </form>
           {showSpinner ? (
             <Spinner />

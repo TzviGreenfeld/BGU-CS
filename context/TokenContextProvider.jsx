@@ -9,13 +9,13 @@ export default TokenContext;
 
 export const TokenContextProvider = ({ children }) => {
 
-  const setTokenData = () => {
-    setTheme((th) => (th === "light" ? "dark" : "light"));
-  };
+  // const setTokenData = () => {
+  //   setTheme((th) => (th === "light" ? "dark" : "light"));
+  // };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <TokenContextProvider.Provider value={{ token, userName }}>
       {children}
-    </ThemeContext.Provider>
+    </TokenContextProvider.Provider>
   );
 };

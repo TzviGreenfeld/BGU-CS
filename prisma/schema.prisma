@@ -57,7 +57,7 @@ model User {
   password       String?
   email         String?   @unique
   emailVerified DateTime? @map("email_verified")
-  image         String?
+  image         String    @default("https://res.cloudinary.com/dicczqmkf/image/upload/v1686396738/default_profile_pic_ojbb4o.jpg")
   createdAt     DateTime  @default(now()) @map(name: "created_at")
   updatedAt     DateTime  @updatedAt @map(name: "updated_at")
   posts         Post[]

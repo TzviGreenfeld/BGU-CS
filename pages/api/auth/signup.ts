@@ -10,7 +10,7 @@ export default async function handle(
   res: NextApiResponse
 ) {
   console.log("got req.body:", req.body)
-  const { userName, name, email, password } = req.body;
+  const { userName, name, email, password, imageLink } = req.body;
   if (req.method === "POST") {
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(password, saltRounds)
@@ -20,6 +20,7 @@ export default async function handle(
         name: name,
         email: email,
         password: passwordHash,
+        image: imageLink,
       }
     
       try {
