@@ -23,6 +23,8 @@ export default async function handle(
     const passwordCorrect =
       user === null ? false : await bcrypt.compare(password, user.password);
 
+      console.log("backend user:", user)
+      console.log("backend passwordCorrect:", passwordCorrect)
     if (!(user && passwordCorrect)) {
       return res.status(401).json({
         error: "invalid username or password",
@@ -34,7 +36,8 @@ export default async function handle(
       id: user.id,
     };
 
-    const token = jwt.sign(userForToken, process.env.SECRET);
+    const token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: 60*60 }
+      );
 
     res
       .status(200)

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/react";
+// import { getSession } from "next-auth/react";
 import prisma from "../../../lib/prisma";
 import { connectMongo } from "../../../utils/connectMongo";
 import VideoMetadata from "../../../models/metadataModel";
@@ -12,10 +12,10 @@ export default async function handle(
 ) {
   const postId = req.query.id;
 
-  const session = await getSession({ req });
+  // const session = await getSession({ req }); // WAS SESSION
 
   if (req.method === "DELETE") {
-    if (session) {
+    if (true) { // WAS SESSION
       console.log("got delete request for postId: ", postId);
 
       const post = await prisma.post.delete({

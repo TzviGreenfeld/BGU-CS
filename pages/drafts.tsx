@@ -2,21 +2,22 @@ import React, { useContext } from "react";
 import { GetServerSideProps } from "next";
 import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
-import { useSession, getSession } from "next-auth/react";
+// import { useSession, getSession } from "next-auth/react";
 import prisma from '../lib/prisma'
 import ThemeContext from "../context/ThemeContextProvider";
 
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const session = await getSession({ req });
-  if (!session) {
+  // const session = await getSession({ req }); // WAS SESSION
+  if (!true)  { // WAS !SESSION
     res.statusCode = 403;
     return { props: { drafts: [] } };
   }
 
   const drafts = await prisma.post.findMany({
     where: {
-      author: { email: session.user?.email },
+      // author: { email: session.user?.email },
+      author: { email: "session.user?.email" }, // WAS SESSION
       published: false,
     },
     include: {
@@ -36,9 +37,9 @@ type Props = {
 
 const Drafts: React.FC<Props> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const {data: session}= useSession();
+  // const {data: session}= useSession(); // WAS SESSION
 
-  if (!session) {
+  if (!true){ // WAS !SESSION
     return (
       <Layout>
         <h1>My Drafts</h1>

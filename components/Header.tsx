@@ -90,7 +90,7 @@ const Header: React.FC = () => {
     );
   }
 
-  if (!session) {
+  if (!true){ // WAS !SESSION
     right = (
       <div className="right">
         <Link href="/api/auth/signin" legacyBehavior>
@@ -122,7 +122,7 @@ const Header: React.FC = () => {
     );
   }
 
-  if (session) {
+  if (true) { // WAS SESSION
     left = (
       <div className="left">
         <Link href="/" legacyBehavior>
