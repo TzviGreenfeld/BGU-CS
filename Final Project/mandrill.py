@@ -12,7 +12,7 @@ def array_to_video(array_list, fps=10, title=""):
     # Create a list to hold our images
     im_list = []
 
-    for arr in array_list:
+    for i,arr in enumerate(array_list):
         # Normalize your array to be between 0 and 1
         arr = arr / 255.0
         im = plt.imshow(arr, animated=True)
@@ -63,8 +63,8 @@ def load_video(video_path, fps=1):
     return frames
 
 
-def stream_DPMeans(imgs, l):
-    
+def stream_DPMeans(imgs, l, n_clusters_doc=[]):
+    # if passed n_clusters_doc, store the number of clusters for each frame in place
     output_frames = []
     
     # these are default values of DPMeans.
@@ -86,13 +86,10 @@ def stream_DPMeans(imgs, l):
         
         # make each pixel the color of its cluster centroid
         pixels = centroids[y_dpmeans]
-        
-        is_image = original_shape[1] > 2
-        if is_image:
-            # cast to uint8 to fit as RGB vlaues
-            pixels = pixels.astype(np.uint8)
-            # reshape from array of RGB to image shape
-            pixels = pixels.reshape(original_shape)
+        # cast to uint8 to fit as RGB vlaues
+        pixels = pixels.astype(np.uint8)
+        # reshape from array of RGB to image shape
+        pixels = pixels.reshape(original_shape)
         output_frames.append(pixels)
         
         # update the previous centroids and number of clusters to use in the next iteration
@@ -101,11 +98,9 @@ def stream_DPMeans(imgs, l):
         if len(centroids_agger) > 0:
             centroids_agger = np.vstack((centroids, centroids_agger))
         prev_n_clusters = len(centroids)
+        n_clusters_doc.append(prev_n_clusters)
         
     return output_frames
-
-
-
 
 
 if __name__ == '__main__':
@@ -113,12 +108,13 @@ if __name__ == '__main__':
     video_name = 'many_mandrils'
     video_path = f'./videos/{video_name}.mp4'
     l = 100 # lambda
+    n_clusters = []
     # for fps in [1, 5, 10, 15, 20, 25, 30]:
     for fps in [1]:
         time_start = time.time()
         
         imgs = load_video(video_path, fps)
-        frames = stream_DPMeans(imgs, delta=l)
+        frames = stream_DPMeans(imgs, l=l, n_clusters_doc=n_clusters)
         
         # export the frames as a gif
         title = f"DPMeans with lambda={l} and fps={fps}"

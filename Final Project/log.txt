@@ -6,3 +6,10 @@ fps: 20	total time: 3022.1165976524353 seconds
 fps: 25	total time: 3053.449862241745 seconds
 fps: 30	total time: 3086.4520194530487 seconds
 fps: 1	total time: 31.162625074386597 seconds 
+fps: 1	total time: 28.327097177505493 seconds 
+fps: 1	total time: 28.760523319244385 seconds 
+fps: 1	total time: 29.234537839889526 seconds 
+fps: 1	total time: 27.676585912704468 seconds 
+fps: 1	total time: 27.883777856826782 seconds 
+fps: 1	total time: 28.81204080581665 seconds 
+fps: 1	total time: 28.180004119873047 seconds 

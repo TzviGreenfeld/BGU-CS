@@ -14,7 +14,12 @@ class SynthaticDataHandler:
     def __init__(self):
         pass
 
-    def generate_streaming_data(self, n_samples=1000, max_clusters=5, cluster_std=1.0, drift_rate=0.1, batch_size=100):
+    def generate_streaming_data(self,
+                                n_samples=1000,
+                                max_clusters=5,
+                                cluster_std=1.0,
+                                drift_rate=0.1,
+                                batch_size=100):
         centers = []
         for _ in range(max_clusters):
             # randomly generate cluster centers in range [0, 10)
@@ -31,14 +36,17 @@ class SynthaticDataHandler:
 
             # generate data for the current batch
             X, Y = make_blobs(
-                n_samples=batch_size, centers=centers[:current_clusters], cluster_std=cluster_std)
+                n_samples=batch_size,
+                centers=centers[:current_clusters],
+                cluster_std=cluster_std)
 
-            yield X, Y
+            yield X, Y, centers[:current_clusters]        
 
-    def generate_PDCDP_frames(self, generator, frames):
+
+    def generate_PDCDP_frames(self, data):
         # pre-generate all frames
-        data = [[X.shape, X] for X, Y in list(itertools.islice(generator, frames))]
-        frame_data = self.stream_DPMeans_synth(data, l=1)
+        
+        frame_data = self.stream_DPMeans_synth(data, l=30.)
 
         return frame_data
         
@@ -88,14 +96,14 @@ class SynthaticDataHandler:
 
             sc.set_offsets(X)
             sc.set_array(clusters)
-
             return [sc] + polygons + texts,
 
         slider.on_changed(update)
         update(0)  # to display the first frame
 
-        plt.show()
-            
+        
+
+    
     def stream_DPMeans_synth(self, imgs, l):
         
         output_frames = []
@@ -104,7 +112,7 @@ class SynthaticDataHandler:
         # we use them just for the first iteration
         centroids_agger = np.array([]) # new values at the begining
         prev_centroids = "k-means++" 
-        prev_n_clusters = 8
+        prev_n_clusters = 5
         # give small weight to old values
         
         for (original_shape, data) in imgs:
@@ -127,9 +135,105 @@ class SynthaticDataHandler:
             prev_n_clusters = len(centroids)
         return output_frames
 
+    def create_real_clusters_slide_show(self, frame_data):
+        fig, ax = plt.subplots()
+        plt.subplots_adjust(bottom=0.2)  # make room for the slider
+
+        sc = ax.scatter([], [], c=[], cmap='tab20', alpha=0.45)
+        ax.set_xlim(0, 11)
+        ax.set_ylim(0, 11)
+
+        slider_ax = plt.axes([0.1, 0.05, 0.8, 0.03])  # position of the slider
+        slider = Slider(slider_ax, 'Frame', 0, len(frame_data)-1, valinit=0, valstep=1)
+
+        polygons = []
+        texts = []
+
+        def update(frame):
+            nonlocal polygons, texts
+            X, Y, centers = frame_data[int(frame)]
+
+            # remove old polygons and texts
+            for polygon in polygons:
+                polygon.remove()
+            polygons = []
+            for text in texts:
+                text.remove()
+            texts = []
+
+            # draw new polygons and texts
+            for i, centroid in enumerate(centers):
+                points = X[Y == i]
+                if len(points) >= 3:  # need at least 3 points to calculate the convex hull
+                    hull = ConvexHull(points)
+                    polygon = plt.Polygon(points[hull.vertices], fill=None, edgecolor='r', alpha=0.7)
+                    ax.add_patch(polygon)
+                    polygons.append(polygon)
+
+                # add cluster index as text
+                text = ax.text(centroid[0], centroid[1], str(i), color='black', fontweight='semibold', fontsize='small')
+                texts.append(text)
+
+            sc.set_offsets(X)
+            sc.set_array(Y)
+
+            return [sc] + polygons + texts,
+
+        slider.on_changed(update)
+        update(0)  # to display the first frame
+
+        plt.show()
+
+    def save_frames_as_images(self, frame_data, path=""):
+        fig, ax = plt.subplots()
+        ax.set_xlim(0, 11)
+        ax.set_ylim(0, 11)
+
+        sc = ax.scatter([], [], c=[], cmap='tab20', alpha=0.45)
+
+        for frame in range(len(frame_data)):
+            X, clusters, centroids = frame_data[frame]
+
+            # draw new polygons and texts
+            polygons = []
+            texts = []
+
+            for i in range(len(centroids)):
+                points = X[clusters == i]
+                if len(points) >= 3:  # need at least 3 points to calculate the convex hull
+                    hull = ConvexHull(points)
+                    polygon = plt.Polygon(points[hull.vertices], fill=None, edgecolor='r', alpha=0.7)
+                    ax.add_patch(polygon)
+                    polygons.append(polygon)
+
+                # add cluster index as text
+                centroid = points.mean(axis=0)
+                if np.all(np.isfinite(centroid)):  # check that centroid is a finite number
+                    text = ax.text(centroid[0], centroid[1], str(i), color='black', fontweight='semibold', fontsize='small')
+                    texts.append(text)
+
+            sc.set_offsets(X)
+            sc.set_array(clusters)
+
+            plt.savefig(f'{path}_{frame}.png')  # save each frame as an individual image
+
+            # Clean up
+            ax.clear()
+            ax.set_xlim(0, 11)
+            ax.set_ylim(0, 11)
+            sc = ax.scatter([], [], c=[], cmap='tab20', alpha=0.45)
+
+        plt.close(fig)  # Close the figure after saving all frames
+
 if __name__ == '__main__':
     sdh = SynthaticDataHandler()
     gen = sdh.generate_streaming_data(n_samples=1000, batch_size=100)
-    frames_data = sdh.generate_PDCDP_frames(generator=gen, frames=10)
-    sdh.create_slide_show(frames_data)
+    data=list(itertools.islice(gen, 10))
+    frames_data = sdh.generate_PDCDP_frames([[X.shape, X] for X, Y, clusters in data])
+    # frames_data2 = list(itertools.islice(gen, 10))
+    # sdh.create_slide_show(frames_data)
+    sdh.save_frames_as_images(frames_data, path="output/pdc/pdc")
+    sdh.save_frames_as_images(data, path="output/raw/raw")
+    # sdh.create_slide_show(data)
+    print("done")
     
