@@ -2,9 +2,9 @@ POST http://localhost:3000/api/auth/signup/
 content-type: application/json
 
 {
-"userName": "tzvigruniq",
+"userName": "fsdf",
 "name": "name",
-"email": "email@tzvigrunique.com",
+"email": "fdsfs@tzvigrunique.com",
 "password": "0545"
 }
 ####
