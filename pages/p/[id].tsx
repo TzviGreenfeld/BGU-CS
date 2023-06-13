@@ -62,6 +62,7 @@ const Post: React.FC<PostProps> = (props) => {
       width={20}
       height={20}
       alt="Picture of the author"
+      style={{ borderRadius: '50%', transform: 'translateY(5px)'}}
     /> By {props?.author?.name || "Unknown author"}</p>
         <ReactMarkdown children={props.content} />
         {!props.published && userHasValidSession && postBelongsToUser && (

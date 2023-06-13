@@ -29,6 +29,7 @@ const Post: React.FC<{ post: PostProps }> = ({ post }) => {
       width={20}
       height={20}
       alt="Picture of the author"
+      style={{ borderRadius: '50%', transform: 'translateY(5px)'}}
     /> By {authorName} </small>
       <ReactMarkdown children={post.content} />
       <Video videoLink={post.videoLink} />
@@ -38,7 +39,7 @@ const Post: React.FC<{ post: PostProps }> = ({ post }) => {
           padding: 2rem;
         }
         .authorImage {
-          border-radius: 50%;
+          border-radius: 100%;
         }
       `}</style>
     </div>
