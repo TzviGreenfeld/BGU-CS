@@ -1,20 +1,44 @@
-import React, { Suspense, createContext, useContext, useState } from "react";
+import React, { Suspense, createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { signOut, useSession } from "next-auth/react";
+// import { signOut, useSession } from "next-auth/react";
 import ThemeButton from "./ThemeButton";
 import ThemeContext from "../context/ThemeContextProvider";
 import OnlineIndicator from "./OnlineIndicator";
+// import useLocalStorage, {TokenData} from "../hooks/useLocalStorage";
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const [session, setSession] = useState({
+    token:"",
+    username:"",
+    name:"",
+    email:"",
+  });
 
   const router = useRouter();
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
 
-  const { data: session, status } = useSession();
+  useEffect(() =>{
+    if (typeof window !== undefined){
+      try{
+        const tokenData = window.localStorage.getItem("token");
+        setSession(JSON.parse(tokenData || ""));
+      } catch (e){
+        console.log("ERROR:", e)
+      }
+    }
+  } ,[])
 
+  const signOut = () => {
+    if (typeof window !== undefined){
+      window.localStorage.clear();
+    }
+    router.push('/')
+
+  }
+  
   let left = (
     <div className="left">
       <Link href="/" legacyBehavior>
@@ -47,53 +71,57 @@ const Header: React.FC = () => {
 
   let right = null;
 
-  if (status === "loading") {
-    left = (
-      <div className="left">
-        <Link href="/" legacyBehavior>
-          <a className="bold" data-active={isActive("/")}>
-            Feed
-          </a>
+  // if (status === "loading") {
+  //   left = (
+  //     <div className="left">
+  //       <Link href="/" legacyBehavior>
+  //         <a className="bold" data-active={isActive("/")}>
+  //           Feed
+  //         </a>
+  //       </Link>
+  //       <style jsx>{`
+  //         .bold {
+  //           font-weight: bold;
+  //           ${theme === "dark" ? "color: white;" : ""}
+  //         }
+
+  //         a {
+  //           text-decoration: none;
+  //           color: #000;
+  //           display: inline-block;
+  //           ${theme === "dark" ? "color: white;" : ""}
+  //         }
+
+  //         .left a[data-active="true"] {
+  //           color: gray;
+  //         }
+
+  //         a + a {
+  //           margin-left: 1rem;
+  //         }
+  //       `}</style>
+  //     </div>
+  //   );
+  //   right = (
+  //     <div className="right">
+  //       <p>Validating session ...</p>
+  //       <style jsx>{`
+  //         .right {
+  //           margin-left: auto;
+  //         }
+  //       `}</style>
+  //     </div>
+  //   );
+  // }
+
+  if (!session.token){ // WAS !SESSION
+    right = (
+      <div className="right">
+        {/* <Link href="/api/auth/signin" legacyBehavior> */}
+        <Link href="/signup" legacyBehavior>
+          <a data-active={isActive("/signup")}>Sign up</a>
         </Link>
-        <style jsx>{`
-          .bold {
-            font-weight: bold;
-            ${theme === "dark" ? "color: white;" : ""}
-          }
-
-          a {
-            text-decoration: none;
-            color: #000;
-            display: inline-block;
-            ${theme === "dark" ? "color: white;" : ""}
-          }
-
-          .left a[data-active="true"] {
-            color: gray;
-          }
-
-          a + a {
-            margin-left: 1rem;
-          }
-        `}</style>
-      </div>
-    );
-    right = (
-      <div className="right">
-        <p>Validating session ...</p>
-        <style jsx>{`
-          .right {
-            margin-left: auto;
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  if (!true){ // WAS !SESSION
-    right = (
-      <div className="right">
-        <Link href="/api/auth/signin" legacyBehavior>
+        <Link href="/login" legacyBehavior>
           <a data-active={isActive("/signup")}>Log in</a>
         </Link>
         <style jsx>{`
@@ -122,7 +150,7 @@ const Header: React.FC = () => {
     );
   }
 
-  if (true) { // WAS SESSION
+  if (session.token) { // WAS SESSION
     left = (
       <div className="left">
         <Link href="/" legacyBehavior>
@@ -159,9 +187,14 @@ const Header: React.FC = () => {
     right = (
       <div className="right">
         <p>
-          {/* {session.user?.name} ({session.user?.email}) */}
-          {"session.user?.name"} ({"session.user?.email"})
+          {session.name} ({session.email})
+          {/* {"session.user?.name"} ({"session.user?.email"}) */}
         </p>
+        <Link href="/profile" legacyBehavior>
+          <button>
+            <a>Profile</a>
+          </button>
+        </Link>
         <Link href="/create" legacyBehavior>
           <button>
             <a>New post</a>

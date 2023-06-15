@@ -3,6 +3,8 @@ import Layout from "../components/Layout";
 import ThemeContext from "../context/ThemeContextProvider";
 import Spinner from "../components/Spinner";
 import UploadImage from "../components/UploadImage"
+import { useRouter } from "next/router";
+
 
 const Signup = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -12,6 +14,7 @@ const Signup = () => {
   const [name, setName] = useState("");
   const [showSpinner, setShowSpinner] = useState(false);
   const [imageLink, setImageLink] = useState("");
+  const router = useRouter();
 
   const onFieldChange = (e, setState) => {
     setState(e.target.value);
@@ -37,9 +40,12 @@ const Signup = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
-    }).catch((error) => {
-      alert(error);
-    });
+    })
+    if (response.ok){
+      router.push('/login');
+    } else {
+      alert("An error has occoourd, try again.")
+    }
     // const data = await response.json();
 
     // console.log(data);
@@ -49,7 +55,7 @@ const Signup = () => {
   return (
     <Layout>
       <div className="page">
-        <h1>Sign In</h1>
+        <h1>Sign Up</h1>
         <main className="signup">
           <form>
             <label>

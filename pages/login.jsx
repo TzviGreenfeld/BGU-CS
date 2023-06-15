@@ -1,17 +1,57 @@
 import React, { useContext, useState } from "react";
 import Layout from "../components/Layout";
 import ThemeContext from "../context/ThemeContextProvider";
+import { useRouter } from "next/router";
+
 
 const Login = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const router = useRouter();
+
 
   const onFieldChange = (e, setState) => {
     setState(e.target.value);
   };
+
+  const onSubmit = async (e) => {
+    e.preventDefault()
+
+    console.log("frontend login details:", {username, password})
+
+    const loginData = {username, password};
+
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(loginData),
+    })
+
+    if (response.status === 401){
+      // not ok
+      setPassword("");
+      setUsername("");
+      alert("Something went wrong, try again");
+    }
+    
+    if (response.status === 200){
+      // ok, save token in local storage
+      // we can be sure this function runs on client side because its triggered by click
+
+      const tokenData = await response.json();
+      // console.log("body", tokenData)
+      if (typeof window !== undefined){
+        window.localStorage.setItem("token", JSON.stringify(tokenData))
+      }
+
+      // go to home page
+      router.push('/');
+    }
+
+    console.log("response:", response)
+
+  }
 
   return (
     <Layout>
@@ -37,6 +77,14 @@ const Login = () => {
                 value={password}
               />
             </label>
+
+            <br />
+            <button
+             type="submit" 
+             onClick={e => onSubmit(e)}
+             disabled={!(username && password)} >
+                Login
+                </button>
           </form>
         </main>
         <style jsx>{`

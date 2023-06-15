@@ -1,5 +1,5 @@
 // import { useSession } from "next-auth/react";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Spinner from "./Spinner";
 import { set } from "mongoose";
 import ThemeContext from "../context/ThemeContextProvider";
@@ -10,7 +10,27 @@ const UploadFile = ({ onVideoSave }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFile, setUploadeddFile] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
+  const [session, setSession] = useState({
+    token:"",
+    username:"",
+    name:"",
+    email:"",
+  });
+
+  useEffect(() =>{
+    if (typeof window !== undefined){
+      try{
+        const tokenData = window.localStorage.getItem("token");
+        setSession(JSON.parse(tokenData || ""));
+      } catch (e){
+        console.log("ERROR:", e)
+      }
+    }
+  } ,[])
+
   // const { data: session, status } = useSession();
+
+
 
   const onChange = (e) => {
     e.preventDefault();
@@ -24,7 +44,7 @@ const UploadFile = ({ onVideoSave }) => {
     // pre cloudinary request
     const formData = new FormData();
     const file = selectedFile || "";
-    const publicID = `${session?.user?.name?.replace(
+    const publicID = `${session.name.replace(
       " ",
       "_"
     )}_${Date.now().toString()}`;
@@ -44,7 +64,7 @@ const UploadFile = ({ onVideoSave }) => {
 
         // metadata for mongo
         const metaData = {
-          user: JSON.stringify(session?.user) || "anonymous",
+          user: JSON.stringify(session.username) || "anonymous",
           uploadDate: new Date().toISOString(),
           postId: publicID,
           cloudinaryLink: new String(

@@ -39,8 +39,10 @@ export default async function handle(
     const token = jwt.sign(userForToken, process.env.SECRET, { expiresIn: 60*60 }
       );
 
+    // const body = JSON.stringify({ token:token, username: user.userName, name: user.name });
+    const body = { token:token, username: user.userName, name: user.name, email:user.email };
     res
       .status(200)
-      .send({ token, username: user.userName, name: user.name });
+      .json(body);
   }
 }
