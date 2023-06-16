@@ -38,7 +38,6 @@ describe("api/auth/login", () => {
         
         expect(res.statusCode).toEqual(200);
         expect(responseBody).toHaveProperty('token')
-            
     })
 
     it("should NOT login successfully (invalid password)", async () =>{

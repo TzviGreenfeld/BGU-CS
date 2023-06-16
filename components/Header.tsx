@@ -190,7 +190,7 @@ const Header: React.FC = () => {
           {session.name} ({session.email})
           {/* {"session.user?.name"} ({"session.user?.email"}) */}
         </p>
-        <Link href="/profile" legacyBehavior>
+        <Link href={`/profile/${session.username}`} legacyBehavior>
           <button>
             <a>Profile</a>
           </button>
