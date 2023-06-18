@@ -5,6 +5,8 @@ import { useRouter } from "next/router";
 import ThemeButton from "./ThemeButton";
 import ThemeContext from "../context/ThemeContextProvider";
 import OnlineIndicator from "./OnlineIndicator";
+import Cookies from "js-cookie";
+
 // import useLocalStorage, {TokenData} from "../hooks/useLocalStorage";
 
 const Header: React.FC = () => {
@@ -34,6 +36,7 @@ const Header: React.FC = () => {
   const signOut = () => {
     if (typeof window !== undefined){
       window.localStorage.clear();
+      Cookies.remove("cookie");
     }
     router.push('/')
 
@@ -121,7 +124,7 @@ const Header: React.FC = () => {
         <Link href="/signup" legacyBehavior>
           <a data-active={isActive("/signup")}>Sign up</a>
         </Link>
-        <Link href="/login" legacyBehavior>
+        <Link href="/login" legacyBehavior >
           <a data-active={isActive("/signup")}>Log in</a>
         </Link>
         <style jsx>{`

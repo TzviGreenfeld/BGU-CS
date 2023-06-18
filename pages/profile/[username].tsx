@@ -4,39 +4,39 @@ import ThemeContext from "../../context/ThemeContextProvider";
 import Image from 'next/image'
 import prisma from "../../lib/prisma";
 
+const jwt = require('jsonwebtoken')
 
-export const getServerSideProps = async ({ params }) => {
-  const postCount = await prisma.post.count();
-  const lastPage = Math.ceil(postCount / 10);
-  // get the page number from the url and bound it to be in range [1, lastPage]
-  let tempPagenum = isNaN(Number(params?.pagenum))? 1 : Math.max(Number(params?.pagenum), 1); // lower bound
-  const pagenum = Math.min(tempPagenum, lastPage); // upper bound
 
-  const username = params.username || " ";
+
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+  // const session = await getSession({ req }); // WAS SESSION
+  const cookie = req.cookies.cookie;
+  if (!cookie){
+    return  { props: {} };
+  }
+  const token = JSON.parse(cookie).token
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  
   const user = await prisma.user.findFirst({
-    where: {
-      userName: username,
-    },
-    // include: {
-    //   name : true,
-    //   userName : true,
-    //   password : true,
-    //   email : true,
-    //   image : true,
-    //   createdAt : true,
-    //   posts: true,
-    // }
-  })
+    where: { id: decodedToken.id },
+  });
 
-  return {
-    props: {
-      user: user,
-    },
-  };
+  
+  if (!decodedToken.id)  { // WAS !SESSION
+    res.statusCode = 403;
+    console.log("!decodedToken.id")
+  }
+
+  return  { props: {user:user} };
+};
+
+type Props = {
+  props: { user: User }
 };
 
 
-const Profile = (props) => {
+
+const Profile: React.FC<Props> = (props) =>  {
   const { theme, toggleTheme } = useContext(ThemeContext);
   console.log("props:", props)
 
@@ -50,33 +50,16 @@ const Profile = (props) => {
     alignItems: "center",
     position: "relative"
   }
-  const [user, setUser] = useState({})
-  const [session, setSession] = useState({
-    token:"",
-    username:"",
-    name:"",
-    email:"",
-  });
 
-
-  useEffect(() =>{
-    if (typeof window !== undefined){
-      try{
-        const tokenData = window.localStorage.getItem("token");
-        setSession(JSON.parse(tokenData || ""));
-        const data = JSON.parse(tokenData)
-      
-      } catch(e){
-
-      console.log("ERROR:",e)
-      }
-    }
-      },[])
-
-  const onFieldChange = (e, setState) => {
-    setState(e.target.value);
-  };
-
+  if (!props.user){ // WAS !SESSION
+    return (
+      <Layout>
+        <h1>Profile</h1>
+        <div>You need to be authenticated to view this page.</div>
+      </Layout>
+    );
+  }
+  
   return (
     <Layout>
       <div className="page">

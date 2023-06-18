@@ -4,23 +4,69 @@ import Router from "next/router";
 import { useSession } from "next-auth/react";
 import UploadFile from "../components/UploadFile";
 import ThemeContext from "../context/ThemeContextProvider";
+import { GetServerSideProps } from "next";
+import prisma from '../lib/prisma'
+import { User } from "@prisma/client";
+const jwt = require('jsonwebtoken')
 
-const Draft: React.FC = () => {
+
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+  // const session = await getSession({ req }); // WAS SESSION
+  
+  const cookie = req.cookies.cookie;
+  if (!cookie){
+    return  { props: {} };
+  }
+  const token = JSON.parse(cookie).token
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  
+  const user = await prisma.user.findFirst({
+    where: { id: decodedToken.id },
+  });
+  console.log("hello from mid:", typeof user)
+  console.log("token from mid:", decodedToken)
+  
+  if (!decodedToken.id)  { // WAS !SESSION
+    res.statusCode = 403;
+    console.log("!decodedToken.id")
+    return  { props: {} };
+  }
+
+  return  { props: {user:user} };
+};
+
+type Props = {
+  props: { user:User }
+};
+
+
+const Draft: React.FC<Props> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-
   const ref = useRef(null);
 
   useEffect(() => {
-    ref.current.focus();
+    if (props.user)
+    {ref.current.focus();}
   }, []);
+
+  if (!props.user){ // WAS !SESSION
+    return (
+      <Layout>
+        <h1>Create</h1>
+        <div>You need to be authenticated to view this page.</div>
+      </Layout>
+    );
+  }
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const { data: session, status } = useSession();
   const [videoId, setVideoId] = useState({ id: "", link: "" });
 
-  let email = session?.user?.email;
-  let name = session?.user?.name;
+  let email = props.email || "";
+  // let email = session?.user?.email;
+  let name = props.name || "";
+  // let name = session?.user?.name;
 
   const submitData = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -41,6 +87,9 @@ const Draft: React.FC = () => {
     }
   };
 
+
+
+  
   return (
     <Layout>
       <div>

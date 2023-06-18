@@ -32,7 +32,7 @@ const Login = () => {
       // not ok
       setPassword("");
       setUsername("");
-      alert("Something went wrong, try again");
+      alert("Wrong username/password, try again");
     }
     
     if (response.status === 200){
