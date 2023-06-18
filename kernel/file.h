@@ -35,6 +35,15 @@ struct devsw {
   int (*write)(int, uint64, int);
 };
 
+
+int fileseek(struct file *f, int offset, int whence);
+
 extern struct devsw devsw[];
 
 #define CONSOLE 1
+
+
+#define RANDOM 2
+
+#define ERROR -1
+#define SUCCESS 0
