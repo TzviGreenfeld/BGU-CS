@@ -4,7 +4,7 @@ import Spinner from "./Spinner";
 import { set } from "mongoose";
 import ThemeContext from "../context/ThemeContextProvider";
 
-const UploadImage = ({ setImageLink}) => {
+const UploadImage = ({ setImageLink }) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -38,25 +38,11 @@ const UploadImage = ({ setImageLink}) => {
 
         const data = await response.json();
         setUploadeddFile(true);
+        console.log("data", data)
+        data.public_id ?
+          setImageLink(`https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`) :
+          alert(data.message)
 
-        // // metadata for mongo
-        // const metaData = {
-        //   user: JSON.stringify(session?.user) || "anonymous",
-        //   uploadDate: new Date().toISOString(),
-        //   postId: publicID,
-        //   cloudinaryLink: new String(
-        //     `https://res.cloudinary.com/dicczqmkf/video/upload/vc_auto,q_auto,w_800/${data.public_id}`
-        //   ).toString(),
-        // };
-        // console.log("sending metadata: ");
-        // console.table(metaData);
-
-        // // mongo request
-        // const mongoResponse = await fetch(`/api/metadata`, {
-        //   method: "POST",
-        //   body: JSON.stringify(metaData),
-        // });
-        setImageLink(`https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`); // send the id to father component
       } catch (error) {
         setShowSpinner(false);
         console.log("ERROR UPLOADING IMAGE:", error);
@@ -87,44 +73,39 @@ const UploadImage = ({ setImageLink}) => {
       ) : (
         <>
           <label className="customInput">
-            Select Profile picture
-            <input type="file" onChange={onChange} className="back" />
+            Select Profile Picture
+
+            <input type="file" onChange={onChange} />
+
           </label>
           {selectedFile && (
             <label className="customInput">
-            <button onClick={submitPicture} className="back" type="submit">
-              Upload
-            </button>
+              <button onClick={submitPicture} type="submit">
+                Upload
+              </button>
             </label>
           )}
         </>
       )}
       <style jsx>{`
-      .uploadImageBtn :before{
-        
-      }
-        input[type="submit"], .customInput {
-          background: #ececec;
-          ${theme === "dark"
-            ? "background: hsl(223, 14%, 10%);\
-          color: white;"
-            : ""}
-          border: 2px;
-          padding: 1rem 2rem;
-        }
 
-        .back {
-          margin-left: 1rem;
-        }
-
-          label {
-          
-
-        }
-
-        input[type="file"] {
+        input[type=file]{ 
+          color:transparent;
           display: none;
+          background: none;
+          margin: 50px 0;
         }
+        .customInput {
+          padding: 5px;
+          margin: 50px 0;
+          border: 1px solid black;
+          border-radius: 5%;
+          background: none;
+        }
+
+
+
+
       `}</style>
     </div>
   );

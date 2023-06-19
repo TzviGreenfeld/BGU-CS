@@ -11,6 +11,7 @@ export default async function handle(
 ) {
   // console.log("got req.body:", req.body)
   const { userName, name, email, password, imageLink } = req.body;
+
   if (req.method === "POST") {
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(password, saltRounds)

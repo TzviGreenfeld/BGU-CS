@@ -16,6 +16,43 @@ const Signup = () => {
   const [imageLink, setImageLink] = useState("");
   const router = useRouter();
 
+  const onImageChange = async (event) => {
+    event.preventDefault();
+    setShowSpinner(true);
+
+    // pre cloudinary request
+    const formData = new FormData();
+    const file = event.target.files[0];
+    const publicID = Date.now().toString();
+    formData.append("inputFile", file);
+    formData.append("public_id", publicID);
+
+    if (file) {
+      try {
+        // cloudinary request
+        const response = await fetch("/api/video/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        console.log("id", data.public_id)
+        data.public_id ?
+          setImageLink(`https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`) :
+          alert(data.message)
+
+      } catch (error) {
+        setShowSpinner(false);
+        console.log("ERROR UPLOADING IMAGE:", error);
+      } finally {
+        setShowSpinner(false);
+        console.log("first")
+      }
+    } else {
+      setShowSpinner(false);
+      console.log("no file");
+    }
+  };
   const onFieldChange = (e, setState) => {
     setState(e.target.value);
   };
@@ -28,9 +65,9 @@ const Signup = () => {
     setShowSpinner(true);
     const userData = {
       userName: username,
+      name: name,
       email: email,
       password: password,
-      name: name,
       image: imageLink,
     };
 
@@ -41,14 +78,12 @@ const Signup = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
     })
-    if (response.ok){
+    if (response.ok) {
       router.push('/login');
     } else {
       alert("An error has occoourd, try again.")
     }
-    // const data = await response.json();
 
-    // console.log(data);
     setShowSpinner(false);
   };
 
@@ -58,44 +93,53 @@ const Signup = () => {
         <h1>Sign Up</h1>
         <main className="signup">
           <form>
-            <label>
-              username:
+
+            <p>
+              <label for="username">username</label>
               <input
                 type="text"
+                id="username"
                 onChange={(e) => onFieldChange(e, setUsername)}
                 value={username}
               />
-            </label>
+            </p>
 
-            <br />
-            <label>
-              password:
+            <p>
+              <label>password</label>
               <input
                 type="password"
+                id="password"
                 onChange={(e) => onFieldChange(e, setPassword)}
                 value={password}
               />
-            </label>
-            <br />
-            <label>
-              email:
+            </p>
+
+            <p>
+              <label for="email">email</label>
               <input
                 type="text"
+                id="email"
                 onChange={(e) => onFieldChange(e, setEmail)}
                 value={email}
               />
-            </label>
-            <br />
-            <label>
-              name:
+            </p>
+
+            <p>
+              <label for="name">name</label>
               <input
                 type="text"
+                id="name"
                 onChange={(e) => onFieldChange(e, setName)}
                 value={name}
               />
-            </label>
-            <br />
-            <UploadImage setImageLink={setImageLink} />
+            </p>
+
+            <p>
+              <label for="image">profile picture</label>
+              <input type="file" onChange={onImageChange} />
+              {/* <UploadImage setImageLink={setImageLink} /> */}
+            </p>
+
           </form>
           {showSpinner ? (
             <Spinner />
@@ -114,6 +158,10 @@ const Signup = () => {
             .signup {
               line-height: 2;
             }
+            form  { display: table;      }
+            p     { display: table-row;  }
+            label { display: table-cell; }
+            input { display: table-cell; }
           `}
         </style>
       </div>

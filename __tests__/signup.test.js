@@ -2,7 +2,7 @@ import { createMocks } from 'node-mocks-http';
 import signupHandler from '../pages/api/auth/signup'
 
 describe('api/auth/signup', () => {
-    it('creates unique username and email and signs up', async () => {
+    it('should signup successfully', async () => {
 
       const uniqueString = Date.now().toString();
       const newUser = {
@@ -28,7 +28,7 @@ describe('api/auth/signup', () => {
       
     })
 
-    it('crete 2 users with same username and email', async () => {
+    it('should NOT signup successfully (two users with same username and email)', async () => {
 
       const uniqueString = Date.now().toString();
       const newUser = {
@@ -49,6 +49,24 @@ describe('api/auth/signup', () => {
       
       
     })
+
+    it('should NOT signup successfully (missing required fields)', async () => {
+      const incompleteUser = {
+        name: 'name',
+        email: 'test@example.com',
+        password: '12345678',
+      };
+    
+      const { req, res } = createMocks({
+        method: 'POST',
+        body: incompleteUser,
+      });
+    
+      await signupHandler(req, res);
+      expect(res.statusCode).toEqual(500);
+
+    });
+    
 
   })
 

@@ -11,23 +11,23 @@ const jwt = require('jsonwebtoken')
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   // const session = await getSession({ req }); // WAS SESSION
   const cookie = req.cookies.cookie;
-  if (!cookie){
-    return  { props: {} };
+  if (!cookie) {
+    return { props: {} };
   }
   const token = JSON.parse(cookie).token
   const decodedToken = jwt.verify(token, process.env.SECRET)
-  
+
   const user = await prisma.user.findFirst({
     where: { id: decodedToken.id },
   });
 
-  
-  if (!decodedToken.id)  { // WAS !SESSION
+
+  if (!decodedToken.id) { // WAS !SESSION
     res.statusCode = 403;
     console.log("!decodedToken.id")
   }
 
-  return  { props: {user:user} };
+  return { props: { user: user } };
 };
 
 type Props = {
@@ -36,14 +36,15 @@ type Props = {
 
 
 
-const Profile: React.FC<Props> = (props) =>  {
+const Profile: React.FC<Props> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const [image, setImage] = useState(props.user.image)
   console.log("props:", props)
 
   const profileCardStyle = {
     marginTop: "150px",
     padding: "20px 80px",
-    border: `2px solid ${theme === 'dark' ? 'white': 'black' }`,
+    border: `2px solid ${theme === 'dark' ? 'white' : 'black'}`,
     borderRadius: "2%",
     display: "flex",
     flexDirection: "column",
@@ -51,7 +52,8 @@ const Profile: React.FC<Props> = (props) =>  {
     position: "relative"
   }
 
-  if (!props.user){ // WAS !SESSION
+
+  if (!props.user) { // WAS !SESSION
     return (
       <Layout>
         <h1>Profile</h1>
@@ -59,29 +61,73 @@ const Profile: React.FC<Props> = (props) =>  {
       </Layout>
     );
   }
-  
+  console.log("props:", props)
+
+  const handleFileUpload = async (e) => {
+    const formData = new FormData();
+    const file = e.target.files[0];
+    const publicID = Date.now().toString();
+    formData.append("inputFile", file);
+    formData.append("public_id", publicID);
+    try {
+      // cloudinary request
+      const response = await fetch("/api/video/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.public_id) {
+        const img = `https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`
+        const body = { username: props.user.userName, newImage: img }
+        console.log("sending to userner:", body)
+        const res = await fetch("/api/editImage", {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          // alert("image changed, refresh to see changes")
+          setImage(img);
+        }
+      }
+    } catch (error) {
+      console.log("ERROR UPLOADING IMAGE:", error);
+    }
+  };
+
   return (
     <Layout>
       <div className="page">
         <main className="profile">
           <div className="profile-card" style={profileCardStyle}>
-          <Image className="profilePic"
-            src={props.user.image}
-            width={100}
-            height={100}
-            alt="Picture of the user"
-            style={{
-              position: 'absolute',
-              top: "-50px",
-              border: `2px ${theme !== 'dark' ? 'black': 'white' } solid`,
-              borderRadius: '50%',
-            }}
+            <p>click image to change</p>
+            <label htmlFor="profilePicInput">
+              <input
+                id="profilePicInput"
+                type="file"
+                style={{ display: 'none' }}
+                onChange={(event) => handleFileUpload(event)}
               />
-            
+              <Image className="profilePic"
+                src={image}
+                width={100}
+                height={100}
+                alt="Picture of the user"
+                style={{
+                  position: 'absolute',
+                  top: "-50px",
+                  border: `2px ${theme !== 'dark' ? 'black' : 'white'} solid`,
+                  borderRadius: '50%',
+                }}
+              />
+            </label>
+
+
             <h1>{props.user.name}</h1>
             <p>{props.user.userName ? props.user.userName : ""}</p>
             <p>{props.user.email}</p>
           </div>
+
         </main>
         <style jsx>{`
         .page {

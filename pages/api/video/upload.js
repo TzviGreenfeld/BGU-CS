@@ -29,7 +29,7 @@ export default async (req, res) => {
   // console.log("data.files", data.files);
   try {
     const response = await cloudinary.v2.uploader.upload(file, {
-      resource_type: "video",
+      resource_type: "auto",
       public_id: data?.public_id,
     });
     // console.log("cloudinary res", response);

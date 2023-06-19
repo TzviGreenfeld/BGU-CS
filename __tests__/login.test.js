@@ -1,5 +1,6 @@
 import { createMocks } from 'node-mocks-http';
 import loginHandler from '../pages/api/auth/login'
+
 import signupHandler from '../pages/api/auth/signup'
 
 const uniqueString = Date.now().toString();
@@ -37,7 +38,7 @@ describe("api/auth/login", () => {
         
         
         expect(res.statusCode).toEqual(200);
-        expect(responseBody).toHaveProperty('token')
+        expect(JSON.parse(responseBody)).toHaveProperty('token')
     })
 
     it("should NOT login successfully (invalid password)", async () =>{

@@ -17,21 +17,20 @@
   - [x] Bonus: On the main page, add a video icon next to posts that have videos inside. 
   - [ ] Bonus: if the status changed from online to offline and vice versa- pop an alert. 
   
-- [ ] [hw3-profiles](https://github.com/bgu-frontend/hw3-profiles)
-  - [ ] Backend:
+- [x] [hw3-profiles](https://github.com/bgu-frontend/hw3-profiles)
+  - [x] Backend:
     - [x] Use the existing prisma user table to store passwords as well.
     - [x] implement a route that adds a new user.
     - [x] implement a route that logs in an existing user. You can implement extra routes as needed.
     - [ ] Implement a middleware to verify a user is logged in, before reaching the API endpoints which are meant for authenticated users.
-    - [ ] backend testing: you have to submit at least 10 backend tests.
-  - [ ] Front:
+    - [x] backend testing: you have to submit at least 10 backend tests.
+  - [x] Front:
     - [x] create a "sign in" page: where a user can create an account.
     - [x] create a "log in" page with username/password.
-    - [ ] create a profile page for authenticated users. link: on the main page of the app. (havent added link yet)
-    - [ ] Submit at least 10 backend tests.
-  - [ ] Bonus:
+    - [x] create a profile page for authenticated users. link: on the main page of the app.
+  - [x] Bonus:
     - [x] Let the user add a profile picture. Save it to Cloudinary.
-    - [ ] Make the photo editable with a click, at the profile page.
+    - [x] Make the photo editable with a click, at the profile page.
     - [x] Wherever there's a post shown, add the profile picture of the author.
         
 
