@@ -23,8 +23,8 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const user = await prisma.user.findFirst({
     where: { id: decodedToken.id },
   });
-  console.log("hello from mid:", typeof user)
-  console.log("token from mid:", decodedToken)
+  // console.log("hello from mid:", typeof user)
+  // console.log("token from mid:", decodedToken)
   
   if (!decodedToken.id)  { // WAS !SESSION
     res.statusCode = 403;
@@ -63,9 +63,9 @@ const Draft: React.FC<Props> = (props) => {
   const { data: session, status } = useSession();
   const [videoId, setVideoId] = useState({ id: "", link: "" });
 
-  let email = props.email || "";
+  let email = props.user.email || "";
   // let email = session?.user?.email;
-  let name = props.name || "";
+  let name = props.user.name || "";
   // let name = session?.user?.name;
 
   const submitData = async (e: React.SyntheticEvent) => {

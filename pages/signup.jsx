@@ -95,7 +95,7 @@ const Signup = () => {
           <form>
 
             <p>
-              <label for="username">username</label>
+              <label htmlFor="username">username</label>
               <input
                 type="text"
                 id="username"
@@ -105,7 +105,7 @@ const Signup = () => {
             </p>
 
             <p>
-              <label>password</label>
+              <label htmlFor="password">password</label>
               <input
                 type="password"
                 id="password"
@@ -115,7 +115,7 @@ const Signup = () => {
             </p>
 
             <p>
-              <label for="email">email</label>
+              <label fohtmlFor="email">email</label>
               <input
                 type="text"
                 id="email"
@@ -125,7 +125,7 @@ const Signup = () => {
             </p>
 
             <p>
-              <label for="name">name</label>
+              <label htmlFor="name">name</label>
               <input
                 type="text"
                 id="name"

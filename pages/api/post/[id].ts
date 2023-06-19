@@ -15,6 +15,13 @@ export default async function handle(
   // const session = await getSession({ req }); // WAS SESSION
 
   if (req.method === "DELETE") {
+    // let isValid = true;
+    // const cookie = req.cookies.cookie;
+    // if (cookie){
+    //   const token = JSON.parse(cookie).token
+    //   const decodedToken = jwt.verify(token, process.env.SECRET)
+    // }
+    /// unused endpoint
     if (true) { // WAS SESSION
       console.log("got delete request for postId: ", postId);
 

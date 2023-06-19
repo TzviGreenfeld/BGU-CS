@@ -99,9 +99,10 @@ const Profile: React.FC<Props> = (props) => {
     <Layout>
       <div className="page">
         <main className="profile">
+          <small>click image to change</small>
           <div className="profile-card" style={profileCardStyle}>
-            <p>click image to change</p>
             <label htmlFor="profilePicInput">
+
               <input
                 id="profilePicInput"
                 type="file"
@@ -144,6 +145,16 @@ const Profile: React.FC<Props> = (props) => {
         }
         .profile-card h1 {
           padding-top: 30px;
+        }
+        label {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        small {
+          margin: 0;
+          padding: 0;
+          display: inline-block;
         }
         
         `}
