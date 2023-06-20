@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 import { GetServerSideProps } from "next";
 import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
-// import { useSession, getSession } from "next-auth/react";
 import prisma from '../lib/prisma'
 import ThemeContext from "../context/ThemeContextProvider";
 const jwt = require('jsonwebtoken')
@@ -10,7 +9,6 @@ const jwt = require('jsonwebtoken')
 
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  // const session = await getSession({ req }); // WAS SESSION
   const cookie = req.cookies.cookie;
   if (!cookie){
     return {
@@ -19,7 +17,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   }
   const token = JSON.parse(cookie).token
   const decodedToken = jwt.verify(token, process.env.SECRET)
-  // console.log("hello from mid:", req)
 
   const user = await prisma.user.findFirst({
       where: { id: decodedToken.id },
@@ -32,7 +29,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 
   const drafts = await prisma.post.findMany({
     where: {
-      // author: { email: session.user?.email },
       author: { email: user?.email }, // WAS SESSION
       published: false,
     },

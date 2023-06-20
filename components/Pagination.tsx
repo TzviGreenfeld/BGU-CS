@@ -7,6 +7,7 @@ export type PaginationButtonProps = {
   isCurrentPage: boolean;
 };
 
+
 const PaginationButton: React.FC<PaginationButtonProps> = ({
   pageNum,
   onClick,

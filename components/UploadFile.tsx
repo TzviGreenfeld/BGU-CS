@@ -1,12 +1,17 @@
-// import { useSession } from "next-auth/react";
+
 import React, { useContext, useEffect, useState } from "react";
 import Spinner from "./Spinner";
 import { set } from "mongoose";
 import ThemeContext from "../context/ThemeContextProvider";
-
+/**
+ * a button component that allows user to upload any file,
+ * uploads the file to cloudinary and soe metadata to mongo
+ * 
+ * @param onVideoSave:() => null
+ * function to pass data to father component
+ */
 const UploadFile = ({ onVideoSave }) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFile, setUploadeddFile] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
@@ -18,6 +23,8 @@ const UploadFile = ({ onVideoSave }) => {
   });
 
   useEffect(() =>{
+    // orgigianl implementation of token
+    // TODO: to update to use cookies
     if (typeof window !== undefined){
       try{
         const tokenData = window.localStorage.getItem("token");
@@ -27,10 +34,6 @@ const UploadFile = ({ onVideoSave }) => {
       }
     }
   } ,[])
-
-  // const { data: session, status } = useSession();
-
-
 
   const onChange = (e) => {
     e.preventDefault();
@@ -79,6 +82,7 @@ const UploadFile = ({ onVideoSave }) => {
           method: "POST",
           body: JSON.stringify(metaData),
         });
+        // TODO: clean up some of the setShowSpinner
         onVideoSave({ id: publicID, link: metaData.cloudinaryLink }); // send the id to father component
       } catch (error) {
         setShowSpinner(false);

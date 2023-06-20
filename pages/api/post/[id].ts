@@ -12,7 +12,6 @@ export default async function handle(
 ) {
   const postId = req.query.id;
 
-  // const session = await getSession({ req }); // WAS SESSION
 
   if (req.method === "DELETE") {
     // let isValid = true;
