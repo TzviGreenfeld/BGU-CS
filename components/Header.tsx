@@ -1,47 +1,46 @@
 import React, { Suspense, createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-// import { signOut, useSession } from "next-auth/react";
 import ThemeButton from "./ThemeButton";
 import ThemeContext from "../context/ThemeContextProvider";
-import OnlineIndicator from "./OnlineIndicator";
 import Cookies from "js-cookie";
 
-// import useLocalStorage, {TokenData} from "../hooks/useLocalStorage";
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [session, setSession] = useState({
-    token:"",
-    username:"",
-    name:"",
-    email:"",
+    token: "",
+    username: "",
+    name: "",
+    email: "",
   });
 
   const router = useRouter();
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
 
-  useEffect(() =>{
-    if (typeof window !== undefined){
-      try{
+  useEffect(() => {
+    // legacy, initally used loclastorage
+    // ended up using cookies
+    if (typeof window !== undefined) {
+      try {
         const tokenData = window.localStorage.getItem("token");
         setSession(JSON.parse(tokenData || ""));
-      } catch (e){
+      } catch (e) {
         console.log("ERROR:", e)
       }
     }
-  } ,[])
+  }, [])
 
   const signOut = () => {
-    if (typeof window !== undefined){
+    if (typeof window !== undefined) {
       window.localStorage.clear();
       Cookies.remove("cookie");
     }
     router.push('/')
 
   }
-  
+
   let left = (
     <div className="left">
       <Link href="/" legacyBehavior>
@@ -74,50 +73,8 @@ const Header: React.FC = () => {
 
   let right = null;
 
-  // if (status === "loading") {
-  //   left = (
-  //     <div className="left">
-  //       <Link href="/" legacyBehavior>
-  //         <a className="bold" data-active={isActive("/")}>
-  //           Feed
-  //         </a>
-  //       </Link>
-  //       <style jsx>{`
-  //         .bold {
-  //           font-weight: bold;
-  //           ${theme === "dark" ? "color: white;" : ""}
-  //         }
 
-  //         a {
-  //           text-decoration: none;
-  //           color: #000;
-  //           display: inline-block;
-  //           ${theme === "dark" ? "color: white;" : ""}
-  //         }
-
-  //         .left a[data-active="true"] {
-  //           color: gray;
-  //         }
-
-  //         a + a {
-  //           margin-left: 1rem;
-  //         }
-  //       `}</style>
-  //     </div>
-  //   );
-  //   right = (
-  //     <div className="right">
-  //       <p>Validating session ...</p>
-  //       <style jsx>{`
-  //         .right {
-  //           margin-left: auto;
-  //         }
-  //       `}</style>
-  //     </div>
-  //   );
-  // }
-
-  if (!session.token){ // WAS !SESSION
+  if (!session.token) { // WAS !SESSION
     right = (
       <div className="right">
         {/* <Link href="/api/auth/signin" legacyBehavior> */}
@@ -191,7 +148,6 @@ const Header: React.FC = () => {
       <div className="right">
         <p>
           {session.name} ({session.email})
-          {/* {"session.user?.name"} ({"session.user?.email"}) */}
         </p>
         <Link href={`/profile/${session.username}`} legacyBehavior>
           <button>

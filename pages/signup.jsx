@@ -8,13 +8,18 @@ import { useRouter } from "next/router";
 
 const Signup = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const router = useRouter();
+
+  // TODO: use reducer or make this into a single object state
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showSpinner, setShowSpinner] = useState(false);
+
+  // this state is used to force re-render when the user upload new image
   const [imageLink, setImageLink] = useState("");
-  const router = useRouter();
+
 
   const onImageChange = async (event) => {
     event.preventDefault();
@@ -71,8 +76,6 @@ const Signup = () => {
       image: imageLink,
     };
 
-    console.log("sending userData:", userData);
-
     const response = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -83,7 +86,6 @@ const Signup = () => {
     } else {
       alert("An error has occoourd, try again.")
     }
-
     setShowSpinner(false);
   };
 
@@ -137,7 +139,6 @@ const Signup = () => {
             <p>
               <label for="image">profile picture</label>
               <input type="file" onChange={onImageChange} />
-              {/* <UploadImage setImageLink={setImageLink} /> */}
             </p>
 
           </form>

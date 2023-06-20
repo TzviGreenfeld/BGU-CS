@@ -9,7 +9,6 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // console.log("got req.body:", req.body)
   const { userName, name, email, password, imageLink } = req.body;
 
   if (req.method === "POST") {
@@ -28,7 +27,6 @@ export default async function handle(
         const resultUser: User = await prisma.user.create({
           data: newUser,
         });
-        // console.log("resultUser from backend", resultUser)
         res.status(200).json(resultUser);
 
       } catch (e:any) {

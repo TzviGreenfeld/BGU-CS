@@ -3,13 +3,11 @@ import Layout from "../../components/Layout"
 import ThemeContext from "../../context/ThemeContextProvider";
 import Image from 'next/image'
 import prisma from "../../lib/prisma";
-
 const jwt = require('jsonwebtoken')
 
 
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  // const session = await getSession({ req }); // WAS SESSION
   const cookie = req.cookies.cookie;
   if (!cookie) {
     return { props: {} };
@@ -39,7 +37,15 @@ type Props = {
 const Profile: React.FC<Props> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [image, setImage] = useState(props.user.image)
-  console.log("props:", props)
+
+  if (!props.user) { // WAS !SESSION
+    return (
+      <Layout>
+        <h1>Profile</h1>
+        <div>You need to be authenticated to view this page.</div>
+      </Layout>
+    );
+  }
 
   const profileCardStyle = {
     marginTop: "150px",
@@ -51,17 +57,6 @@ const Profile: React.FC<Props> = (props) => {
     alignItems: "center",
     position: "relative"
   }
-
-
-  if (!props.user) { // WAS !SESSION
-    return (
-      <Layout>
-        <h1>Profile</h1>
-        <div>You need to be authenticated to view this page.</div>
-      </Layout>
-    );
-  }
-  console.log("props:", props)
 
   const handleFileUpload = async (e) => {
     const formData = new FormData();
@@ -86,7 +81,6 @@ const Profile: React.FC<Props> = (props) => {
           body: JSON.stringify(body),
         });
         if (res.ok) {
-          // alert("image changed, refresh to see changes")
           setImage(img);
         }
       }

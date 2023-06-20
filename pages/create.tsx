@@ -11,32 +11,29 @@ const jwt = require('jsonwebtoken')
 
 
 export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  // const session = await getSession({ req }); // WAS SESSION
-  
+
   const cookie = req.cookies.cookie;
-  if (!cookie){
-    return  { props: {} };
+  if (!cookie) {
+    return { props: {} };
   }
   const token = JSON.parse(cookie).token
   const decodedToken = jwt.verify(token, process.env.SECRET)
-  
+
   const user = await prisma.user.findFirst({
     where: { id: decodedToken.id },
   });
-  // console.log("hello from mid:", typeof user)
-  // console.log("token from mid:", decodedToken)
-  
-  if (!decodedToken.id)  { // WAS !SESSION
+
+  if (!decodedToken.id) { // WAS !SESSION
     res.statusCode = 403;
     console.log("!decodedToken.id")
-    return  { props: {} };
+    return { props: {} };
   }
 
-  return  { props: {user:user} };
+  return { props: { user: user } };
 };
 
 type Props = {
-  props: { user:User }
+  props: { user: User }
 };
 
 
@@ -45,11 +42,10 @@ const Draft: React.FC<Props> = (props) => {
   const ref = useRef(null);
 
   useEffect(() => {
-    if (props.user)
-    {ref.current.focus();}
+    if (props.user) { ref.current.focus(); }
   }, []);
 
-  if (!props.user){ // WAS !SESSION
+  if (!props.user) { // WAS !SESSION
     return (
       <Layout>
         <h1>Create</h1>
@@ -64,9 +60,7 @@ const Draft: React.FC<Props> = (props) => {
   const [videoId, setVideoId] = useState({ id: "", link: "" });
 
   let email = props.user.email || "";
-  // let email = session?.user?.email;
   let name = props.user.name || "";
-  // let name = session?.user?.name;
 
   const submitData = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -88,8 +82,6 @@ const Draft: React.FC<Props> = (props) => {
   };
 
 
-
-  
   return (
     <Layout>
       <div>
@@ -125,9 +117,9 @@ const Draft: React.FC<Props> = (props) => {
           justify-content: center;
           align-items: center;
           ${theme === "dark"
-            ? "background: hsl(220, 15%, 16%);\
+          ? "background: hsl(220, 15%, 16%);\
               color: white;"
-            : ""}
+          : ""}
         }
 
         input[type="text"],
@@ -138,9 +130,9 @@ const Draft: React.FC<Props> = (props) => {
           border-radius: 0.25rem;
           border: 0.125rem solid rgba(0, 0, 0, 0.2);
           ${theme === "dark"
-            ? "background: hsl(223, 14%, 10%);\
+          ? "background: hsl(223, 14%, 10%);\
           color: white;"
-            : ""}
+          : ""}
         }
 
         input[type="submit"] {

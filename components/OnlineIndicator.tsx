@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useOnlineStatus } from "../hooks/useOnlineStatus";
 
+// couldnt make it work with nextjs
 const OnlineIndicator: React.FC = () => {
   const [isBrowser, setIsBrowser] = useState(false);
 

@@ -1,3 +1,7 @@
+/**
+ * simple css spinner
+ * held as self contained component for readabilty
+ */
 export default function Spinner() {
   return (
     <span className="spinnerContainer">

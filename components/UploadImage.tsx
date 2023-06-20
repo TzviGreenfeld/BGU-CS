@@ -3,7 +3,14 @@ import React, { useContext, useState } from "react";
 import Spinner from "./Spinner";
 import { set } from "mongoose";
 import ThemeContext from "../context/ThemeContextProvider";
-
+/**
+ * duplicate code of UploadFile witohut the metadata part
+ * TODO: remove this component,
+ *  make UploadFile suitable for this use case
+ * 
+ * @param setImageLink:() => null
+ * function to pass data to father component
+ */
 const UploadImage = ({ setImageLink }) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
 

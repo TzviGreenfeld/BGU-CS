@@ -4,7 +4,9 @@ import { User } from "@prisma/client";
 import prisma from '../../lib/prisma'
 
 
-
+/**
+ * allow use to edit his profile image in prisma
+ */
 //POST /api/editImage
 export default async function handle(
   req: NextApiRequest,
@@ -15,13 +17,13 @@ export default async function handle(
 
     const { username, newImage } = body;
 
+    // validation
     if (!newImage) {
       res.status(400).send({ message: 'no image provided' })
     }
     else if (!newImage.includes("cloudinary")) {
       res.status(400).send({ message: 'invalid image link' })
-    }
-    else {
+    } else { // all good
       try {
         const updateUser = await prisma.user.update({
           where: {
@@ -39,6 +41,4 @@ export default async function handle(
   } else {
     res.status(401).send({ message: 'this endpint only allows POST requests' })
   }
-
-
 }
