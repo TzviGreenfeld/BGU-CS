@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from pdc_dp_means import DPMeans
 import time
+import os
+from PIL import Image
+
 
 def array_to_video(array_list, fps=10, title=""):
     # Create a figure
@@ -103,10 +106,23 @@ def stream_DPMeans(imgs, l, n_clusters_doc=[]):
     return output_frames
 
 
+
+def save_frames_as_png(frames, dir_path):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    for i, (original_shape, frame_data) in enumerate(frames):
+        # Assuming the data is in uint8 format, reshape and save it
+        image_data = np.reshape(frame_data, original_shape).astype(np.uint8)
+        img = Image.fromarray(image_data)
+        img.save(os.path.join(dir_path, f'frame_{i}.png'))
+
+
 if __name__ == '__main__':
     logger = open("log.txt", "a+")
     video_name = 'many_mandrils'
-    video_path = f'./videos/{video_name}.mp4'
+    # video_path = f'./videos/{video_name}.mp4'
+    video_path = f'./report/many_mandrils_comaprsion.mp4'
     l = 100 # lambda
     n_clusters = []
     # for fps in [1, 5, 10, 15, 20, 25, 30]:
@@ -114,17 +130,20 @@ if __name__ == '__main__':
         time_start = time.time()
         
         imgs = load_video(video_path, fps)
-        frames = stream_DPMeans(imgs, l=l, n_clusters_doc=n_clusters)
+        save_frames_as_png(imgs, './report/compare/')
+        # frames = stream_DPMeans(imgs, l=l, n_clusters_doc=n_clusters)
         
-        # export the frames as a gif
-        title = f"DPMeans with lambda={l} and fps={fps}"
-        ani = array_to_video(frames, fps, title)
-        ani.save(f"./output/{video_name}_fps-{fps}_lambda-{l}_new.gif", fps=fps)
+        # # export the frames as a gif
+        # title = f"DPMeans with lambda={l} and fps={fps}"
+        # ani = array_to_video(frames, fps, title)
+        # ani.save(f"./output/{video_name}_fps-{fps}_lambda-{l}_new.gif", fps=fps)
 
-        # debug
-        total_time =  time.time() - time_start
-        logger.write(f"fps: {fps}\ttotal time: {total_time} seconds \n")
+        # # debug
+        # total_time =  time.time() - time_start
+        # logger.write(f"fps: {fps}\ttotal time: {total_time} seconds \n")
     logger.close()
+    
+    
     
 
 

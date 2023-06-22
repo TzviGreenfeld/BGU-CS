@@ -8,7 +8,7 @@ def plot_images(file_names, titles, title):
     num_images = len(file_names)
     
     num_rows = 3
-    num_cols = 3
+    num_cols = 2
 
     fig, axs = plt.subplots(num_rows, num_cols, figsize=(15, 15))
     axs = axs.ravel()
@@ -29,9 +29,12 @@ def plot_images(file_names, titles, title):
 
 # Usage
 # file_names = [f'raw_{i}.png' for i in range(1, 10)]
-pdc_file_names = [f'output/pdc/pdc_{i}.png' for i in range(1, 10)]
-real_file_names = [f'output/raw/raw_{i}.png' for i in range(1, 10)]
-titles = [f'frame {i}/{9}' for i in range(1, 10)]
-plot_images(pdc_file_names, titles, title="pdc_clusters.png")
-plot_images(real_file_names, titles, title="real_clusters.png")
-print("Done")
+# pdc_file_names = [f'output/pdc/pdc_{i}.png' for i in range(1, 10)]
+# real_file_names = [f'output/raw/raw_{i}.png' for i in range(1, 10)]
+# titles = [f'frame {i}/{9}' for i in range(1, 10)]
+# plot_images(pdc_file_names, titles, title="pdc_clusters.png")
+# plot_images(real_file_names, titles, title="real_clusters.png")
+# print("Done")
+files = [f"./report/compare/frame_{i}.png" for i in range(5)]
+titles = [f'frame {i}/{5}' for i in range(1, 6)]
+plot_images(files, titles, title="compare.png")
