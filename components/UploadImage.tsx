@@ -1,7 +1,5 @@
-// import { useSession } from "next-auth/react";
-import React, { useContext, useState } from "react";
+import React, { ChangeEvent, FormEvent, MouseEventHandler, useContext, useState, } from "react";
 import Spinner from "./Spinner";
-import { set } from "mongoose";
 import ThemeContext from "../context/ThemeContextProvider";
 /**
  * duplicate code of UploadFile witohut the metadata part
@@ -11,20 +9,24 @@ import ThemeContext from "../context/ThemeContextProvider";
  * @param setImageLink:() => null
  * function to pass data to father component
  */
-const UploadImage = ({ setImageLink }) => {
+
+const UploadImage: React.FC<{ setImageLink: (link: string) => void }> = ({ setImageLink }) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
 
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedFile, setUploadeddFile] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   // const { data: session, status } = useSession();
 
-  const onChange = (e) => {
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    setSelectedFile(e.target.files[0]);
+    const files = e?.target?.files;
+    if (files) {
+      setSelectedFile(files[0]);
+    }
   };
 
-  const submitPicture = async (event) => {
+  const submitPicture = async (event: FormEvent<HTMLFormElement>) => {
     setShowSpinner(true);
     event.preventDefault();
 
@@ -87,9 +89,10 @@ const UploadImage = ({ setImageLink }) => {
           </label>
           {selectedFile && (
             <label className="customInput">
-              <button onClick={submitPicture} type="submit">
+              {/* <input onClick={submitPicture} type="submit">
                 Upload
-              </button>
+              </input> */}
+               <input type="submit" value="Upload" />
             </label>
           )}
         </>

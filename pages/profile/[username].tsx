@@ -1,16 +1,21 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, ChangeEvent, CSSProperties } from "react";
 import Layout from "../../components/Layout"
 import ThemeContext from "../../context/ThemeContextProvider";
 import Image from 'next/image'
 import prisma from "../../lib/prisma";
+import { User } from "@prisma/client";
+import { GetServerSideProps } from "next/types";
 const jwt = require('jsonwebtoken')
 
+type Props = {
+  user: User | null;
+};
 
 
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+export const getServerSideProps: GetServerSideProps<Props> = async ({ req, res }) => {
   const cookie = req.cookies.cookie;
   if (!cookie) {
-    return { props: {} };
+    return { props: { user: null } };
   }
   const token = JSON.parse(cookie).token
   const decodedToken = jwt.verify(token, process.env.SECRET)
@@ -28,17 +33,15 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   return { props: { user: user } };
 };
 
-type Props = {
-  props: { user: User }
-};
+
 
 
 
 const Profile: React.FC<Props> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const [image, setImage] = useState(props.user.image)
+  const [image, setImage] = useState(props?.user?.image)
 
-  if (!props.user) { // WAS !SESSION
+  if (!props?.user) { // WAS !SESSION
     return (
       <Layout>
         <h1>Profile</h1>
@@ -47,7 +50,7 @@ const Profile: React.FC<Props> = (props) => {
     );
   }
 
-  const profileCardStyle = {
+  const profileCardStyle: CSSProperties = {
     marginTop: "150px",
     padding: "20px 80px",
     border: `2px solid ${theme === 'dark' ? 'white' : 'black'}`,
@@ -58,12 +61,15 @@ const Profile: React.FC<Props> = (props) => {
     position: "relative"
   }
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = async (e : ChangeEvent<HTMLInputElement>) => {
     const formData = new FormData();
-    const file = e.target.files[0];
     const publicID = Date.now().toString();
-    formData.append("inputFile", file);
-    formData.append("public_id", publicID);
+    const files = e?.target?.files; 
+    if (files){
+      const file = files[0];
+      formData.append("inputFile", file);
+      formData.append("public_id", publicID);
+    }
     try {
       // cloudinary request
       const response = await fetch("/api/video/upload", {
@@ -74,7 +80,7 @@ const Profile: React.FC<Props> = (props) => {
       const data = await response.json();
       if (data.public_id) {
         const img = `https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`
-        const body = { username: props.user.userName, newImage: img }
+        const body = { username: props?.user?.userName, newImage: img }
         console.log("sending to userner:", body)
         const res = await fetch("/api/editImage", {
           method: "POST",
@@ -104,7 +110,7 @@ const Profile: React.FC<Props> = (props) => {
                 onChange={(event) => handleFileUpload(event)}
               />
               <Image className="profilePic"
-                src={image}
+                src={image || ""}
                 width={100}
                 height={100}
                 alt="Picture of the user"
