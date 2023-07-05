@@ -36,8 +36,8 @@
 - [ ] [hw4-security](https://github.com/bgu-frontend/hw4-security)
   - [ ] Add security layers.
   - [ ] Hosting: Move the dev projects to a public host.
-  - [ ] Testing: End to end testing.
-    - [ ] Use Cypress to write 5 tests. They can be End to End (E2E) or component tests.
+  - [x] Testing: End to end testing.
+    - [x] Use Cypress to write 5 tests. They can be End to End (E2E) or component tests.
   - [ ] Optionally polishing the website using tailwind.
 
 
