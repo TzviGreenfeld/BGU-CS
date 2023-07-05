@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef, useContext, ChangeEvent } from "react";
 import Layout from "../components/Layout";
 import Router from "next/router";
 import { useSession } from "next-auth/react";
@@ -9,12 +9,15 @@ import prisma from '../lib/prisma'
 import { User } from "@prisma/client";
 const jwt = require('jsonwebtoken')
 
+type Props = {
+  user: User | null;
+};
 
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+export const getServerSideProps: GetServerSideProps<Props> = async ({ req, res }) => {
 
   const cookie = req.cookies.cookie;
   if (!cookie) {
-    return { props: {} };
+    return { props: { user: null } };
   }
   const token = JSON.parse(cookie).token
   const decodedToken = jwt.verify(token, process.env.SECRET)
@@ -26,23 +29,21 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   if (!decodedToken.id) { // WAS !SESSION
     res.statusCode = 403;
     console.log("!decodedToken.id")
-    return { props: {} };
+    return { props: { user: null } };
   }
 
   return { props: { user: user } };
 };
 
-type Props = {
-  props: { user: User }
-};
+
 
 
 const Draft: React.FC<Props> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const ref = useRef(null);
+  const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (props.user) { ref.current.focus(); }
+    if (props.user) { ref?.current?.focus(); }
   }, []);
 
   if (!props.user) { // WAS !SESSION
