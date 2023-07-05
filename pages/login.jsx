@@ -63,6 +63,7 @@ const Login = () => {
               username:
               <input
                 type="text"
+                name="username"
                 onChange={(e) => onFieldChange(e, setUsername)}
                 value={username}
               />
@@ -73,6 +74,7 @@ const Login = () => {
               password:
               <input
                 type="password"
+                name="password"
                 onChange={(e) => onFieldChange(e, setPassword)}
                 value={password}
               />

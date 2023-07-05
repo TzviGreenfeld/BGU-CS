@@ -92,6 +92,7 @@ const Draft: React.FC<Props> = (props) => {
             ref={ref}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
+            name="title"
             type="text"
             value={title}
           />
@@ -99,6 +100,7 @@ const Draft: React.FC<Props> = (props) => {
             cols={50}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Content"
+            name="content"
             rows={8}
             value={content}
           />

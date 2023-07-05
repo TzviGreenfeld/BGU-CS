@@ -101,6 +101,7 @@ const Signup = () => {
               <input
                 type="text"
                 id="username"
+                name="username"
                 onChange={(e) => onFieldChange(e, setUsername)}
                 value={username}
               />
@@ -111,6 +112,7 @@ const Signup = () => {
               <input
                 type="password"
                 id="password"
+                name="password"
                 onChange={(e) => onFieldChange(e, setPassword)}
                 value={password}
               />
@@ -121,6 +123,7 @@ const Signup = () => {
               <input
                 type="text"
                 id="email"
+                name="email"
                 onChange={(e) => onFieldChange(e, setEmail)}
                 value={email}
               />
@@ -131,6 +134,7 @@ const Signup = () => {
               <input
                 type="text"
                 id="name"
+                name="name"
                 onChange={(e) => onFieldChange(e, setName)}
                 value={name}
               />
