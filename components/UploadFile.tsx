@@ -115,7 +115,7 @@ const UploadFile = ({ onVideoSave }) => {
         <>
           <label className="customInput">
             Select Video
-            <input type="file" onChange={onChange} className="back" />
+            <input type="file" onChange={onChange} className="back" id="videoFile" />
           </label>
           {selectedFile && (
             <label className="customInput">

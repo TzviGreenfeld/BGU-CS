@@ -12,14 +12,14 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   if (cookie){
     const token = JSON.parse(cookie).token
     const decodedToken = jwt.verify(token, process.env.SECRET)
-  }
-
-  if (decodedToken.id) { // WAS SESSION
-    const post = await prisma.post.update({
-      where: { id: Number(postId) },
-      data: { published: true },
-    });
-    res.json(post);
+    
+    if (decodedToken.id) { // WAS SESSION
+      const post = await prisma.post.update({
+        where: { id: Number(postId) },
+        data: { published: true },
+      });
+      res.json(post);
+    }
   } else {
     res.status(401).send({ message: 'Unauthorized' })
   }
