@@ -11,9 +11,6 @@ const Header: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const user = useUserFromToken();
   const router = useRouter();
-
-  console.log("userfrom token:", user)
-
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
 
