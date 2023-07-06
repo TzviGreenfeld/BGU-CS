@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef, useContext, ChangeEvent } from "react";
 import Layout from "../components/Layout";
 import Router from "next/router";
 import UploadFile from "../components/UploadFile";
 import ThemeContext from "../context/ThemeContextProvider";
 import useUserFromToken from "../hooks/useUserFromToken";
+
+type Props = {
+  user: User | null;
+};
 
 
 const Draft: React.FC = () => {
@@ -62,6 +66,7 @@ const Draft: React.FC = () => {
             ref={ref}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
+            name="title"
             type="text"
             name="title"
             value={title}
@@ -70,7 +75,7 @@ const Draft: React.FC = () => {
             cols={50}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Content"
-            name="Content"
+            name="content"
             rows={8}
             value={content}
           />

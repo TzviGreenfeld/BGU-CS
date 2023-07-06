@@ -25,6 +25,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
 
   if (!decodedToken.id)  { // WAS !SESSION
     res.statusCode = 403;
+    console.log("no token")
     return { props: { drafts: [] } };
   }
 
