@@ -6,11 +6,6 @@ import ThemeContext from "../context/ThemeContextProvider";
 import useUserFromToken from "../hooks/useUserFromToken";
 import { User } from "@prisma/client";
 
-type Props = {
-  user: User | null;
-};
-
-
 const Draft: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const ref = useRef<HTMLInputElement>(null);
@@ -69,7 +64,6 @@ const Draft: React.FC = () => {
             placeholder="Title"
             name="title"
             type="text"
-            name="title"
             value={title}
           />
           <textarea

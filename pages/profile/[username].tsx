@@ -1,13 +1,8 @@
-import React, { useContext, useState, useEffect, use, CSSProperties } from "react";
+import React, { useContext, useState, useEffect, use, CSSProperties, ChangeEvent } from "react";
 import Layout from "../../components/Layout"
 import ThemeContext from "../../context/ThemeContextProvider";
 import Image from 'next/image'
 import useUserFromToken from "../../hooks/useUserFromToken";
-
-
-type Props = {
-  user: User | null;
-};
 
 const Profile: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
