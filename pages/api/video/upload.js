@@ -15,7 +15,6 @@ export const config = {
 };
 
 export default async (req, res) => {
-  // console.log("Request:", req);
   const data = await new Promise((resolve, reject) => {
     const form = new IncomingForm();
 
@@ -26,13 +25,11 @@ export default async (req, res) => {
   });
 
   const file = data?.files?.inputFile.filepath;
-  // console.log("data.files", data.files);
   try {
     const response = await cloudinary.v2.uploader.upload(file, {
       resource_type: "auto",
       public_id: data?.public_id,
     });
-    // console.log("cloudinary res", response);
     return res.json(response);
   } catch (error) {
     console.log("Error", error);

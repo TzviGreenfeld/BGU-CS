@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
 import prisma from '../lib/prisma'
 import ThemeContext from "../context/ThemeContextProvider";
+import useUserFromToken from "../hooks/useUserFromToken";
 const jwt = require('jsonwebtoken')
 
 
@@ -34,7 +35,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     },
     include: {
       author: {
-        select: { name: true },
+        select: { name: true, image: true },
       },
     },
   });
@@ -49,9 +50,9 @@ type Props = {
 
 const Drafts: React.FC<Props> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const user = useUserFromToken();
 
-
-  if (!props.drafts){ // WAS !SESSION
+  if (!user){ // WAS !SESSION
     return (
       <Layout>
         <h1>My Drafts</h1>

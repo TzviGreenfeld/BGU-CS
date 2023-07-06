@@ -5,10 +5,10 @@ import Layout from "../../components/Layout";
 import Router from "next/router";
 import { PostProps } from "../../components/Post";
 import prisma from '../../lib/prisma'
-import { useSession } from "next-auth/react";
 import Video from "../../components/Video";
 import ThemeContext from "../../context/ThemeContextProvider";
 import Image from "next/image";
+import useUserFromToken from "../../hooks/useUserFromToken";
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const post = await prisma.post.findUnique({
@@ -17,7 +17,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     },
     include: {
       author: {
-        select: { name: true, email: true, image:true, },
+        select: { name: true, email: true, image: true, },
       },
     },
   });
@@ -42,12 +42,16 @@ async function deletePost(id: number): Promise<void> {
 
 const Post: React.FC<PostProps> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const { data: session, status } = useSession();
-  if (status === 'loading') {
-    return <div>Authenticating ...</div>;
+  const user = useUserFromToken();
+  if (!user) {
+    return (
+      <Layout>
+        <div>You need to be authenticated to view this page.</div>
+      </Layout>
+    )
   }
-  const userHasValidSession = Boolean(session);
-  const postBelongsToUser = session?.user?.email === props.author?.email;
+  const userHasValidSession = Boolean(user);
+  const postBelongsToUser = user?.email === props.author?.email;
   let title = props.title;
   if (!props.published) {
     title = `${title} (Draft)`;
@@ -58,12 +62,12 @@ const Post: React.FC<PostProps> = (props) => {
       <div>
         <h2>{hasVideo ? "🎥" : ""} {title}</h2>
         <p> <Image className="authorImage"
-      src={props.author?.image || ""}
-      width={20}
-      height={20}
-      alt="Picture of the author"
-      style={{ borderRadius: '50%', transform: 'translateY(5px)'}}
-    /> By {props?.author?.name || "Unknown author"}</p>
+          src={props.author?.image || ""}
+          width={20}
+          height={20}
+          alt="Picture of the author"
+          style={{ borderRadius: '50%', transform: 'translateY(5px)' }}
+        /> By {props?.author?.name || "Unknown author"}</p>
         <ReactMarkdown children={props.content} />
         {!props.published && userHasValidSession && postBelongsToUser && (
           <button onClick={() => publishPost(props.id)}>Publish</button>

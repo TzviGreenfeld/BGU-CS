@@ -18,7 +18,6 @@ const Login = () => {
   const onSubmit = async (e) => {
     e.preventDefault()
 
-    console.log("frontend login details:", {username, password})
 
     const loginData = {username, password};
 
@@ -40,7 +39,6 @@ const Login = () => {
       // we can be sure this function runs on client side because its triggered by click
 
       const tokenData = await response.json();
-      // console.log("body", tokenData)
       if (typeof window !== undefined){
         window.localStorage.setItem("token", JSON.stringify(tokenData))
       }

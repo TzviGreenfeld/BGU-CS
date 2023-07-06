@@ -4,33 +4,19 @@ import { useRouter } from "next/router";
 import ThemeButton from "./ThemeButton";
 import ThemeContext from "../context/ThemeContextProvider";
 import Cookies from "js-cookie";
+import useUserFromToken from "../hooks/useUserFromToken";
 
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const [session, setSession] = useState({
-    token: "",
-    username: "",
-    name: "",
-    email: "",
-  });
-
+  const user = useUserFromToken();
   const router = useRouter();
+
+  console.log("userfrom token:", user)
+
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
 
-  useEffect(() => {
-    // legacy, initally used loclastorage
-    // ended up using cookies
-    if (typeof window !== undefined) {
-      try {
-        const tokenData = window.localStorage.getItem("token");
-        setSession(JSON.parse(tokenData || ""));
-      } catch (e) {
-        console.log("ERROR:", e)
-      }
-    }
-  }, [])
 
   const signOut = () => {
     if (typeof window !== undefined) {
@@ -74,7 +60,7 @@ const Header: React.FC = () => {
   let right = null;
 
 
-  if (!session.token) { // WAS !SESSION
+  if (!user) { // WAS !SESSION
     right = (
       <div className="right">
         {/* <Link href="/api/auth/signin" legacyBehavior> */}
@@ -110,7 +96,7 @@ const Header: React.FC = () => {
     );
   }
 
-  if (session.token) { // WAS SESSION
+  if (user) { // WAS SESSION
     left = (
       <div className="left">
         <Link href="/" legacyBehavior>
@@ -147,9 +133,9 @@ const Header: React.FC = () => {
     right = (
       <div className="right">
         <p>
-          {session.name} ({session.email})
+          {user.name} ({user.email})
         </p>
-        <Link href={`/profile/${session.username}`} legacyBehavior>
+        <Link href={`/profile/${user.userName}`} legacyBehavior>
           <button>
             <a>Profile</a>
           </button>

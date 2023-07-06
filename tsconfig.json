@@ -26,7 +26,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx"
-, "middleware.js"  ],
+, "middleware.js", "pages/api/auth/validateToken.js", "pages/api/auth/validateToken.js"  ],
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs"

@@ -1,4 +1,3 @@
-// import { useSession } from "next-auth/react";
 import React, { useContext, useState } from "react";
 import Spinner from "./Spinner";
 import { set } from "mongoose";

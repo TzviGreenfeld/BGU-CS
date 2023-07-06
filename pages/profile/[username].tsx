@@ -1,44 +1,16 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, use, CSSProperties } from "react";
 import Layout from "../../components/Layout"
 import ThemeContext from "../../context/ThemeContextProvider";
 import Image from 'next/image'
-import prisma from "../../lib/prisma";
-const jwt = require('jsonwebtoken')
+import useUserFromToken from "../../hooks/useUserFromToken";
 
 
-
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const cookie = req.cookies.cookie;
-  if (!cookie) {
-    return { props: {} };
-  }
-  const token = JSON.parse(cookie).token
-  const decodedToken = jwt.verify(token, process.env.SECRET)
-
-  const user = await prisma.user.findFirst({
-    where: { id: decodedToken.id },
-  });
-
-
-  if (!decodedToken.id) { // WAS !SESSION
-    res.statusCode = 403;
-    console.log("!decodedToken.id")
-  }
-
-  return { props: { user: user } };
-};
-
-type Props = {
-  props: { user: User }
-};
-
-
-
-const Profile: React.FC<Props> = (props) => {
+const Profile: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const [image, setImage] = useState(props.user.image)
+  const user = useUserFromToken();
+  const [image, setImage] = useState(user?.image)
 
-  if (!props.user) { // WAS !SESSION
+  if (!user) { // WAS !SESSION
     return (
       <Layout>
         <h1>Profile</h1>
@@ -47,7 +19,8 @@ const Profile: React.FC<Props> = (props) => {
     );
   }
 
-  const profileCardStyle = {
+
+  const profileCardStyle: CSSProperties = {
     marginTop: "150px",
     padding: "20px 80px",
     border: `2px solid ${theme === 'dark' ? 'white' : 'black'}`,
@@ -74,8 +47,7 @@ const Profile: React.FC<Props> = (props) => {
       const data = await response.json();
       if (data.public_id) {
         const img = `https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`
-        const body = { username: props.user.userName, newImage: img }
-        console.log("sending to userner:", body)
+        const body = { username: user.userName, newImage: img }
         const res = await fetch("/api/editImage", {
           method: "POST",
           body: JSON.stringify(body),
@@ -104,7 +76,7 @@ const Profile: React.FC<Props> = (props) => {
                 onChange={(event) => handleFileUpload(event)}
               />
               <Image className="profilePic"
-                src={image}
+                src={image || user.image || ""}
                 width={100}
                 height={100}
                 alt="Picture of the user"
@@ -118,9 +90,9 @@ const Profile: React.FC<Props> = (props) => {
             </label>
 
 
-            <h1>{props.user.name}</h1>
-            <p>{props.user.userName ? props.user.userName : ""}</p>
-            <p>{props.user.email}</p>
+            <h1>{user.name}</h1>
+            <p>{user.userName ? user.userName : ""}</p>
+            <p>{user.email}</p>
           </div>
 
         </main>
