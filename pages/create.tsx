@@ -4,6 +4,7 @@ import Router from "next/router";
 import UploadFile from "../components/UploadFile";
 import ThemeContext from "../context/ThemeContextProvider";
 import useUserFromToken from "../hooks/useUserFromToken";
+import { User } from "@prisma/client";
 
 type Props = {
   user: User | null;
