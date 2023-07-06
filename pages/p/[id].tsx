@@ -10,7 +10,7 @@ import ThemeContext from "../../context/ThemeContextProvider";
 import Image from "next/image";
 import useUserFromToken from "../../hooks/useUserFromToken";
 
-
+export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const post = await prisma.post.findUnique({
     where: {
       id: Number(params?.id) || -1,
@@ -21,16 +21,8 @@ import useUserFromToken from "../../hooks/useUserFromToken";
       },
     },
   });
-  console.log("post", post)
   return {
-    // props: post ?? { author: { name: "Me" } },
-    props:
-    {
-      // post ?? { author: { name: "Me" } },
-      post: post,
-      // user: user,
-    }
-
+    props: post ?? { author: { name: "Me" } },
   };
 }
 
@@ -68,7 +60,8 @@ const Post: React.FC<any> = (props) => {
   if (!props.published) {
     title = `${title} (Draft)`;
   }
-  const hasVideo = props.post?.videoId.length > 0;
+
+  const hasVideo = props.post?.videoId?.length > 0;
   return (
     <Layout>
       <div>
@@ -86,9 +79,9 @@ const Post: React.FC<any> = (props) => {
           <button onClick={() => publishPost(props.id)}>Publish</button>
         )}
         {userHasValidSession && postBelongsToUser && (
-          <button onClick={() => deletePost(props.post.id)}>Delete</button>
+          <button onClick={() => deletePost(props.id)}>Delete</button>
         )}
-        <Video videoLink={props.post.videoLink} />
+        <Video videoLink={props.post?.videoLink} />
       </div>
       <style jsx>{`
         .page {
