@@ -41,7 +41,6 @@ const Signup = () => {
         });
 
         const data = await response.json();
-        console.log("id", data.public_id)
         data.public_id ?
           setImageLink(`https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`) :
           alert(data.message)
@@ -51,7 +50,6 @@ const Signup = () => {
         console.log("ERROR UPLOADING IMAGE:", error);
       } finally {
         setShowSpinner(false);
-        console.log("first")
       }
     } else {
       setShowSpinner(false);

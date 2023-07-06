@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-// import { getSession } from "next-auth/react";
 import prisma from "../../../lib/prisma";
 import { connectMongo } from "../../../utils/connectMongo";
 import VideoMetadata from "../../../models/metadataModel";
@@ -14,13 +13,7 @@ export default async function handle(
 
 
   if (req.method === "DELETE") {
-    // let isValid = true;
-    // const cookie = req.cookies.cookie;
-    // if (cookie){
-    //   const token = JSON.parse(cookie).token
-    //   const decodedToken = jwt.verify(token, process.env.SECRET)
-    // }
-    /// unused endpoint
+
     if (true) { // WAS SESSION
       console.log("got delete request for postId: ", postId);
 

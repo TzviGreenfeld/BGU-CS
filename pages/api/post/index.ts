@@ -9,7 +9,8 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { title, content, session, email, id, link } = req.body;
+  const { title, content, email, id, link } = req.body;
+
   const cookie = req.cookies.cookie;
   if (cookie) {
     const token = JSON.parse(cookie).token;
@@ -27,6 +28,8 @@ export default async function handle(
         },
       });
       res.json(result);
+    } else {
+      res.status(401).send({ message: "Unauthorized" });
     }
   } else {
     res.status(401).send({ message: "Unauthorized" });
