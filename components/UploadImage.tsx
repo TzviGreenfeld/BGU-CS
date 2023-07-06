@@ -47,7 +47,6 @@ const UploadImage: React.FC<{ setImageLink: (link: string) => void }> = ({ setIm
 
         const data = await response.json();
         setUploadeddFile(true);
-        console.log("data", data)
         data.public_id ?
           setImageLink(`https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`) :
           alert(data.message)
