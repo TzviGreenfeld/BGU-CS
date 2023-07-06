@@ -12,7 +12,6 @@ const Header: React.FC = () => {
   const user = useUserFromToken();
   const router = useRouter();
 
-  console.log("userfrom token:", user)
 
   const isActive: (pathname: string) => boolean = (pathname) =>
     router.pathname === pathname;
@@ -20,7 +19,6 @@ const Header: React.FC = () => {
 
   const signOut = () => {
     if (typeof window !== undefined) {
-      window.localStorage.clear();
       Cookies.remove("cookie");
     }
     router.push('/')
