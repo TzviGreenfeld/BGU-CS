@@ -22,7 +22,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     },
   });
   return {
-    props: post ?? { author: { name: "Me" } },
+    props: post ?? { author: { name: "Me" } }
   };
 }
 
@@ -60,8 +60,7 @@ const Post: React.FC<any> = (props) => {
   if (!props.published) {
     title = `${title} (Draft)`;
   }
-
-  const hasVideo = props.post?.videoId?.length > 0;
+  const hasVideo = props.post?.videoId.length > 0;
   return (
     <Layout>
       <div>
@@ -79,9 +78,9 @@ const Post: React.FC<any> = (props) => {
           <button onClick={() => publishPost(props.id)}>Publish</button>
         )}
         {userHasValidSession && postBelongsToUser && (
-          <button onClick={() => deletePost(props.id)}>Delete</button>
+          <button onClick={() => deletePost(props.post.id)}>Delete</button>
         )}
-        <Video videoLink={props.post?.videoLink} />
+        <Video videoLink={props.videoLink} />
       </div>
       <style jsx>{`
         .page {
