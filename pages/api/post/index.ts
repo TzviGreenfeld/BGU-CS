@@ -10,6 +10,7 @@ export default async function handle(
   res: NextApiResponse
 ) {
   const { title, content, email, id, link } = req.body;
+
   const cookie = req.cookies.cookie;
   if (cookie) {
     const token = JSON.parse(cookie).token;

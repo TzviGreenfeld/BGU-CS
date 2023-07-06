@@ -10,7 +10,7 @@ import ThemeContext from "../../context/ThemeContextProvider";
 import Image from "next/image";
 import useUserFromToken from "../../hooks/useUserFromToken";
 
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+
   const post = await prisma.post.findUnique({
     where: {
       id: Number(params?.id) || -1,
@@ -21,10 +21,18 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       },
     },
   });
+  console.log("post", post)
   return {
-    props: post ?? { author: { name: "Me" } }
+    // props: post ?? { author: { name: "Me" } },
+    props:
+    {
+      // post ?? { author: { name: "Me" } },
+      post: post,
+      // user: user,
+    }
+
   };
-};
+}
 
 async function publishPost(id: number): Promise<void> {
   await fetch(`/api/publish/${id}`, {
@@ -40,7 +48,11 @@ async function deletePost(id: number): Promise<void> {
   await Router.push("/")
 }
 
-const Post: React.FC<PostProps> = (props) => {
+function isObjectEmpty(obj: object): boolean {
+  return Object.keys(obj).length === 0;
+}
+
+const Post: React.FC<any> = (props) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const user = useUserFromToken();
   if (!user) {
@@ -56,13 +68,14 @@ const Post: React.FC<PostProps> = (props) => {
   if (!props.published) {
     title = `${title} (Draft)`;
   }
-  const hasVideo = props.videoId.length > 0;
+  const hasVideo = props.post?.videoId.length > 0;
   return (
     <Layout>
       <div>
         <h2>{hasVideo ? "🎥" : ""} {title}</h2>
         <p> <Image className="authorImage"
           src={props.author?.image || ""}
+
           width={20}
           height={20}
           alt="Picture of the author"
@@ -73,9 +86,9 @@ const Post: React.FC<PostProps> = (props) => {
           <button onClick={() => publishPost(props.id)}>Publish</button>
         )}
         {userHasValidSession && postBelongsToUser && (
-          <button onClick={() => deletePost(props.id)}>Delete</button>
+          <button onClick={() => deletePost(props.post.id)}>Delete</button>
         )}
-        <Video videoLink={props.videoLink} />
+        <Video videoLink={props.post.videoLink} />
       </div>
       <style jsx>{`
         .page {

@@ -17,6 +17,7 @@ export default async function handle(
 
     if (decodedToken.id) {
       // WAS SESSION
+
       const post = await prisma.post.update({
         where: { id: Number(postId) },
         data: { published: true },

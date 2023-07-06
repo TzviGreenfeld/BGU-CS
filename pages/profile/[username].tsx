@@ -5,12 +5,17 @@ import Image from 'next/image'
 import useUserFromToken from "../../hooks/useUserFromToken";
 
 
+type Props = {
+  user: User | null;
+};
+
 const Profile: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const user = useUserFromToken();
   const [image, setImage] = useState(user?.image)
 
   if (!user) { // WAS !SESSION
+
     return (
       <Layout>
         <h1>Profile</h1>
@@ -18,6 +23,8 @@ const Profile: React.FC = () => {
       </Layout>
     );
   }
+
+
 
 
   const profileCardStyle: CSSProperties = {
@@ -31,12 +38,15 @@ const Profile: React.FC = () => {
     position: "relative"
   }
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = async (e : ChangeEvent<HTMLInputElement>) => {
     const formData = new FormData();
-    const file = e.target.files[0];
     const publicID = Date.now().toString();
-    formData.append("inputFile", file);
-    formData.append("public_id", publicID);
+    const files = e?.target?.files; 
+    if (files){
+      const file = files[0];
+      formData.append("inputFile", file);
+      formData.append("public_id", publicID);
+    }
     try {
       // cloudinary request
       const response = await fetch("/api/video/upload", {
@@ -48,6 +58,7 @@ const Profile: React.FC = () => {
       if (data.public_id) {
         const img = `https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`
         const body = { username: user.userName, newImage: img }
+
         const res = await fetch("/api/editImage", {
           method: "POST",
           body: JSON.stringify(body),
@@ -77,6 +88,7 @@ const Profile: React.FC = () => {
               />
               <Image className="profilePic"
                 src={image || user.image || ""}
+
                 width={100}
                 height={100}
                 alt="Picture of the user"

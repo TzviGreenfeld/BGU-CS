@@ -1,7 +1,7 @@
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { ChangeEvent, FormEvent, useContext, useEffect, useState } from "react";
 import Spinner from "./Spinner";
-import { set } from "mongoose";
+
 import ThemeContext from "../context/ThemeContextProvider";
 /**
  * a button component that allows user to upload any file,
@@ -10,9 +10,9 @@ import ThemeContext from "../context/ThemeContextProvider";
  * @param onVideoSave:() => null
  * function to pass data to father component
  */
-const UploadFile = ({ onVideoSave }) => {
+const UploadFile: React.FC<{ onVideoSave: (data: { id: string, link: string }) => void }> = ({ onVideoSave }) => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedFile, setUploadeddFile] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   const [session, setSession] = useState({
@@ -35,12 +35,15 @@ const UploadFile = ({ onVideoSave }) => {
     }
   } ,[])
 
-  const onChange = (e) => {
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    setSelectedFile(e.target.files[0]);
+    const files = e?.target?.files;
+    if(files){
+      setSelectedFile(files[0]);
+    }
   };
 
-  const submitVideo = async (event) => {
+  const submitVideo = async (event: FormEvent) => {
     setShowSpinner(true);
     event.preventDefault();
 
@@ -115,7 +118,7 @@ const UploadFile = ({ onVideoSave }) => {
         <>
           <label className="customInput">
             Select Video
-            <input type="file" onChange={onChange} className="back" />
+            <input type="file" onChange={onChange} className="back" id="videoFile" />
           </label>
           {selectedFile && (
             <label className="customInput">
