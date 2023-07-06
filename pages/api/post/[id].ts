@@ -20,7 +20,6 @@ export default async function handle(
       const post = await prisma.post.delete({
         where: { id: Number(postId) },
       });
-      console.log(post);
       // delete video and metadata from cloudinary and mongodb
       if (post.videoId) {
         // mongo
