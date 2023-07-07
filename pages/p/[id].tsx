@@ -54,13 +54,14 @@ const Post: React.FC<any> = (props) => {
       </Layout>
     )
   }
+  console.log(props)
   const userHasValidSession = Boolean(user);
   const postBelongsToUser = user?.email === props.author?.email;
   let title = props.title;
   if (!props.published) {
     title = `${title} (Draft)`;
   }
-  const hasVideo = props.post?.videoId.length > 0;
+  const hasVideo = props.videoId.length > 0;
   return (
     <Layout>
       <div>
@@ -78,7 +79,7 @@ const Post: React.FC<any> = (props) => {
           <button onClick={() => publishPost(props.id)}>Publish</button>
         )}
         {userHasValidSession && postBelongsToUser && (
-          <button onClick={() => deletePost(props.post.id)}>Delete</button>
+          <button onClick={() => deletePost(props.id)}>Delete</button>
         )}
         <Video videoLink={props.videoLink} />
       </div>
