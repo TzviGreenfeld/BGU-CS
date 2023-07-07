@@ -54,7 +54,6 @@ const Post: React.FC<any> = (props) => {
       </Layout>
     )
   }
-  console.log(props)
   const userHasValidSession = Boolean(user);
   const postBelongsToUser = user?.email === props.author?.email;
   let title = props.title;
