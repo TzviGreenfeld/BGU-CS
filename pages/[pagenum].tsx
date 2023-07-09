@@ -3,7 +3,12 @@ import type { GetServerSideProps } from "next";
 import Blog from "./index";
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
-  const postCount = await prisma.post.count();
+  let postCount: number;
+  try {
+    postCount = await prisma.post.count();
+  } catch (err) {
+    postCount = 0;
+  } 
   const lastPage = Math.ceil(postCount / 10);
   // get the page number from the url and bound it to be in range [1, lastPage]
   let tempPagenum = isNaN(Number(params?.pagenum))? 1 : Math.max(Number(params?.pagenum), 1); // lower bound

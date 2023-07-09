@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext,} from "react";
+import React, { useState, useEffect, useContext, } from "react";
 import type { GetServerSideProps } from "next";
 import Layout from "../components/Layout";
 import Post, { PostProps } from "../components/Post";
@@ -6,9 +6,17 @@ import prisma from "../lib/prisma";
 import PaginationBar from "../components/Pagination";
 import { useRouter } from "next/router";
 import ThemeContext from "../context/ThemeContextProvider";
+import { post } from "cypress/types/jquery";
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
-  const postCount = await prisma.post.count();
+  let postCount: number;
+  try {
+    postCount = await prisma.post.count();
+  } catch (err) {
+    postCount = 0;
+  } 
+
+
   const feed = await prisma.post.findMany({
     skip: 0,
     take: 10,
