@@ -1,11 +1,16 @@
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mysql"
+  url = env("DATABASE_URL")
+  relationMode = "prisma"
 }
+
+// datasource db {
+//   provider = "sqlite"
+//   url      = "file:./dev.db"
+// }
 
 model Post {
   id        Int     @id @default(autoincrement())
@@ -16,6 +21,7 @@ model Post {
   authorId  Int?
   videoId     String @default("")
   videoLink     String @default("")
+  @@index([authorId])
 }
 
 model Account {
@@ -38,6 +44,7 @@ model Account {
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
+  @@index([userId])
 }
 
 model Session {
@@ -48,6 +55,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+  @@index([userId])
 }
 
 model User {
