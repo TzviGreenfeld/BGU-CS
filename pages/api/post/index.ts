@@ -15,14 +15,23 @@ export default async function handle(
   if (cookie) {
     const token = JSON.parse(cookie).token;
     const decodedToken = jwt.verify(token, process.env.SECRET);
-
+    const user = decodedToken;
+  
+    //console.log( req.body);
     if (decodedToken.id) {
+
       // WAS SESSION
+      const user = await prisma.user.findUnique({
+        where: {
+          id: decodedToken.id
+        },
+      });
+
       const result = await prisma.post.create({
         data: {
           title: title,
           content: content,
-          author: { connect: { email: email } },
+          author: { connect: { email: user.email } },
           videoId: id,
           videoLink: link,
         },

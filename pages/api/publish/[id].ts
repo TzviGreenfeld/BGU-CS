@@ -11,8 +11,10 @@ export default async function handle(
   // const session = await getSession({ req }) // WAS SESSION
 
   const cookie = req.cookies.cookie;
+  
   if (cookie) {
     const token = JSON.parse(cookie).token;
+ 
     const decodedToken = jwt.verify(token, process.env.SECRET);
 
     if (decodedToken.id) {
