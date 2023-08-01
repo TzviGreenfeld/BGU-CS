@@ -1,12 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../lib/prisma";
 const jwt = require("jsonwebtoken");
+import { csrf } from "../../../CSRF/csrf_setup";
 
 // PUT /api/publish/:id
-export default async function handle(
+const handler =  async (
   req: NextApiRequest,
   res: NextApiResponse
-) {
+) => {
   const postId = req.query.id;
   // const session = await getSession({ req }) // WAS SESSION
 
@@ -32,3 +33,4 @@ export default async function handle(
     res.status(401).send({ message: "Unauthorized" });
   }
 }
+export default csrf(handler); 

@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import Layout from "../components/Layout";
 import ThemeContext from "../context/ThemeContextProvider";
 import { useRouter } from "next/router";
+import { setup } from "CSRF/csrf_setup";
 
 
 const Login = () => {
@@ -96,5 +97,13 @@ const Login = () => {
     </Layout>
   );
 };
+
+
+export const getServerSideProps = setup(async ({ req, res }) => {
+  return {
+    props: {},
+  };
+ });
+
 
 export default Login;

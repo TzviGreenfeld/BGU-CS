@@ -2,8 +2,6 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/api/auth/validateToken": "pages/api/auth/validateToken.js",
-  "/api/post": "pages/api/post.js",
   "/[pagenum]": "pages/[pagenum].js",
-  "/drafts": "pages/drafts.js"
+  "/p/[id]": "pages/p/[id].js"
 }

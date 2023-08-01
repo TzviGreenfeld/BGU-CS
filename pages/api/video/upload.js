@@ -1,5 +1,6 @@
 import cloudinary from "cloudinary";
 import { IncomingForm } from "formidable";
+import { csrf } from "../../../CSRF/csrf_setup";
 
 // Configuration
 cloudinary.config({
@@ -36,3 +37,4 @@ export default async (req, res) => {
     return res.json(error);
   }
 };
+

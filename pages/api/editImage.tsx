@@ -1,17 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { User } from "@prisma/client";
+//import { User } from "@prisma/client";
 // import prisma from '../../lib/prisma'
 import prisma from '../../lib/prisma'
+import { csrf } from "../../CSRF/csrf_setup";
 
 
 /**
  * allow use to edit his profile image in prisma
  */
 //POST /api/editImage
-export default async function handle(
+const handler = async (
   req: NextApiRequest,
   res: NextApiResponse
-) {
+)=> {
   if (req.method === "POST") {
     const body = JSON.parse(req.body);
 
@@ -42,3 +43,5 @@ export default async function handle(
     res.status(401).send({ message: 'this endpint only allows POST requests' })
   }
 }
+
+export default csrf(handler); 

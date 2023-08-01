@@ -3,12 +3,13 @@ import prisma from "../../../lib/prisma";
 import { connectMongo } from "../../../utils/connectMongo";
 import VideoMetadata from "../../../models/metadataModel";
 import cloudinary from "cloudinary";
+import { csrf } from "../../../CSRF/csrf_setup";
 
 // DELETE /api/post/:id
-export default async function handle(
+const handler = async (
   req: NextApiRequest,
   res: NextApiResponse
-) {
+) => {
   const postId = req.query.id;
 
 
@@ -56,3 +57,5 @@ export default async function handle(
     );
   }
 }
+
+export default csrf(handler); 

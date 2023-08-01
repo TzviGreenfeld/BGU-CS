@@ -1,14 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../../lib/prisma";
+import { csrf } from "../../../CSRF/csrf_setup";
 const jwt = require("jsonwebtoken");
+
 
 // POST /api/post
 // Required fields in body: title
 // Optional fields in body: content
-export default async function handle(
+const handler = async(
   req: NextApiRequest,
   res: NextApiResponse
-) {
+) => {
   const { title, content, email, id, link } = req.body;
 
   const cookie = req.cookies.cookie;
@@ -44,3 +46,5 @@ export default async function handle(
     res.status(401).send({ message: "Unauthorized" });
   }
 }
+
+export default csrf(handler); 

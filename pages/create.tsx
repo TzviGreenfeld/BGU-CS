@@ -4,7 +4,7 @@ import Router from "next/router";
 import UploadFile from "../components/UploadFile";
 import ThemeContext from "../context/ThemeContextProvider";
 import useUserFromToken from "../hooks/useUserFromToken";
-import { User } from "@prisma/client";
+//import { User } from "@prisma/client";
 
 const Draft: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
