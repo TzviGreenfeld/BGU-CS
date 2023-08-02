@@ -2,9 +2,8 @@ import React, { useContext, useState } from "react";
 import Layout from "../components/Layout";
 import ThemeContext from "../context/ThemeContextProvider";
 import Spinner from "../components/Spinner";
-import UploadImage from "../components/UploadImage"
+import UploadImage from "../components/UploadImage";
 import { useRouter } from "next/router";
-
 
 const Signup = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -19,7 +18,6 @@ const Signup = () => {
 
   // this state is used to force re-render when the user upload new image
   const [imageLink, setImageLink] = useState("");
-
 
   const onImageChange = async (event) => {
     event.preventDefault();
@@ -41,10 +39,11 @@ const Signup = () => {
         });
 
         const data = await response.json();
-        data.public_id ?
-          setImageLink(`https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`) :
-          alert(data.message)
-
+        data.public_id
+          ? setImageLink(
+              `https://res.cloudinary.com/dicczqmkf/image/upload/vc_auto,q_auto,w_400/${data.public_id}`
+            )
+          : alert(data.message);
       } catch (error) {
         setShowSpinner(false);
         console.log("ERROR UPLOADING IMAGE:", error);
@@ -78,93 +77,136 @@ const Signup = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
-    })
+    });
     if (response.ok) {
-      router.push('/login');
+      router.push("/login");
     } else {
-      alert("An error has occoourd, try again.")
+      alert("An error has occoourd, try again.");
     }
     setShowSpinner(false);
   };
 
   return (
     <Layout>
-      <div className="page">
-        <h1>Sign Up</h1>
+      <h1 className="flex justify-center">Sign Up</h1>
+      <div className="flex justify-center">
         <main className="signup">
-          <form>
+          <div className="mb-4">
+            <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+              <p>
+                <label
+                  htmlFor="username"
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                >
+                  username
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  onChange={(e) => onFieldChange(e, setUsername)}
+                  value={username}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                />
+              </p>
 
-            <p>
-              <label htmlFor="username">username</label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                onChange={(e) => onFieldChange(e, setUsername)}
-                value={username}
-              />
-            </p>
+              <p>
+                <label
+                  htmlFor="password"
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                >
+                  password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  onChange={(e) => onFieldChange(e, setPassword)}
+                  value={password}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                />
+              </p>
 
-            <p>
-              <label htmlFor="password">password</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                onChange={(e) => onFieldChange(e, setPassword)}
-                value={password}
-              />
-            </p>
+              <p>
+                <label
+                  fohtmlFor="email"
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                >
+                  email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  onChange={(e) => onFieldChange(e, setEmail)}
+                  value={email}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                />
+              </p>
 
-            <p>
-              <label fohtmlFor="email">email</label>
-              <input
-                type="text"
-                id="email"
-                name="email"
-                onChange={(e) => onFieldChange(e, setEmail)}
-                value={email}
-              />
-            </p>
-
-            <p>
-              <label htmlFor="name">name</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                onChange={(e) => onFieldChange(e, setName)}
-                value={name}
-              />
-            </p>
-
-            <p>
-              <label for="image">profile picture</label>
-              <input type="file" onChange={onImageChange} />
-            </p>
-
-          </form>
-          {showSpinner ? (
-            <Spinner />
-          ) : (
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={isValidFields()}
-            >
-              Register
-            </button>
-          )}
+              <p>
+                <label
+                  htmlFor="name"
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                >
+                  name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  onChange={(e) => onFieldChange(e, setName)}
+                  value={name}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                />
+              </p>
+              {isValidFields() && (
+                <p className="text-red-500 text-xs italic">
+                  {" "}
+                  All the above fields are required.{" "}
+                </p>
+              )}
+              <p>
+                <label
+                  for="image"
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                >
+                  profile picture
+                </label>
+                <input type="file" onChange={onImageChange} />
+              </p>
+            </form>
+            {showSpinner ? (
+              <Spinner />
+            ) : (
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                disabled={isValidFields()}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Register
+              </button>
+            )}
+          </div>
         </main>
         <style jsx>
           {`
             .signup {
               line-height: 2;
             }
-            form  { display: table;      }
-            p     { display: table-row;  }
-            label { display: table-cell; }
-            input { display: table-cell; }
+            form {
+              display: table;
+            }
+            p {
+              display: table-row;
+            }
+            label {
+              display: table-cell;
+            }
+            input {
+              display: table-cell;
+            }
           `}
         </style>
       </div>

@@ -81,6 +81,7 @@ const Profile: React.FC = () => {
                 style={{ display: 'none' }}
                 onChange={(event) => handleFileUpload(event)}
               />
+              
               <Image className="profilePic"
                 src={image || user.image || ""}
 
