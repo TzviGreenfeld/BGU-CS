@@ -27,6 +27,8 @@ describe("End-to-End Testing", () => {
     /// redirect to home
     cy.url().should("include", "localhost:3000/1");
 
+    cy.wait(1500); // hot fix for the redirect issue
+
     // Step 6: Navigate to "profile" page
     cy.contains("Profile").click();
     cy.url().should("include", "/profile");
