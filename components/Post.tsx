@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import Video from "./Video";
 import Image from 'next/image'
 
+
 export type PostProps = {
   id: number;
   title: string;
