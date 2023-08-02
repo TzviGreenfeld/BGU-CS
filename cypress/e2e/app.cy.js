@@ -5,6 +5,8 @@ describe("End-to-End Testing", () => {
     // wait for the redirect
     cy.url().should("include", "localhost:3000/1");
 
+    cy.wait(1500); // hot fix for the redirect issue
+
     // Step 2: Navigate to the "signup" page
     cy.contains("Sign up").click();
     cy.url().should("include", "/signup");
