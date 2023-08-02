@@ -34,11 +34,11 @@
     - [x] Wherever there's a post shown, add the profile picture of the author.
         
 - [ ] [hw4-security](https://github.com/bgu-frontend/hw4-security)
-  - [ ] Add security layers.
+  - [x] Add security layers.
   - [ ] Hosting: Move the dev projects to a public host.
   - [x] Testing: End to end testing.
     - [x] Use Cypress to write 5 tests. They can be End to End (E2E) or component tests.
-  - [ ] Optionally polishing the website using tailwind.
+  - [x] Optionally polishing the website using tailwind.
 
 
 
