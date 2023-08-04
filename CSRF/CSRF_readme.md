@@ -17,4 +17,6 @@ If this is not working, you can clone the branches [Assignment4-protected](https
 ```
    curl --cookie 'cookie={"token":"*token*"}' -X POST -H "Content-Type: application/json"  http://localhost:3000/api/post -d '{"title":"Ive Been Hacked!","content":"This post has been sent from another browser!","email":"hacked.com","id":"","link":""}'
 ```
+
+(there's also a bash script that accepts the token as command-line argument)
 7. The "I've Been Hacked" post should appear on your drafts page.
