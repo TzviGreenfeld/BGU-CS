@@ -1,3 +1,6 @@
+brfore the attack, please revert to the commit 38fe15a38669c49fca010a61ac98212a476f1a71 (the commit with message "vulnerable site")
+any commit after that one is protected.
+
 1. Sign up on our website.
 2. Log in using the user account you just created.
 3. Save the token you received in the cookies from the response after logging in.
