@@ -19,4 +19,5 @@ If this is not working, you can clone the branches [Assignment4-protected](https
 ```
 
 (there's also a bash script that accepts the token as command-line argument)
+
 7. The "I've Been Hacked" post should appear on your drafts page.
