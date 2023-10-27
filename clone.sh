@@ -1,3 +1,3 @@
-git remote add -f operating-systems-202.1.3031 https://github.com/TzviGreenfeld/xv6
+git remote add -f introduction-to-machine-learning-202.1.3101 https://github.com/TzviGreenfeld/Introduction-To-Machine-Learning
 
-git subtree add --prefix=operating-systems-202.1.3031/ operating-systems-202.1.3031 main
+git subtree add --prefix=introduction-to-machine-learning-202.1.3101/ introduction-to-machine-learning-202.1.3101 main
