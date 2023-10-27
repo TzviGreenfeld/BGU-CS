@@ -1,0 +1,10 @@
+OUTPUT FILE TEST
+Grade for output file:1.0
+
+DB FILE TEST
+Grade for hats table:1.0
+Grade for suppliers table:1.0
+Grade for orders table:1.0
+Grade for database file:1.0
+Total Grade:1.0
+Students: ['209353283', '209300581']
