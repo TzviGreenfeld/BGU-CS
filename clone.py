@@ -3,14 +3,11 @@ import subprocess
 from os.path import abspath, dirname, join
 from concurrent.futures import ThreadPoolExecutor
 
-new_name = "operating-systems-202.1.3031"
+new_name = "topics-in-unsupervised-learning-202.1.4661"
 
-repo = "https://github.com/TzviGreenfeld/xv6"
+repo = "https://github.com/TzviGreenfeld/unsupervised-learning"
 
-full_path = join(dirname(abspath(__file__)), specific_dir)
-
-if not os.path.exists(full_path):
-    os.makedirs(full_path)
+full_path = dirname(abspath(__file__))
 
 os.chdir(full_path)
 
@@ -37,7 +34,7 @@ def add_subtree(branch_name):
 
 
 def main():
-    branches_to_clone = ['main']
+    branches_to_clone = ['master']
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         for branch_name in branches_to_clone:
