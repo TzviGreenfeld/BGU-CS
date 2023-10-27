@@ -1,0 +1,19 @@
+Exp:
+    DefineExp:
+        "const varDecl" ValueToStering(val) 
+    CExp: -> ValueToString
+
+        AtomicExp: 
+            NumExp | BoolExp | StrExp |  PrimOp | VarRef -> print 
+
+        CompoundExp:
+            AppExp:
+                -> test the github options
+            IfExp :
+                -> 3 rec calss (test, then alt)
+            ProcExp :
+                -> print args, ValueToStering(body)
+            LetExp :
+                -> ValueToString(bindings.var), ValueToStering(body)
+            LitExp :
+                -> 
