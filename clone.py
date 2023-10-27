@@ -3,9 +3,9 @@ import subprocess
 from os.path import abspath, dirname, join
 from concurrent.futures import ThreadPoolExecutor
 
-specific_dir = "front-end-programming-202.1.3091"
+new_name = "operating-systems-202.1.3031"
 
-repo = "https://github.com/TzviGreenfeld/hw1-blog"
+repo = "https://github.com/TzviGreenfeld/xv6"
 
 full_path = join(dirname(abspath(__file__)), specific_dir)
 
@@ -15,7 +15,7 @@ if not os.path.exists(full_path):
 os.chdir(full_path)
 
 
-subprocess.run(["git", "remote", "add", "-f", "source_repo", repo], check=True)
+subprocess.run(["git", "remote", "add", "-f", new_name, repo], check=True)
 
 
 def add_subtree(branch_name):
@@ -26,10 +26,9 @@ def add_subtree(branch_name):
         "subtree",
         "add",
         "--prefix",
-        target_dir,
-        "source_repo",
-        branch_name,
-        "--squash"
+        f"{new_name}/{branch_name}",
+        new_name,
+        branch_name
     ]
 
     proc = subprocess.Popen(
@@ -39,12 +38,7 @@ def add_subtree(branch_name):
 
 
 def main():
-    branches_to_clone = [
-        "Assignment4-vulnerable",
-        "Assignment4-protected",
-        "Assignment2",
-        "Assignment3"
-    ]
+    branches_to_clone = ['main']
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         for branch_name in branches_to_clone:
@@ -53,3 +47,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# git remote add -f operating-systems-202.1.3031 https://github.com/TzviGreenfeld/xv6
+
+# git subtree add --prefix=operating-systems-202.1.3031/ operating-systems-202.1.3031 main
