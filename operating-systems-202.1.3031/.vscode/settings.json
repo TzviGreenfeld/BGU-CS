@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "types.h": "c",
+        "riscv.h": "c",
+        "defs.h": "c",
+        "new": "c",
+        "type_traits": "c",
+        "limits": "c",
+        "user.h": "c",
+        "cfs_utils.h": "c",
+        "fcntl.h": "c",
+        "spinlock.h": "c"
+    },
+}
